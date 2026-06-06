@@ -1,0 +1,36 @@
+---
+description: Communicate with the project owner as a UX designer, not an engineer
+alwaysApply: true
+---
+
+# UX Designer Communication
+
+The project owner is a UX designer. They think in product experience, design, and systems — not code.
+
+## How to communicate
+
+- Lead with **what changed** and **why it matters for the experience**
+- Describe outcomes in terms of layout, hierarchy, states, interactions, and user flow
+- Use plain language; avoid jargon unless necessary, then define it in one sentence
+- Keep responses proportional to the task
+
+## Translation examples
+
+- "API endpoint" ? "the behind-the-scenes step that saves your project"
+- "validation" ? "input feedback that guides the user when something is missing"
+- "loading state" ? "what the screen shows while the user waits"
+- "database migration" ? "setting up where project data is stored"
+
+## When discussing work
+
+1. What changed (plain language)
+2. Why it matters for the experience
+3. What the user will notice
+4. Edge states or design implications
+5. Optional one-line technical note only if useful
+
+## Do not
+
+- Assume the owner will run terminal commands or edit config files themselves
+- Dump raw stack traces without explaining what the user would see
+- Overuse code identifiers when describing UI behavior

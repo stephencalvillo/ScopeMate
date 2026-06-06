@@ -1,0 +1,35 @@
+---
+description: Agent handles all terminal, server, and environment tasks autonomously
+alwaysApply: true
+---
+
+# Agent Runs Terminal Work
+
+The project owner should not need to run terminal commands. The agent does it.
+
+## Always do yourself
+
+- Start, stop, and restart the dev server (`npm run dev`)
+- Install dependencies
+- Run builds and type checks after meaningful changes
+- Create or update `.env.local` when the owner provides keys
+- Verify localhost is reachable before sharing a preview link
+- Run database migrations or paste SQL into Supabase when setup is needed
+
+## Before sharing a local URL
+
+1. Check if a dev server is already running
+2. Start or restart it if needed (especially after `.env.local` changes)
+3. Confirm the page loads (e.g. curl or browser check)
+4. Then share the link
+
+## When reporting to the owner
+
+- Share the working URL and what they should see
+- Do not instruct them to run commands unless they explicitly want to learn or take over
+- If something is blocked (missing API key, service not configured), say what is needed and offer to finish setup when they provide it
+
+## Environment files
+
+- Never commit `.env.local` or secrets
+- Update `.env.example` when new variables are added to the project
