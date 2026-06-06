@@ -1,7 +1,7 @@
 import { getEmailFrom, sendResendEmail } from "@/lib/email/client";
 import {
+  buildProjectReviewDetailUrl,
   buildProjectTabUrl,
-  buildProjectUrl,
   buildReviewUrl,
 } from "@/lib/contractor/urls";
 
@@ -86,7 +86,10 @@ export async function sendReviewCompleteEmail({
   contractorName,
   projectTitle,
   projectId,
+  invitationId,
   suggestionCount,
+  proposalMinTotal,
+  proposalMaxTotal,
   request,
 }: {
   to: string;
@@ -94,14 +97,71 @@ export async function sendReviewCompleteEmail({
   contractorName: string;
   projectTitle: string;
   projectId: string;
+  invitationId: string;
   suggestionCount: number;
+  proposalMinTotal?: number | null;
+  proposalMaxTotal?: number | null;
   request?: Request;
 }) {
-  const projectUrl = buildProjectTabUrl(projectId, "needs-attention", request);
+  const needsAttentionUrl = buildProjectTabUrl(
+    projectId,
+    "needs-attention",
+    request
+  );
+  const reviewDetailUrl = buildProjectReviewDetailUrl(
+    projectId,
+    invitationId,
+    request
+  );
+  const reviewedScopesUrl = buildProjectTabUrl(
+    projectId,
+    "reviewed-scopes",
+    request
+  );
   const countLabel =
     suggestionCount === 1
       ? "1 suggestion"
       : `${suggestionCount} suggestions`;
+  const proposalLabel =
+    proposalMinTotal != null &&
+    proposalMaxTotal != null &&
+    (proposalMinTotal > 0 || proposalMaxTotal > 0)
+      ? formatProposalRangeForEmail(proposalMinTotal, proposalMaxTotal)
+      : null;
+
+  const summaryParts: string[] = [];
+  if (suggestionCount > 0 && proposalLabel) {
+    summaryParts.push(
+      `They submitted ${escapeHtml(countLabel)} and a proposal of ${escapeHtml(proposalLabel)}.`
+    );
+  } else if (suggestionCount > 0) {
+    summaryParts.push(
+      `They submitted ${escapeHtml(countLabel)} for you to review.`
+    );
+  } else if (proposalLabel) {
+    summaryParts.push(
+      `They submitted a proposal of ${escapeHtml(proposalLabel)}.`
+    );
+  } else {
+    summaryParts.push("They left feedback for you to review.");
+  }
+
+  const actionLinks: string[] = [];
+  if (suggestionCount > 0) {
+    actionLinks.push(
+      `<p><a href="${needsAttentionUrl}">Review contractor suggestions</a></p>`
+    );
+  }
+  if (proposalLabel) {
+    actionLinks.push(
+      `<p><a href="${reviewDetailUrl}">View submitted proposal</a></p>`
+    );
+  }
+  if (actionLinks.length === 0) {
+    actionLinks.push(
+      `<p><a href="${reviewedScopesUrl}">Open reviewed scopes</a></p>`
+    );
+  }
 
   await sendResendEmail({
     from: getEmailFrom(),
@@ -110,10 +170,29 @@ export async function sendReviewCompleteEmail({
     html: `
       <p>Hi ${escapeHtml(homeownerName)},</p>
       <p><strong>${escapeHtml(contractorName)}</strong> marked their review complete for <strong>${escapeHtml(projectTitle)}</strong>.</p>
-      <p>They submitted ${escapeHtml(countLabel)} for you to review.</p>
-      <p><a href="${projectUrl}">Review contractor suggestions</a></p>
+      <p>${summaryParts.join(" ")}</p>
+      ${actionLinks.join("\n      ")}
     `,
   });
+}
+
+function formatProposalRangeForEmail(minTotal: number, maxTotal: number) {
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+
+  if (minTotal <= 0 && maxTotal <= 0) {
+    return "";
+  }
+
+  if (minTotal === maxTotal) {
+    return formatter.format(maxTotal);
+  }
+
+  return `${formatter.format(minTotal)} – ${formatter.format(maxTotal)}`;
 }
 
 export async function sendFollowUpRequestedEmail({

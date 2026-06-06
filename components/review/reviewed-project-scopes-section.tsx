@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { Badge } from "@/components/ui/badge";
+import { ProposalComparisonSection } from "@/components/review/proposal-comparison-section";
 import {
   formatReviewDate,
   formatReviewedScopeHeadline,
@@ -169,24 +170,36 @@ export function ReviewedProjectScopesSection({
     </div>
   );
 
+  const comparison = (
+    <ProposalComparisonSection
+      projectId={projectId}
+      scopes={scopes}
+      embedded={embedded}
+    />
+  );
+
   if (embedded) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-8">
         <p className="text-sm text-[var(--muted)]">
           Each contractor who opens your review link gets their own reviewed
           scope and feedback thread.
         </p>
+        {comparison}
         {list}
       </div>
     );
   }
 
   return (
-    <PageSection
-      title="Reviewed project scopes"
-      description="Each contractor who opens your review link gets their own reviewed scope and feedback thread."
-    >
-      {list}
-    </PageSection>
+    <>
+      {comparison}
+      <PageSection
+        title="Reviewed project scopes"
+        description="Each contractor who opens your review link gets their own reviewed scope and feedback thread."
+      >
+        {list}
+      </PageSection>
+    </>
   );
 }

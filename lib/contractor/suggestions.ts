@@ -8,7 +8,8 @@ import {
   sendReviewCompleteEmail,
 } from "@/lib/email/send-contractor-emails";
 import { findMatchingSuggestions } from "@/lib/suggestions/matching";
-import { submitDraftEstimateIfPresent, getEstimateForReview } from "@/lib/estimates/estimates";
+import { submitDraftEstimateIfPresent, getEstimateForReview, getSubmittedEstimateForInvitation } from "@/lib/estimates/estimates";
+import { proposalRangeFromLineItems } from "@/lib/estimates/money";
 import type {
   ContractorInvitation,
   ContractorReview,
@@ -327,10 +328,12 @@ export async function completeContractorReview({
   token,
   homeowner,
   project,
+  request,
 }: {
   token: string;
   homeowner: User;
   project: Project;
+  request?: Request;
 }) {
   const invitation = await getInvitationByToken(token);
   const review = await getReviewForInvitation(invitation.id);
@@ -372,6 +375,17 @@ export async function completeContractorReview({
 
   await submitDraftEstimateIfPresent(review);
 
+  const submittedEstimate = await getSubmittedEstimateForInvitation({
+    projectId: project.id,
+    invitationId: invitation.id,
+  });
+  const proposalRange = submittedEstimate?.line_items
+    ? proposalRangeFromLineItems(submittedEstimate.line_items)
+    : null;
+  const hasProposalRange =
+    proposalRange != null &&
+    (proposalRange.minTotal > 0 || proposalRange.maxTotal > 0);
+
   const { error: reviewError } = await supabase
     .from("contractor_reviews")
     .update({
@@ -400,7 +414,11 @@ export async function completeContractorReview({
     contractorName: invitation.contractor_name,
     projectTitle: project.title,
     projectId: project.id,
+    invitationId: invitation.id,
     suggestionCount: drafts.length,
+    proposalMinTotal: hasProposalRange ? proposalRange!.minTotal : null,
+    proposalMaxTotal: hasProposalRange ? proposalRange!.maxTotal : null,
+    request,
   });
 
   return { submitted_count: drafts.length };

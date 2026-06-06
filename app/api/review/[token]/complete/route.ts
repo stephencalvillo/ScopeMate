@@ -7,7 +7,7 @@ import {
 } from "@/lib/contractor/suggestions";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ token: string }> }
 ) {
   try {
@@ -18,6 +18,7 @@ export async function POST(
       token,
       homeowner,
       project,
+      request,
     });
 
     return NextResponse.json(result);

@@ -6,20 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { projectTypes } from "@/lib/marketing/copy";
 
 const STORAGE_KEY = "scopemate-homeowner-signup";
 
 export function HomeownerSignupForm() {
   const router = useRouter();
-  const [projectType, setProjectType] = useState("");
   const [loading, setLoading] = useState(false);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -30,7 +21,6 @@ export function HomeownerSignupForm() {
     const data = {
       name: String(formData.get("name") ?? "").trim(),
       email: String(formData.get("email") ?? "").trim(),
-      projectType,
       projectDescription: String(
         formData.get("project_description") ?? ""
       ).trim(),
@@ -60,22 +50,6 @@ export function HomeownerSignupForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="project_type">Project type</Label>
-        <Select value={projectType} onValueChange={setProjectType} required>
-          <SelectTrigger id="project_type">
-            <SelectValue placeholder="Select a project type" />
-          </SelectTrigger>
-          <SelectContent>
-            {projectTypes.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
         <Label htmlFor="project_description">Project description</Label>
         <Textarea
           id="project_description"
@@ -85,7 +59,7 @@ export function HomeownerSignupForm() {
         />
       </div>
 
-      <Button type="submit" size="lg" disabled={loading || !projectType}>
+      <Button type="submit" size="lg" disabled={loading}>
         {loading ? "Continuing..." : "Continue to create account"}
       </Button>
     </form>

@@ -57,3 +57,11 @@ export function buildProjectTabUrl(
 ) {
   return `${buildProjectUrl(projectId, request)}?tab=${tab}`;
 }
+
+export function buildProjectReviewDetailUrl(
+  projectId: string,
+  invitationId: string,
+  request?: Request
+) {
+  return `${buildProjectUrl(projectId, request)}/reviews/${invitationId}`;
+}

@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { Check, Loader2, MessageSquare, X } from "lucide-react";
+import { EstimateRangeHeader } from "@/components/estimate/estimate-range-inputs";
+import { SubmittedScopeEstimateRange } from "@/components/estimate/submitted-scope-estimate-range";
 import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
 import { ScopeItemContent } from "@/components/scope/scope-item-content";
 import { ScopeItemShell } from "@/components/scope/scope-item-shell";
 import { ScopeSummary } from "@/components/scope/scope-summary";
-import { SectionSurface } from "@/components/layout/page-section";
+import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -14,8 +16,11 @@ import {
   compareScopeCategories,
 } from "@/lib/scope/group-by-category";
 import { snapshotItemToScopeItem } from "@/lib/contractor/review-scope-snapshot";
+import { buildSubmittedEstimateDisplay } from "@/lib/estimates/submitted-estimate-display";
+import type { SubmittedEstimateDisplay } from "@/lib/estimates/submitted-estimate-display";
 import { cn } from "@/lib/utils";
 import type {
+  ContractorEstimate,
   ReviewScopeSnapshot,
   ReviewScopeSnapshotSuggestion,
   ScopeItem,
@@ -110,37 +115,38 @@ function addSuggestionsForCategory(
 function ScopeViewSegmentedControl({
   value,
   onChange,
+  contractorName,
 }: {
   value: ScopeView;
   onChange: (value: ScopeView) => void;
+  contractorName: string;
 }) {
+  const fromContractorLabel = `From ${contractorName.trim().split(/\s+/)[0] || contractorName}`;
+
   return (
     <div
-      className="inline-flex rounded-[8px] border border-[var(--border)] bg-white p-1"
+      className="inline-flex rounded-[4px] border border-[var(--border)] bg-white p-0.5"
       role="tablist"
       aria-label="Scope view"
     >
       {(
         [
-          { id: "submitted" as const, label: "As submitted" },
-          { id: "current" as const, label: "Current scope" },
+          { id: "submitted" as const, label: fromContractorLabel },
+          { id: "current" as const, label: "Original" },
         ] as const
       ).map((option) => (
-        <button
+        <Button
           key={option.id}
           type="button"
           role="tab"
           aria-selected={value === option.id}
+          size="sm"
+          variant={value === option.id ? "secondary" : "ghost"}
+          className="h-8 px-2.5 text-xs"
           onClick={() => onChange(option.id)}
-          className={cn(
-            "rounded-[6px] px-3 py-1.5 text-sm font-medium transition-colors",
-            value === option.id
-              ? "bg-neutral-900 text-white"
-              : "text-[var(--muted)] hover:text-neutral-900"
-          )}
         >
           {option.label}
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -414,8 +420,16 @@ function InlineSnapshotSuggestion({
   );
 }
 
-function CurrentScopeList({ items }: { items: ScopeItem[] }) {
+function CurrentScopeList({
+  items,
+  estimateDisplay,
+}: {
+  items: ScopeItem[];
+  estimateDisplay?: SubmittedEstimateDisplay | null;
+}) {
   const groups = useMemo(() => groupScopeItemsByCategory(items), [items]);
+  const usesItemPricing = estimateDisplay?.pricingMode === "item";
+  const usesSectionPricing = estimateDisplay?.pricingMode === "section";
 
   if (groups.length === 0) {
     return (
@@ -427,19 +441,60 @@ function CurrentScopeList({ items }: { items: ScopeItem[] }) {
 
   return (
     <div className="space-y-3">
-      {groups.map((group) => (
-        <ScopeCategoryGroup
-          key={group.category}
-          category={group.category}
-          itemCount={group.items.length}
-        >
-          {group.items.map((item) => (
-            <ScopeItemShell key={item.id}>
-              <ScopeItemContent item={item} />
-            </ScopeItemShell>
-          ))}
-        </ScopeCategoryGroup>
-      ))}
+      {estimateDisplay && usesItemPricing ? (
+        <EstimateRangeHeader className="hidden md:flex" />
+      ) : null}
+      {groups.map((group) => {
+        const sectionRange = estimateDisplay?.sectionRanges.get(group.category);
+
+        return (
+          <ScopeCategoryGroup
+            key={group.category}
+            category={group.category}
+            itemCount={group.items.length}
+            chevronAfterAside={usesSectionPricing && Boolean(sectionRange)}
+            headerAside={
+              usesSectionPricing && sectionRange ? (
+                <SubmittedScopeEstimateRange
+                  laborCost={sectionRange.labor_cost}
+                  materialCost={sectionRange.material_cost}
+                />
+              ) : null
+            }
+          >
+            {group.items.map((item) => {
+              const itemRange = estimateDisplay?.scopeItemRanges.get(item.id);
+
+              return (
+                <div
+                  key={item.id}
+                  className={cn(
+                    "flex items-center justify-between gap-3",
+                    usesItemPricing &&
+                      "md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,15rem)] md:items-center"
+                  )}
+                >
+                  <ScopeItemShell
+                    className={
+                      usesItemPricing
+                        ? "min-w-0 flex-1 md:flex md:min-h-11 md:w-full md:items-center"
+                        : "w-full"
+                    }
+                  >
+                    <ScopeItemContent item={item} />
+                  </ScopeItemShell>
+                  {usesItemPricing && itemRange ? (
+                    <SubmittedScopeEstimateRange
+                      laborCost={itemRange.labor_cost}
+                      materialCost={itemRange.material_cost}
+                    />
+                  ) : null}
+                </div>
+              );
+            })}
+          </ScopeCategoryGroup>
+        );
+      })}
     </div>
   );
 }
@@ -449,11 +504,13 @@ function SubmittedScopeList({
   projectId,
   suggestionsById,
   onUpdated,
+  estimateDisplay,
 }: {
   snapshot: ReviewScopeSnapshot;
   projectId: string;
   suggestionsById: Map<string, ScopeSuggestionWithMeta>;
   onUpdated: () => void;
+  estimateDisplay?: SubmittedEstimateDisplay | null;
 }) {
   const items = useMemo(
     () =>
@@ -483,6 +540,9 @@ function SubmittedScopeList({
     );
   }, [items, snapshot.suggestions]);
 
+  const usesItemPricing = estimateDisplay?.pricingMode === "item";
+  const usesSectionPricing = estimateDisplay?.pricingMode === "section";
+
   if (groups.length === 0) {
     return (
       <p className="text-sm text-[var(--muted)]">
@@ -493,29 +553,63 @@ function SubmittedScopeList({
 
   return (
     <div className="space-y-3">
+      {estimateDisplay && usesItemPricing ? (
+        <EstimateRangeHeader className="hidden md:flex" />
+      ) : null}
       {groups.map((group) => {
         const addSuggestions = addSuggestionsForCategory(
           snapshot.suggestions,
           group.category
         );
+        const sectionRange = estimateDisplay?.sectionRanges.get(group.category);
 
         return (
           <ScopeCategoryGroup
             key={group.category}
             category={group.category}
             itemCount={group.items.length + addSuggestions.length}
+            chevronAfterAside={usesSectionPricing && Boolean(sectionRange)}
+            headerAside={
+              usesSectionPricing && sectionRange ? (
+                <SubmittedScopeEstimateRange
+                  laborCost={sectionRange.labor_cost}
+                  materialCost={sectionRange.material_cost}
+                />
+              ) : null
+            }
           >
             {group.items.map((item) => {
               const editSuggestion = editSuggestionForItem(
                 snapshot.suggestions,
                 item.id
               );
+              const itemRange = estimateDisplay?.scopeItemRanges.get(item.id);
 
               return (
                 <div key={item.id} className="space-y-2">
-                  <ScopeItemShell>
-                    <ScopeItemContent item={item} showAttribution={false} />
-                  </ScopeItemShell>
+                  <div
+                    className={cn(
+                      "flex items-center justify-between gap-3",
+                      usesItemPricing &&
+                        "md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,15rem)] md:items-center"
+                    )}
+                  >
+                    <ScopeItemShell
+                      className={
+                        usesItemPricing
+                          ? "min-w-0 flex-1 md:flex md:min-h-11 md:w-full md:items-center"
+                          : "w-full"
+                      }
+                    >
+                      <ScopeItemContent item={item} showAttribution={false} />
+                    </ScopeItemShell>
+                    {usesItemPricing && itemRange ? (
+                      <SubmittedScopeEstimateRange
+                        laborCost={itemRange.labor_cost}
+                        materialCost={itemRange.material_cost}
+                      />
+                    ) : null}
+                  </div>
                   {editSuggestion ? (
                     <InlineSnapshotSuggestion
                       projectId={projectId}
@@ -550,7 +644,9 @@ export function ReviewedScopeSnapshotView({
   currentSummary,
   currentItems,
   submittedLabel,
+  contractorName,
   suggestions,
+  estimate,
   onUpdated,
 }: {
   projectId: string;
@@ -558,7 +654,9 @@ export function ReviewedScopeSnapshotView({
   currentSummary: string | null;
   currentItems: ScopeItem[];
   submittedLabel: string | null;
+  contractorName: string;
   suggestions: ScopeSuggestionWithMeta[];
+  estimate?: ContractorEstimate | null;
   onUpdated: () => void;
 }) {
   const [view, setView] = useState<ScopeView>("submitted");
@@ -566,6 +664,38 @@ export function ReviewedScopeSnapshotView({
   const suggestionsById = useMemo(
     () => new Map(suggestions.map((suggestion) => [suggestion.id, suggestion])),
     [suggestions]
+  );
+
+  const snapshotItems = useMemo(
+    () =>
+      snapshot
+        ? snapshot.scope_items.map((item) =>
+            snapshotItemToScopeItem(item, projectId, snapshot.captured_at)
+          )
+        : [],
+    [projectId, snapshot]
+  );
+
+  const submittedEstimateDisplay = useMemo(
+    () =>
+      estimate?.line_items
+        ? buildSubmittedEstimateDisplay({
+            scopeItems: snapshotItems,
+            lineItems: estimate.line_items,
+          })
+        : null,
+    [estimate?.line_items, snapshotItems]
+  );
+
+  const currentEstimateDisplay = useMemo(
+    () =>
+      estimate?.line_items
+        ? buildSubmittedEstimateDisplay({
+            scopeItems: currentItems,
+            lineItems: estimate.line_items,
+          })
+        : null,
+    [currentItems, estimate?.line_items]
   );
 
   const capturedLabel = snapshot
@@ -584,39 +714,49 @@ export function ReviewedScopeSnapshotView({
       : "Your current project scope for comparison.";
 
   return (
-    <section className="space-y-6">
-      {snapshot ? (
-        <div className="space-y-3">
-          <ScopeViewSegmentedControl value={view} onChange={setView} />
-          <p className="text-sm text-[var(--muted)]">{description}</p>
-        </div>
-      ) : null}
+    <PageSection title="Project scope">
+      <div className="space-y-6">
+        {snapshot ? (
+          <div className="space-y-3">
+            <ScopeViewSegmentedControl
+              value={view}
+              onChange={setView}
+              contractorName={contractorName}
+            />
+            <p className="text-sm text-[var(--muted)]">{description}</p>
+          </div>
+        ) : null}
 
-      {!snapshot ? (
-        <SectionSurface>
-          <p className="text-sm text-neutral-800">
-            No scope snapshot was saved for this review. Use the suggestions
-            below to see what this contractor proposed.
-          </p>
-        </SectionSurface>
-      ) : view === "submitted" ? (
-        <div className="space-y-6">
-          {snapshot.ai_summary ? (
-            <ScopeSummary summary={snapshot.ai_summary} />
-          ) : null}
-          <SubmittedScopeList
-            snapshot={snapshot}
-            projectId={projectId}
-            suggestionsById={suggestionsById}
-            onUpdated={onUpdated}
-          />
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {currentSummary ? <ScopeSummary summary={currentSummary} /> : null}
-          <CurrentScopeList items={currentItems} />
-        </div>
-      )}
-    </section>
+        {!snapshot ? (
+          <SectionSurface>
+            <p className="text-sm text-neutral-800">
+              No scope snapshot was saved for this review. Use the suggestions
+              below to see what this contractor proposed.
+            </p>
+          </SectionSurface>
+        ) : view === "submitted" ? (
+          <div className="space-y-6">
+            {snapshot.ai_summary ? (
+              <ScopeSummary summary={snapshot.ai_summary} />
+            ) : null}
+            <SubmittedScopeList
+              snapshot={snapshot}
+              projectId={projectId}
+              suggestionsById={suggestionsById}
+              onUpdated={onUpdated}
+              estimateDisplay={submittedEstimateDisplay}
+            />
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {currentSummary ? <ScopeSummary summary={currentSummary} /> : null}
+            <CurrentScopeList
+              items={currentItems}
+              estimateDisplay={currentEstimateDisplay}
+            />
+          </div>
+        )}
+      </div>
+    </PageSection>
   );
 }

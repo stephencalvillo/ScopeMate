@@ -67,7 +67,7 @@ export function EstimateRangeInputs({
       return (
         <span
           className={cn(
-            "flex h-11 items-center self-start text-sm text-[var(--muted)]",
+            "flex h-11 items-center justify-end self-start text-sm text-[var(--muted)]",
             className
           )}
         >
@@ -79,7 +79,7 @@ export function EstimateRangeInputs({
     return (
       <div
         className={cn(
-          "flex h-11 items-center gap-2 self-start text-sm text-neutral-800",
+          "flex h-11 items-center justify-end gap-2 self-start text-sm text-neutral-800",
           className
         )}
       >
@@ -114,12 +114,16 @@ export function EstimateRangeInputs({
 
 export function EstimateRangeHeader({ className }: { className?: string }) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <span className="min-w-0 flex-1 text-xs font-medium text-[var(--muted)]">
+    <div
+      className={cn(
+        "grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,15rem)]",
+        className
+      )}
+    >
+      <span aria-hidden />
+      <span className="text-right text-xs font-medium text-[var(--muted)]">
         Range
       </span>
-      <span className="w-4 shrink-0" aria-hidden />
-      <span className="min-w-0 flex-1" aria-hidden />
     </div>
   );
 }

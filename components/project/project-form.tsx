@@ -23,11 +23,10 @@ export function ProjectForm() {
 
     try {
       const data = JSON.parse(raw) as {
-        projectType?: string;
         projectDescription?: string;
       };
       setPrefill({
-        title: data.projectType ?? "",
+        title: "",
         description: data.projectDescription ?? "",
       });
       sessionStorage.removeItem(HOMEOWNER_SIGNUP_STORAGE_KEY);

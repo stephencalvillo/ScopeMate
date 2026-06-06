@@ -63,13 +63,13 @@ Optional project-wide finish level via follow-up question — not quotes.
 
 ---
 
-## Phase 5 - Estimate Builder *(in progress)*
+## Phase 5 - Estimate Builder *(complete)*
 
 **Plan:** [`PHASE_5_PLAN.md`](./PHASE_5_PLAN.md)
 
 Contractors generate draft estimates from scope, edit line items, and submit proposals with a project total.
 
-**Shipped so far:** Estimate editor on contractor review, AI draft generation, homeowner view of submitted proposals.
+**Shipped:** Inline estimate editor on contractor review, AI draft prefill by location, homeowner proposal view, proposal-aware review-complete email, compare proposals on reviewed scopes tab.
 
 ---
 

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { SubmittedEstimateView } from "@/components/estimate/submitted-estimate-view";
+import { ProjectEstimateSummary } from "@/components/estimate/submitted-estimate-view";
 import { ReviewedScopeSnapshotView } from "@/components/review/reviewed-scope-snapshot-view";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import {
   formatReviewedScopeHeadline,
   isReviewSubmitted,
 } from "@/lib/contractor/review-display";
+import { displayContractorName } from "@/lib/contractor/display-contractor";
 import { parseReviewScopeSnapshot } from "@/lib/contractor/review-scope-snapshot";
 import type { ReviewedScopeSummary } from "@/lib/contractor/reviewed-scopes";
 import { SHARE_LINK_PLACEHOLDER_EMAIL } from "@/lib/contractor/project-share";
@@ -40,9 +41,13 @@ export function ReviewedScopeDetail({
   const { invitation } = scope;
   const submitted = isReviewSubmitted(invitation);
   const submittedLabel = formatReviewDate(invitation.review?.submitted_at);
+  const hasProposal =
+    estimate != null && (estimate.line_items?.length ?? 0) > 0;
   const metaParts = [
     submitted ? submittedLabel : null,
-    scope.proposal_min_total != null && scope.proposal_max_total != null
+    !hasProposal &&
+    scope.proposal_min_total != null &&
+    scope.proposal_max_total != null
       ? `Proposal ${formatProposalRange(scope.proposal_min_total, scope.proposal_max_total)}`
       : null,
     scope.total_suggestion_count > 0
@@ -95,6 +100,20 @@ export function ReviewedScopeDetail({
         </div>
       </div>
 
+      {estimate ? <ProjectEstimateSummary estimate={estimate} /> : null}
+
+      <ReviewedScopeSnapshotView
+        projectId={projectId}
+        snapshot={scopeSnapshot}
+        currentSummary={currentSummary}
+        currentItems={currentScopeItems}
+        submittedLabel={submittedLabel}
+        contractorName={displayContractorName(invitation)}
+        suggestions={suggestions}
+        estimate={estimate}
+        onUpdated={() => router.refresh()}
+      />
+
       {invitation.review?.notes ? (
         <PageSection title="General notes">
           <SectionSurface>
@@ -104,18 +123,6 @@ export function ReviewedScopeDetail({
           </SectionSurface>
         </PageSection>
       ) : null}
-
-      {estimate ? <SubmittedEstimateView estimate={estimate} /> : null}
-
-      <ReviewedScopeSnapshotView
-        projectId={projectId}
-        snapshot={scopeSnapshot}
-        currentSummary={currentSummary}
-        currentItems={currentScopeItems}
-        submittedLabel={submittedLabel}
-        suggestions={suggestions}
-        onUpdated={() => router.refresh()}
-      />
     </div>
   );
 }

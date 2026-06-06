@@ -2,7 +2,7 @@
 
 ## Estimate Builder
 
-**Status:** In progress — migration, API, contractor editor, and homeowner proposal view shipped as kickoff.
+**Status:** Complete.
 
 **Depends on:** Phase 4 complete.
 
@@ -28,7 +28,7 @@ Once scope is clear, contractors need to respond with **real numbers**. Phase 5 
 
 ---
 
-## Shipped (Phase 5 kickoff)
+## Shipped
 
 | Item | Status |
 | ---- | ------ |
@@ -36,19 +36,31 @@ Once scope is clear, contractors need to respond with **real numbers**. Phase 5 
 | API — contractor GET/PUT/generate/submit on review token | Done |
 | API — homeowner read submitted proposal | Done |
 | AI draft generation from scope (`estimate-v1` prompt) | Done |
-| Contractor estimate editor on review page | Done |
+| Contractor inline estimate editor on review page | Done |
+| Auto-prefill draft ranges by project location | Done |
 | Homeowner submitted proposal on reviewed scope detail | Done |
+| Proposal-aware review-complete email to homeowner | Done |
+| Compare multiple contractor proposals (reviewed scopes tab) | Done |
 
 ---
 
-## Next up
+## Test plan
 
-| Step | Task |
-| ---- | ---- |
-| 1 | Apply migration `011` in prod |
-| 2 | Email homeowner when proposal is submitted |
-| 3 | Compare multiple contractor proposals side by side |
-| 4 | Phase 5 test plan + mark complete in ROADMAP |
+- [ ] Contractor opens review → draft ranges prefill → edit ranges → submit review
+- [ ] Submitted review shows proposal totals and per-item ranges on contractor page
+- [ ] Homeowner reviewed scopes list shows proposal range on contractor card
+- [ ] Homeowner review detail shows full proposal breakdown
+- [ ] Homeowner email includes proposal range when contractor submitted pricing
+- [ ] Compare proposals table appears when 2+ contractors submitted pricing
+- [ ] Homeowner never sees draft estimates before contractor submits review
+
+---
+
+## Deferred / later
+
+| Item | Notes |
+| ---- | ----- |
+| Apply migration `011` in prod | Run before enabling in production |
 
 ---
 
