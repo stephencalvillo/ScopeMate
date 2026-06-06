@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { ReviewedScopeDetail } from "@/components/review/reviewed-scope-detail";
 import { ensureUserRecord } from "@/lib/auth/clerk";
 import { getReviewedScopeDetailForProject } from "@/lib/contractor/reviewed-scopes";
+import { getSubmittedEstimateForInvitation } from "@/lib/estimates/estimates";
 import { getProjectForUser } from "@/lib/db/projects";
 
 export default async function ReviewedScopePage({
@@ -26,6 +27,11 @@ export default async function ReviewedScopePage({
     notFound();
   }
 
+  const estimate = await getSubmittedEstimateForInvitation({
+    projectId: id,
+    invitationId,
+  });
+
   return (
     <ReviewedScopeDetail
       projectId={project.id}
@@ -34,6 +40,7 @@ export default async function ReviewedScopePage({
       suggestions={detail.suggestions}
       currentSummary={project.ai_summary}
       currentScopeItems={project.scope_items}
+      estimate={estimate}
     />
   );
 }

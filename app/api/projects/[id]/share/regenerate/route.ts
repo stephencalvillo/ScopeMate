@@ -17,6 +17,7 @@ export async function POST(
     const project = await getOwnedProject(id);
     const homeowner = await ensureUserRecord();
     const supabase = createServiceClient();
+    const previousShareToken = project.share_token;
     const token = generateShareToken();
 
     const now = new Date().toISOString();
@@ -48,6 +49,7 @@ export async function POST(
       project: data,
       invitedBy: homeowner.id,
       token: data.share_token,
+      previousShareToken,
     });
 
     return NextResponse.json({

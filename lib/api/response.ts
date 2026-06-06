@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { AuthError, ForbiddenError, NotFoundError } from "@/lib/auth/clerk";
-import { EmailConfigError } from "@/lib/email/client";
+import { EmailConfigError, EmailDeliveryError } from "@/lib/email/client";
 import { ZodError } from "zod";
 
 export function jsonError(error: unknown) {
@@ -18,6 +18,10 @@ export function jsonError(error: unknown) {
 
   if (error instanceof EmailConfigError) {
     return NextResponse.json({ error: error.message }, { status: 503 });
+  }
+
+  if (error instanceof EmailDeliveryError) {
+    return NextResponse.json({ error: error.message }, { status: 502 });
   }
 
   if (error instanceof ZodError) {

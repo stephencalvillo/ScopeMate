@@ -9,7 +9,7 @@ export function scopeItemShellClassName({
   className?: string;
 } = {}) {
   return cn(
-    "rounded-[4px] bg-neutral-50 px-2 py-1 transition-colors",
+    "w-full rounded-[4px] bg-neutral-50 px-3 py-1 transition-colors",
     interactive && "group hover:bg-neutral-100",
     className
   );

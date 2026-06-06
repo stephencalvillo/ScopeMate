@@ -49,3 +49,11 @@ export function buildReviewUrl(token: string, request?: Request) {
 export function buildProjectUrl(projectId: string, request?: Request) {
   return `${getAppBaseUrl(request)}/projects/${projectId}`;
 }
+
+export function buildProjectTabUrl(
+  projectId: string,
+  tab: string,
+  request?: Request
+) {
+  return `${buildProjectUrl(projectId, request)}?tab=${tab}`;
+}

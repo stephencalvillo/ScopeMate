@@ -15,18 +15,28 @@ ScopeMate helps homeowners define construction projects clearly and share contra
 - Smart follow-up questions
 - Share page with scope, summary, photos
 
-## Phase 3 *(in progress)*
+## Phase 3 *(complete)*
 
 - Unified contractor review link (copy or email)
-- Contractor suggestions + homeowner accept/reject/follow-up
-- Activity tracking
+- Project tabs: overview, reviewed scopes, needs attention, activity
+- Contractor suggestions with accept / reject / follow-up
+- Review scope snapshots and cross-review auto-resolve
 
-See [`PHASE_3_PUNCH_LIST.md`](./PHASE_3_PUNCH_LIST.md) for ship checklist.
+## Phase 4 *(complete)*
+
+- Finish-level planning via follow-up question (Builder grade / Elevated / High-end)
+
+## Phase 5 *(in progress)*
+
+- Contractor draft estimates with line items and project total
+- Submit proposal; homeowner sees submitted proposals on reviewed scopes
+
+See [`PHASE_5_PLAN.md`](./PHASE_5_PLAN.md) for the full plan.
 
 ## Quick start
 
 1. Copy `.env.example` to `.env.local` and fill in your keys.
-2. Run the SQL migration in `supabase/migrations/001_phase1_initial.sql`.
+2. Run SQL migrations in `supabase/migrations/` through `003_phase2_completeness_photos.sql` (and later Phase 3 migrations as needed).
 3. Install dependencies:
 
 ```bash
@@ -47,7 +57,8 @@ npm run dev
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
 - [ROADMAP.md](./ROADMAP.md)
 - [SECURITY.md](./SECURITY.md)
-- [PHASE_2_PLAN.md](./PHASE_2_PLAN.md) — Quote improvement checklist + photos (no completeness score)
+- [PHASE_3_PUNCH_LIST.md](./PHASE_3_PUNCH_LIST.md)
+- [PHASE_4_PLAN.md](./PHASE_4_PLAN.md)
 
 ## External services
 
@@ -56,4 +67,5 @@ npm run dev
 | Clerk | Homeowner authentication |
 | Supabase | Database |
 | OpenAI | AI scope generation |
+| Resend | Transactional email |
 | Vercel | Hosting (optional) |

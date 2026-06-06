@@ -56,6 +56,7 @@ export async function createEmailReviewInvitation({
     projectTitle: project.title,
     reviewToken: token,
     expiresAt,
+    request,
   });
 
   return {

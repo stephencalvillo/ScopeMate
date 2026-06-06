@@ -12,6 +12,10 @@ import {
   isOtherChoice,
 } from "@/lib/follow-up/constants";
 import { formatFollowUpAnswer } from "@/lib/follow-up/format-answer";
+import {
+  FINISH_LEVEL_PLANNING_NOTE,
+  isFinishLevelMaterialsQuestion,
+} from "@/lib/follow-up/finish-level";
 import { answerFollowUpQuestion } from "@/lib/phase2/client";
 import type { FollowUpQuestion } from "@/types";
 
@@ -49,8 +53,12 @@ export function FollowUpQuestionCard({
       return [];
     }
 
+    if (isFinishLevelMaterialsQuestion(question)) {
+      return question.choices;
+    }
+
     return withOtherChoice(question.choices);
-  }, [question.choices, question.question_type]);
+  }, [question.choices, question.question_type, question.category, question.question]);
 
   async function saveAnswer(answer: string) {
     setSaving(true);
@@ -92,6 +100,9 @@ export function FollowUpQuestionCard({
     <SectionSurface className="space-y-4">
       <div className="space-y-1">
         <p className="text-sm font-medium text-neutral-900">{question.question}</p>
+        {isPending && isFinishLevelMaterialsQuestion(question) ? (
+          <p className="text-sm text-[var(--muted)]">{FINISH_LEVEL_PLANNING_NOTE}</p>
+        ) : null}
         {isAnswered && question.answer ? (
           <p className="text-sm text-[var(--muted)]">
             Your answer: {formatFollowUpAnswer(question, projectType)}

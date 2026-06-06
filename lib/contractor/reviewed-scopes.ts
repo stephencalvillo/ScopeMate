@@ -3,6 +3,7 @@ import { displayContractorName } from "@/lib/contractor/display-contractor";
 import { isShareLinkPlaceholder } from "@/lib/contractor/project-share";
 import { listHomeownerSuggestionsForInvitation } from "@/lib/contractor/suggestions";
 import { createServiceClient } from "@/lib/db/supabase";
+import { proposalRangeFromLineItems } from "@/lib/estimates/money";
 import type { ContractorInvitationWithReview } from "@/types";
 
 import type { ScopeSuggestionWithMeta } from "@/types";
@@ -11,6 +12,9 @@ export type ReviewedScopeSummary = {
   invitation: ContractorInvitationWithReview;
   pending_suggestion_count: number;
   total_suggestion_count: number;
+  proposal_min_total: number | null;
+  proposal_max_total: number | null;
+  general_notes: string | null;
 };
 
 export type ReviewedScopeDetail = ReviewedScopeSummary & {
@@ -70,6 +74,28 @@ export async function listReviewedScopesForProject(
 
   if (error) throw error;
 
+  const { data: estimates, error: estimatesError } = await supabase
+    .from("contractor_estimates")
+    .select("invitation_id, total, estimate_line_items(labor_cost, material_cost)")
+    .eq("project_id", projectId)
+    .eq("status", "submitted")
+    .in("invitation_id", invitationIds);
+
+  if (estimatesError) throw estimatesError;
+
+  const proposalRangeByInvitation = new Map<
+    string,
+    { minTotal: number; maxTotal: number }
+  >();
+
+  for (const row of estimates ?? []) {
+    const lineItems =
+      (row as { estimate_line_items?: Array<{ labor_cost: number; material_cost: number }> })
+        .estimate_line_items ?? [];
+    const range = proposalRangeFromLineItems(lineItems);
+    proposalRangeByInvitation.set(row.invitation_id as string, range);
+  }
+
   const countsByInvitation = new Map<
     string,
     { pending: number; total: number }
@@ -92,11 +118,15 @@ export async function listReviewedScopesForProject(
       pending: 0,
       total: 0,
     };
+    const proposalRange = proposalRangeByInvitation.get(invitation.id);
 
     return {
       invitation,
       pending_suggestion_count: counts.pending,
       total_suggestion_count: counts.total,
+      proposal_min_total: proposalRange?.minTotal ?? null,
+      proposal_max_total: proposalRange?.maxTotal ?? null,
+      general_notes: invitation.review?.notes?.trim() || null,
     };
   });
 }

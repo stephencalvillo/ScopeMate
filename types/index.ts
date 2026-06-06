@@ -8,6 +8,34 @@ export type ScopeItemPriority = "required" | "recommended" | "optional";
 
 export type ScopeItemStatus = "active" | "removed";
 
+export type EstimateStatus = "draft" | "submitted";
+
+export interface EstimateLineItem {
+  id: string;
+  estimate_id: string;
+  scope_item_id: string | null;
+  description: string;
+  labor_cost: number;
+  material_cost: number;
+  total: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContractorEstimate {
+  id: string;
+  project_id: string;
+  review_id: string;
+  invitation_id: string;
+  status: EstimateStatus;
+  total: number;
+  submitted_at: string | null;
+  created_at: string;
+  updated_at: string;
+  line_items?: EstimateLineItem[];
+}
+
 export interface User {
   id: string;
   email: string;

@@ -10,6 +10,10 @@ import {
   MAX_FOLLOW_UP_QUESTIONS,
 } from "@/lib/config/phase2";
 import { dedupeFollowUpQuestions } from "@/lib/follow-up/dedupe-questions";
+import {
+  buildFinishLevelMaterialsQuestion,
+  ensureFinishLevelMaterialsQuestion,
+} from "@/lib/follow-up/finish-level";
 import { createServiceClient } from "@/lib/db/supabase";
 import { isMissingTableError } from "@/lib/db/errors";
 import type {
@@ -143,16 +147,26 @@ export async function generateFollowUpQuestionsForProject(
     throw existingError;
   }
 
-  const unanswered = ((existingQuestions ?? []) as FollowUpQuestion[]).filter(
+  const normalizedExisting = (existingQuestions ?? []) as FollowUpQuestion[];
+  const withFinishLevel = await ensureFinishLevelMaterialsQuestion(
+    project.id,
+    normalizedExisting
+  );
+
+  if (withFinishLevel.length !== normalizedExisting.length) {
+    return withFinishLevel;
+  }
+
+  const unanswered = withFinishLevel.filter(
     (q) => !q.skipped && (q.answer === null || q.answer === "")
   );
 
   if (unanswered.length > 0) {
-    return (existingQuestions ?? []) as FollowUpQuestion[];
+    return withFinishLevel;
   }
 
-  if ((existingQuestions ?? []).length > 0) {
-    return existingQuestions as FollowUpQuestion[];
+  if (withFinishLevel.length > 0) {
+    return withFinishLevel;
   }
 
   const openai = getOpenAIClient();
@@ -160,7 +174,7 @@ export async function generateFollowUpQuestionsForProject(
   const userPrompt = buildFollowUpUserPrompt(
     project,
     (scopeItems ?? []) as ScopeItem[],
-    (existingQuestions ?? []) as FollowUpQuestion[]
+    withFinishLevel
   );
 
   const inputSnapshot = buildInputSnapshot({
@@ -194,8 +208,12 @@ export async function generateFollowUpQuestionsForProject(
   }
 
   const parsed = JSON.parse(content) as AiFollowUpOutput;
+  const aiQuestions = dedupeFollowUpQuestions(
+    parsed.questions.filter((question) => question.category !== "materials"),
+    Math.max(MAX_FOLLOW_UP_QUESTIONS - 1, 1)
+  );
   const questions = dedupeFollowUpQuestions(
-    parsed.questions,
+    [buildFinishLevelMaterialsQuestion(), ...aiQuestions],
     MAX_FOLLOW_UP_QUESTIONS
   );
 

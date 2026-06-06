@@ -15,7 +15,7 @@ export function PageSection({
 }) {
   return (
     <section className={cn("space-y-6", className)}>
-      <div className="flex items-center justify-between gap-6">
+      <div className="flex items-start justify-between gap-6">
         <div className="space-y-1">
           <h2 className="font-display text-2xl text-neutral-900">{title}</h2>
           {description ? (

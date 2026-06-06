@@ -5,43 +5,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { Badge } from "@/components/ui/badge";
-import { displayContractorName } from "@/lib/contractor/display-contractor";
+import {
+  formatReviewDate,
+  formatReviewedScopeHeadline,
+  isReviewSubmitted,
+} from "@/lib/contractor/review-display";
 import type { ReviewedScopeSummary } from "@/lib/contractor/reviewed-scopes";
 import { SHARE_LINK_PLACEHOLDER_EMAIL } from "@/lib/contractor/project-share";
+import { formatProposalRange } from "@/lib/estimates/money";
 import { CONTRACTOR_INVITATION_STATUS_LABELS } from "@/types";
-
-function formatReviewDate(value: string | null | undefined) {
-  if (!value) return null;
-  return new Date(value).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatReviewedScopeHeadline(
-  invitation: ReviewedScopeSummary["invitation"],
-  submitted: boolean
-) {
-  const name = displayContractorName(invitation);
-
-  if (submitted) {
-    return `${name} submitted a review`;
-  }
-
-  switch (invitation.status) {
-    case "in_review":
-      return `${name} is reviewing your scope`;
-    case "pending":
-      return `${name} opened your review link`;
-    case "revoked":
-      return `${name}'s review link was revoked`;
-    case "expired":
-      return `${name}'s review link expired`;
-    default:
-      return CONTRACTOR_INVITATION_STATUS_LABELS[invitation.status];
-  }
-}
 
 function ReviewedScopeCard({
   projectId,
@@ -51,10 +23,20 @@ function ReviewedScopeCard({
   scope: ReviewedScopeSummary;
 }) {
   const { invitation } = scope;
-  const submitted = invitation.review?.status === "submitted";
+  const submitted = isReviewSubmitted(invitation);
   const submittedLabel = formatReviewDate(invitation.review?.submitted_at);
+  const proposalLabel = formatProposalRange(
+    scope.proposal_min_total ?? 0,
+    scope.proposal_max_total ?? 0
+  );
+  const notesPreview = scope.general_notes
+    ? scope.general_notes.length > 120
+      ? `${scope.general_notes.slice(0, 120).trim()}…`
+      : scope.general_notes
+    : null;
   const metaParts = [
     submitted ? submittedLabel : CONTRACTOR_INVITATION_STATUS_LABELS[invitation.status],
+    proposalLabel ? `Proposal ${proposalLabel}` : null,
     scope.total_suggestion_count > 0
       ? `${scope.total_suggestion_count} suggestion${
           scope.total_suggestion_count === 1 ? "" : "s"
@@ -89,6 +71,9 @@ function ReviewedScopeCard({
               <p className="text-sm text-[var(--muted)]">
                 {invitation.contractor_company}
               </p>
+            ) : null}
+            {notesPreview ? (
+              <p className="line-clamp-2 text-sm text-neutral-800">{notesPreview}</p>
             ) : null}
             <p className="text-xs text-[var(--muted)]">{metaParts.join(" · ")}</p>
           </div>

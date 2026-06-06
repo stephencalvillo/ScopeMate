@@ -1,18 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { Link2, MapPin } from "lucide-react";
+import { useMemo, useState } from "react";
+import { MapPin } from "lucide-react";
+import { ContractorEstimateProvider } from "@/components/estimate/contractor-estimate-context";
+import { ContractorReviewEstimateBody } from "@/components/review/contractor-review-estimate-body";
 import { SharedPhotoGallery } from "@/components/share/shared-photo-gallery";
-import { ReviewScopeList } from "@/components/review/review-scope-list";
 import { ScopeSummary } from "@/components/scope/scope-summary";
-import { PageSection, SectionSurface } from "@/components/layout/page-section";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { formatProjectLocation } from "@/lib/location/parse";
 import type { SharedPhoto } from "@/lib/phase2/client";
 import {
   formatProjectTypeLabel,
   type ContractorInvitation,
+  type ContractorEstimate,
   type ContractorReview,
   type ProjectWithScope,
   type ScopeSuggestion,
@@ -27,51 +26,36 @@ type ReviewPayload = {
   project: ProjectWithScope;
   photos: SharedPhoto[];
   suggestions: ReviewSuggestion[];
+  estimate?: ContractorEstimate | null;
 };
 
 export function ContractorReviewWorkspace({
   token,
   payload,
   onRefresh,
+  onReviewSubmitted,
 }: {
   token: string;
   payload: ReviewPayload;
   onRefresh: () => void;
+  onReviewSubmitted: () => void | Promise<void>;
 }) {
-  const { invitation, review, project, photos } = payload;
+  const { invitation, review, project, photos, estimate = null } = payload;
   const [suggestions, setSuggestions] = useState(payload.suggestions);
   const [notes, setNotes] = useState(review.notes ?? "");
-  const [completing, setCompleting] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const reviewSubmitted = review.status === "submitted";
   const editable = !reviewSubmitted;
 
-  async function completeReview() {
-    setCompleting(true);
-    setError(null);
-
-    await fetch(`/api/review/${token}/notes`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ notes }),
-    });
-
-    const response = await fetch(`/api/review/${token}/complete`, {
-      method: "POST",
-    });
-    setCompleting(false);
-
-    if (!response.ok) {
-      const data = await response.json();
-      setError(data.error ?? "Could not submit review.");
-      return;
-    }
-
-    setMessage("Review submitted. The homeowner will be notified.");
-    onRefresh();
-  }
+  const draftAddSuggestions = useMemo(
+    () =>
+      suggestions.filter(
+        (entry) =>
+          entry.suggestion_type === "add" && entry.status === "draft"
+      ),
+    [suggestions]
+  );
 
   return (
     <div className="space-y-8">
@@ -97,48 +81,30 @@ export function ContractorReviewWorkspace({
 
       <ScopeSummary summary={project.ai_summary} />
 
-      <PageSection
-        title="Scope of work"
-        description={
-          editable
-            ? "Hover an item to comment, or add items within each category."
-            : undefined
-        }
+      <SharedPhotoGallery photos={photos} />
+
+      <ContractorEstimateProvider
+        token={token}
+        scopeItems={project.scope_items}
+        editable={editable}
+        reviewSubmitted={reviewSubmitted}
+        initialEstimate={estimate}
+        draftAddSuggestions={draftAddSuggestions}
       >
-        <ReviewScopeList
+        <ContractorReviewEstimateBody
+          token={token}
           items={project.scope_items}
           suggestions={suggestions}
           editable={editable}
-          token={token}
+          notes={notes}
+          onNotesChange={setNotes}
           onSuggestionsChange={setSuggestions}
           onRefresh={onRefresh}
           onError={setError}
+          onReviewSubmitted={onReviewSubmitted}
         />
-      </PageSection>
+      </ContractorEstimateProvider>
 
-      <SharedPhotoGallery photos={photos} />
-
-      <PageSection title="General notes">
-        <SectionSurface>
-          <Textarea
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            disabled={!editable}
-            placeholder="Optional overall feedback for the homeowner"
-            rows={4}
-          />
-        </SectionSurface>
-      </PageSection>
-
-      {editable ? (
-        <Button disabled={completing} onClick={completeReview}>
-          {completing ? "Submitting..." : "Submit review"}
-        </Button>
-      ) : (
-        <p className="text-sm font-medium text-neutral-900">Review submitted</p>
-      )}
-
-      {message ? <p className="text-sm text-[var(--muted)]">{message}</p> : null}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
     </div>
   );

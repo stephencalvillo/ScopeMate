@@ -5,9 +5,11 @@ import { Loader2 } from "lucide-react";
 import { ContractorIdentityGate } from "@/components/review/contractor-identity-gate";
 import { ContractorReviewWorkspace } from "@/components/review/contractor-review-workspace";
 import { ReviewExpiredNotice } from "@/components/review/review-expired-notice";
+import { ReviewSubmittedDialog } from "@/components/review/review-submitted-dialog";
 import type { SharedPhoto } from "@/lib/phase2/client";
 import type {
   ContractorInvitation,
+  ContractorEstimate,
   ContractorReview,
   ProjectWithScope,
   ScopeSuggestion,
@@ -22,33 +24,48 @@ type ReviewPayload = {
   project: ProjectWithScope;
   photos: SharedPhoto[];
   suggestions: ReviewSuggestion[];
+  estimate?: ContractorEstimate | null;
 };
 
 export function ContractorReviewPage({ token }: { token: string }) {
   const [payload, setPayload] = useState<ReviewPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [unavailable, setUnavailable] = useState(false);
+  const [showSubmittedDialog, setShowSubmittedDialog] = useState(false);
 
-  const loadReview = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/review/${token}`);
-      const data = await response.json();
-      if (!response.ok) {
-        setUnavailable(true);
-        return;
+  const loadReview = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!options?.silent) {
+        setLoading(true);
       }
-      setPayload(data);
-      setUnavailable(false);
-    } catch {
-      setUnavailable(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+
+      try {
+        const response = await fetch(`/api/review/${token}`);
+        const data = await response.json();
+        if (!response.ok) {
+          setUnavailable(true);
+          return;
+        }
+        setPayload(data);
+        setUnavailable(false);
+      } catch {
+        setUnavailable(true);
+      } finally {
+        if (!options?.silent) {
+          setLoading(false);
+        }
+      }
+    },
+    [token]
+  );
 
   useEffect(() => {
     loadReview();
+  }, [loadReview]);
+
+  const handleReviewSubmitted = useCallback(() => {
+    setShowSubmittedDialog(true);
+    void loadReview({ silent: true });
   }, [loadReview]);
 
   if (loading) {
@@ -69,16 +86,25 @@ export function ContractorReviewPage({ token }: { token: string }) {
       <ContractorIdentityGate
         token={token}
         invitation={payload.invitation}
-        onComplete={loadReview}
+        onComplete={() => loadReview()}
       />
     );
   }
 
   return (
-    <ContractorReviewWorkspace
-      token={token}
-      payload={payload}
-      onRefresh={loadReview}
-    />
+    <>
+      <ContractorReviewWorkspace
+        token={token}
+        payload={payload}
+        onRefresh={() => loadReview({ silent: true })}
+        onReviewSubmitted={handleReviewSubmitted}
+      />
+
+      <ReviewSubmittedDialog
+        open={showSubmittedDialog}
+        onOpenChange={setShowSubmittedDialog}
+        invitation={payload.invitation}
+      />
+    </>
   );
 }

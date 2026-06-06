@@ -1,5 +1,9 @@
-import { getEmailFrom, getResendClient } from "@/lib/email/client";
-import { buildProjectUrl, buildReviewUrl } from "@/lib/contractor/urls";
+import { getEmailFrom, sendResendEmail } from "@/lib/email/client";
+import {
+  buildProjectTabUrl,
+  buildProjectUrl,
+  buildReviewUrl,
+} from "@/lib/contractor/urls";
 
 export async function sendProjectShareLinkEmail({
   to,
@@ -7,22 +11,23 @@ export async function sendProjectShareLinkEmail({
   projectTitle,
   reviewToken,
   expiresAt,
+  request,
 }: {
   to: string;
   homeownerName: string;
   projectTitle: string;
   reviewToken: string;
   expiresAt: Date;
+  request?: Request;
 }) {
-  const resend = getResendClient();
-  const reviewUrl = buildReviewUrl(reviewToken);
+  const reviewUrl = buildReviewUrl(reviewToken, request);
   const expiryLabel = expiresAt.toLocaleDateString(undefined, {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
 
-  await resend.emails.send({
+  await sendResendEmail({
     from: getEmailFrom(),
     to,
     subject: `${homeownerName} shared a project scope with you`,
@@ -43,6 +48,7 @@ export async function sendContractorInvitationEmail({
   projectTitle,
   reviewToken,
   expiresAt,
+  request,
 }: {
   to: string;
   contractorName: string;
@@ -50,16 +56,16 @@ export async function sendContractorInvitationEmail({
   projectTitle: string;
   reviewToken: string;
   expiresAt: Date;
+  request?: Request;
 }) {
-  const resend = getResendClient();
-  const reviewUrl = buildReviewUrl(reviewToken);
+  const reviewUrl = buildReviewUrl(reviewToken, request);
   const expiryLabel = expiresAt.toLocaleDateString(undefined, {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
 
-  await resend.emails.send({
+  await sendResendEmail({
     from: getEmailFrom(),
     to,
     subject: `${homeownerName} invited you to review a project scope`,
@@ -79,23 +85,25 @@ export async function sendReviewCompleteEmail({
   homeownerName,
   contractorName,
   projectTitle,
-  projectUrl,
+  projectId,
   suggestionCount,
+  request,
 }: {
   to: string;
   homeownerName: string;
   contractorName: string;
   projectTitle: string;
-  projectUrl: string;
+  projectId: string;
   suggestionCount: number;
+  request?: Request;
 }) {
-  const resend = getResendClient();
+  const projectUrl = buildProjectTabUrl(projectId, "needs-attention", request);
   const countLabel =
     suggestionCount === 1
       ? "1 suggestion"
       : `${suggestionCount} suggestions`;
 
-  await resend.emails.send({
+  await sendResendEmail({
     from: getEmailFrom(),
     to,
     subject: `${contractorName} finished reviewing ${projectTitle}`,
@@ -114,16 +122,16 @@ export async function sendFollowUpRequestedEmail({
   projectTitle,
   reviewToken,
   message,
+  request,
 }: {
   to: string;
   contractorName: string;
   projectTitle: string;
   reviewToken: string;
   message: string;
+  request?: Request;
 }) {
-  const resend = getResendClient();
-
-  await resend.emails.send({
+  await sendResendEmail({
     from: getEmailFrom(),
     to,
     subject: `Follow-up question about ${projectTitle}`,
@@ -131,7 +139,7 @@ export async function sendFollowUpRequestedEmail({
       <p>Hi ${escapeHtml(contractorName)},</p>
       <p>The homeowner has a follow-up question about one of your suggestions on <strong>${escapeHtml(projectTitle)}</strong>:</p>
       <blockquote style="border-left:3px solid #e8e8e4;padding-left:12px;color:#404040;">${escapeHtml(message)}</blockquote>
-      <p><a href="${buildReviewUrl(reviewToken)}">Respond on the review page</a></p>
+      <p><a href="${buildReviewUrl(reviewToken, request)}">Respond on the review page</a></p>
     `,
   });
 }
@@ -141,19 +149,21 @@ export async function sendFollowUpAnsweredEmail({
   homeownerName,
   contractorName,
   projectTitle,
-  projectUrl,
+  projectId,
   message,
+  request,
 }: {
   to: string;
   homeownerName: string;
   contractorName: string;
   projectTitle: string;
-  projectUrl: string;
+  projectId: string;
   message: string;
+  request?: Request;
 }) {
-  const resend = getResendClient();
+  const projectUrl = buildProjectTabUrl(projectId, "needs-attention", request);
 
-  await resend.emails.send({
+  await sendResendEmail({
     from: getEmailFrom(),
     to,
     subject: `${contractorName} replied to your follow-up`,

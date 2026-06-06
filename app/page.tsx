@@ -1,8 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { CTAButton } from "@/components/marketing/cta-button";
-import { FeatureCard } from "@/components/marketing/feature-card";
-import { howItWorksIcons } from "@/components/marketing/how-it-works-icons";
+import { HowItWorksScrollSection } from "@/components/marketing/how-it-works-scroll-section";
 import { Hero } from "@/components/marketing/hero";
 import { MarketingSection } from "@/components/marketing/marketing-section";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
@@ -34,18 +33,10 @@ export default async function HomePage() {
         }}
       />
 
-      <MarketingSection title={homepage.howItWorks.title}>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {homepage.howItWorks.steps.map((step, index) => (
-            <FeatureCard
-              key={step.title}
-              icon={howItWorksIcons[index]}
-              title={step.title}
-              description={step.description}
-            />
-          ))}
-        </div>
-      </MarketingSection>
+      <HowItWorksScrollSection
+        title={homepage.howItWorks.title}
+        steps={homepage.howItWorks.steps}
+      />
 
       <MarketingSection
         title={homepage.choosePath.title}

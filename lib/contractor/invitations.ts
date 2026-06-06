@@ -3,7 +3,9 @@ import { INVITATION_EXPIRY_DAYS } from "@/lib/contractor/constants";
 import { recordShareLinkView } from "@/lib/contractor/activity";
 import {
   ensureShareInvitationForToken,
+  isShareLinkInvitation,
   isShareLinkPlaceholder,
+  shareLinkInvitationIsActive,
 } from "@/lib/contractor/project-share";
 export { isShareLinkPlaceholder };
 import { buildReviewUrl } from "@/lib/contractor/urls";
@@ -14,12 +16,28 @@ import { sendContractorInvitationEmail } from "@/lib/email/send-contractor-email
 import { generateShareToken } from "@/lib/security/tokens";
 import type {
   ContractorInvitation,
+  ContractorInvitationStatus,
   ContractorInvitationWithReview,
   ContractorReview,
   Project,
   ProjectWithScope,
   User,
 } from "@/types";
+
+function syncInvitationWithReviewStatus(
+  invitation: ContractorInvitation,
+  review: ContractorReview | null | undefined
+): ContractorInvitation {
+  if (
+    review?.status === "submitted" &&
+    invitation.status !== "revoked" &&
+    invitation.status !== "expired"
+  ) {
+    return { ...invitation, status: "submitted" satisfies ContractorInvitationStatus };
+  }
+
+  return invitation;
+}
 
 function addDays(date: Date, days: number) {
   return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
@@ -73,8 +91,8 @@ export async function listInvitationsForProject(
       const review = Array.isArray(reviewRaw) ? reviewRaw[0] : reviewRaw;
 
       return {
-        ...invitation,
-        review: normalizeContractorReview(review),
+        ...syncInvitationWithReviewStatus(invitation, review),
+        review,
         review_url: buildReviewUrl(invitation.invitation_token),
       };
     });
@@ -214,6 +232,27 @@ export async function getInvitationByToken(
     throw new NotFoundError("This review link is not available.");
   }
 
+  const { data: project, error: projectError } = await supabase
+    .from("projects")
+    .select("share_enabled, share_token")
+    .eq("id", invitation.project_id)
+    .maybeSingle();
+
+  if (projectError) throw projectError;
+  if (!project) {
+    throw new NotFoundError("This review link is not available.");
+  }
+
+  if (
+    isShareLinkInvitation(invitation, project as Pick<Project, "share_token">) &&
+    !shareLinkInvitationIsActive(
+      invitation,
+      project as Pick<Project, "share_enabled" | "share_token">
+    )
+  ) {
+    throw new NotFoundError("This review link is not available.");
+  }
+
   return invitation;
 }
 
@@ -269,13 +308,26 @@ export async function getReviewProjectByInvitationToken(
     await recordShareLinkView(project.id);
   }
 
+  const normalizedReview = normalizeContractorReview(review as ContractorReview)!;
+
+  const { data: freshInvitation, error: freshInvitationError } = await supabase
+    .from("contractor_invitations")
+    .select("*")
+    .eq("id", invitation.id)
+    .maybeSingle();
+
+  if (freshInvitationError) throw freshInvitationError;
+
+  const resolvedInvitation = syncInvitationWithReviewStatus(
+    normalizeInvitationStatus(
+      (freshInvitation ?? invitation) as ContractorInvitation
+    ),
+    normalizedReview
+  );
+
   return {
-    invitation: {
-      ...invitation,
-      first_accessed_at: invitation.first_accessed_at ?? now,
-      last_accessed_at: now,
-    },
-    review: normalizeContractorReview(review as ContractorReview)!,
+    invitation: resolvedInvitation,
+    review: normalizedReview,
     project: {
       ...(project as Project),
       scope_items: (scopeItems ?? []) as ProjectWithScope["scope_items"],

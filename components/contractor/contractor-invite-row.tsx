@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SectionSurface } from "@/components/layout/page-section";
 import {
+  formatReviewDate,
+  isReviewSubmitted,
+} from "@/lib/contractor/review-display";
+import {
   CONTRACTOR_INVITATION_STATUS_LABELS,
   type ContractorInvitationWithReview,
 } from "@/types";
@@ -66,6 +70,13 @@ export function ContractorInviteRow({
   }
 
   const expiresLabel = new Date(invitation.expires_at).toLocaleDateString();
+  const submitted = isReviewSubmitted(invitation);
+  const submittedLabel = formatReviewDate(invitation.review?.submitted_at);
+  const statusLabel = submitted
+    ? submittedLabel
+      ? `Review submitted · ${submittedLabel}`
+      : "Review submitted"
+    : CONTRACTOR_INVITATION_STATUS_LABELS[invitation.status];
 
   return (
     <SectionSurface className="space-y-3">
@@ -83,9 +94,7 @@ export function ContractorInviteRow({
             </p>
           ) : null}
         </div>
-        <p className="text-sm text-[var(--muted)]">
-          {CONTRACTOR_INVITATION_STATUS_LABELS[invitation.status]}
-        </p>
+        <p className="text-sm text-[var(--muted)]">{statusLabel}</p>
       </div>
 
       <p className="text-xs text-[var(--muted)]">Expires {expiresLabel}</p>

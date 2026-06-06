@@ -1,7 +1,6 @@
 import { INVITATION_EXPIRY_DAYS } from "@/lib/contractor/constants";
 import { isMissingTableError } from "@/lib/db/errors";
 import { createServiceClient } from "@/lib/db/supabase";
-import { generateShareToken } from "@/lib/security/tokens";
 import type { ContractorInvitation, Project } from "@/types";
 
 export const SHARE_LINK_PLACEHOLDER_NAME = "Contractor";
@@ -11,6 +10,28 @@ export function isShareLinkPlaceholder(invitation: {
   contractor_email: string;
 }) {
   return invitation.contractor_email === SHARE_LINK_PLACEHOLDER_EMAIL;
+}
+
+export function isShareLinkInvitation(
+  invitation: Pick<ContractorInvitation, "contractor_email" | "invitation_token">,
+  project: Pick<Project, "share_token">
+) {
+  return (
+    isShareLinkPlaceholder(invitation) ||
+    (Boolean(project.share_token) &&
+      invitation.invitation_token === project.share_token)
+  );
+}
+
+export function shareLinkInvitationIsActive(
+  invitation: Pick<ContractorInvitation, "invitation_token">,
+  project: Pick<Project, "share_enabled" | "share_token">
+) {
+  return (
+    project.share_enabled &&
+    Boolean(project.share_token) &&
+    invitation.invitation_token === project.share_token
+  );
 }
 
 function addDays(date: Date, days: number) {
@@ -123,15 +144,31 @@ export async function ensureShareInvitationForToken(token: string) {
   });
 }
 
-export async function revokeProjectShareInvitation(projectId: string) {
+export async function revokeShareLinkInvitations(
+  projectId: string,
+  shareToken: string | null | undefined
+) {
   const supabase = createServiceClient();
+  const now = new Date().toISOString();
 
   try {
+    if (shareToken) {
+      await supabase
+        .from("contractor_invitations")
+        .update({
+          status: "revoked",
+          updated_at: now,
+        })
+        .eq("project_id", projectId)
+        .eq("invitation_token", shareToken)
+        .neq("status", "revoked");
+    }
+
     await supabase
       .from("contractor_invitations")
       .update({
         status: "revoked",
-        updated_at: new Date().toISOString(),
+        updated_at: now,
       })
       .eq("project_id", projectId)
       .eq("contractor_email", SHARE_LINK_PLACEHOLDER_EMAIL)
@@ -141,16 +178,36 @@ export async function revokeProjectShareInvitation(projectId: string) {
   }
 }
 
+export async function revokeProjectShareInvitation(projectId: string) {
+  const supabase = createServiceClient();
+
+  try {
+    const { data: project, error: projectError } = await supabase
+      .from("projects")
+      .select("share_token")
+      .eq("id", projectId)
+      .maybeSingle();
+
+    if (projectError) throw projectError;
+
+    await revokeShareLinkInvitations(projectId, project?.share_token);
+  } catch (error) {
+    if (!isMissingTableError(error)) throw error;
+  }
+}
+
 export async function rotateProjectShareInvitation({
   project,
   invitedBy,
-  token = generateShareToken(),
+  token,
+  previousShareToken,
 }: {
   project: Project;
   invitedBy: string;
-  token?: string;
+  token: string;
+  previousShareToken?: string | null;
 }) {
-  await revokeProjectShareInvitation(project.id);
+  await revokeShareLinkInvitations(project.id, previousShareToken);
   return ensureProjectShareInvitation({
     project: { ...project, share_token: token },
     invitedBy,

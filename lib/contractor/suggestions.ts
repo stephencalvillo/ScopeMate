@@ -1,7 +1,6 @@
 import { ForbiddenError, NotFoundError } from "@/lib/auth/clerk";
 import { getInvitationByToken } from "@/lib/contractor/invitations";
 import { buildReviewScopeSnapshot } from "@/lib/contractor/review-scope-snapshot";
-import { buildProjectUrl } from "@/lib/contractor/urls";
 import { createServiceClient } from "@/lib/db/supabase";
 import {
   sendFollowUpAnsweredEmail,
@@ -9,6 +8,7 @@ import {
   sendReviewCompleteEmail,
 } from "@/lib/email/send-contractor-emails";
 import { findMatchingSuggestions } from "@/lib/suggestions/matching";
+import { submitDraftEstimateIfPresent, getEstimateForReview } from "@/lib/estimates/estimates";
 import type {
   ContractorInvitation,
   ContractorReview,
@@ -342,10 +342,12 @@ export async function completeContractorReview({
   const drafts = await listDraftSuggestionsForInvitation(invitation.id);
   const hasNotes = Boolean(review.notes?.trim());
   const hasSuggestions = drafts.length > 0;
+  const existingEstimate = await getEstimateForReview(review.id);
+  const hasEstimateContent = (existingEstimate?.line_items?.length ?? 0) > 0;
 
-  if (!hasNotes && !hasSuggestions) {
+  if (!hasNotes && !hasSuggestions && !hasEstimateContent) {
     throw new ForbiddenError(
-      "Add at least one suggestion or a general note before completing your review."
+      "Add at least one suggestion, a general note, or pricing before completing your review."
     );
   }
 
@@ -367,6 +369,8 @@ export async function completeContractorReview({
     aiSummary: project.ai_summary,
     drafts,
   });
+
+  await submitDraftEstimateIfPresent(review);
 
   const { error: reviewError } = await supabase
     .from("contractor_reviews")
@@ -395,7 +399,7 @@ export async function completeContractorReview({
     homeownerName: homeowner.name ?? homeowner.email,
     contractorName: invitation.contractor_name,
     projectTitle: project.title,
-    projectUrl: buildProjectUrl(project.id),
+    projectId: project.id,
     suggestionCount: drafts.length,
   });
 
@@ -760,7 +764,7 @@ export async function respondToSuggestionFollowUp({
     homeownerName: homeowner.name ?? homeowner.email,
     contractorName: invitation.contractor_name,
     projectTitle: project.title,
-    projectUrl: buildProjectUrl(project.id),
+    projectId: project.id,
     message,
   });
 

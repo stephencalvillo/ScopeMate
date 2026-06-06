@@ -35,48 +35,41 @@
 
 ---
 
-## Phase 3 - Contractor Collaboration *(in progress — see punch list)*
+## Phase 3 - Contractor Collaboration *(complete)*
 
 **Plan:** [`PHASE_3_PLAN.md`](./PHASE_3_PLAN.md) · **Checklist:** [`PHASE_3_PUNCH_LIST.md`](./PHASE_3_PUNCH_LIST.md)
 
 **Build:**
 
 - Email contractor invitations (30-day expiry) + copy link fallback
-- Contractor review mode at `/review/[token]` with mark-review-complete gate
+- Contractor review mode at `/review/[token]` with submit-review gate
 - Scope suggestions (add, edit, remove, note); editable until review submitted
-- Homeowner inbox at **top of project page**: accept, reject, or ask follow-up
+- Homeowner **Needs attention** tab: accept, reject, or ask follow-up
+- Reviewed scopes tab with snapshots; activity tab; cross-review auto-resolve
 
 **Success:** A contractor can review a project and submit scope suggestions in under 5 minutes; the homeowner accepts or rejects each suggestion before it becomes part of the scope.
 
-**Still out of scope:** Contractor accounts (Clerk), estimates, pricing, cost tiers.
+**Still out of scope:** Contractor accounts (Clerk), estimates, exact pricing.
 
 ---
 
-## Phase 4 - Cost Expectations
+## Phase 4 - Finish-Level Planning *(complete)*
 
-Add planning ranges.
+**Plan:** [`PHASE_4_PLAN.md`](./PHASE_4_PLAN.md)
 
-**Tiers:**
+Optional project-wide finish level via follow-up question — not quotes.
 
-| Tier | Description |
-|---|---|
-| Essential | Functional materials |
-| Elevated | Better finishes |
-| Signature | Premium finishes |
-
-Never show exact pricing.
+**Shipped:** Materials follow-up with Builder grade / Elevated / High-end; answer syncs to scope.
 
 ---
 
-## Phase 5 - Estimate Builder
+## Phase 5 - Estimate Builder *(in progress)*
 
-Contractor can:
+**Plan:** [`PHASE_5_PLAN.md`](./PHASE_5_PLAN.md)
 
-- Generate draft estimate
-- Edit line items
-- Submit proposal
+Contractors generate draft estimates from scope, edit line items, and submit proposals with a project total.
 
-AI assists but never owns final pricing.
+**Shipped so far:** Estimate editor on contractor review, AI draft generation, homeowner view of submitted proposals.
 
 ---
 

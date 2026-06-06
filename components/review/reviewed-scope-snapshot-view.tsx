@@ -347,12 +347,12 @@ function InlineSnapshotSuggestion({
             {isAdd ? (
               <>
                 {snapshotSuggestion.suggested_text ? (
-                  <p className="text-sm font-medium text-neutral-900">
+                  <p className="text-sm font-medium leading-5 text-neutral-900">
                     {snapshotSuggestion.suggested_text}
                   </p>
                 ) : null}
                 {snapshotSuggestion.contractor_note ? (
-                  <p className="text-sm text-neutral-800">
+                  <p className="text-sm leading-5 text-neutral-800">
                     {snapshotSuggestion.contractor_note}
                   </p>
                 ) : null}

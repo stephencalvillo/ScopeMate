@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
 import { getReviewProjectByInvitationToken } from "@/lib/contractor/invitations";
 import { listContractorActionableSuggestions } from "@/lib/contractor/suggestions";
+import { getEstimateForReview } from "@/lib/estimates/estimates";
 import { listProjectPhotosWithUrls } from "@/lib/storage/photos";
 
 export async function GET(
@@ -23,6 +24,7 @@ export async function GET(
       invitation.id,
       review
     );
+    const estimate = await getEstimateForReview(review.id);
 
     return NextResponse.json({
       invitation,
@@ -30,6 +32,7 @@ export async function GET(
       project,
       photos,
       suggestions,
+      estimate,
     });
   } catch (error) {
     return jsonError(error);

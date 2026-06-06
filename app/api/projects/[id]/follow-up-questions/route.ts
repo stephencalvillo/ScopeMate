@@ -3,6 +3,7 @@ import { jsonError } from "@/lib/api/response";
 import { getOwnedProject } from "@/lib/api/project-access";
 import { isMissingTableError } from "@/lib/db/errors";
 import { dedupeFollowUpQuestionsForDisplay } from "@/lib/follow-up/dedupe-questions";
+import { ensureFinishLevelMaterialsQuestion } from "@/lib/follow-up/finish-level";
 import { normalizeFollowUpQuestion } from "@/lib/follow-up/normalize";
 import { createServiceClient } from "@/lib/db/supabase";
 import type { FollowUpQuestion } from "@/types";
@@ -24,10 +25,13 @@ export async function GET(
 
     if (error) throw error;
 
+    const normalized = ((data ?? []) as FollowUpQuestion[]).map(
+      normalizeFollowUpQuestion
+    );
+    const questions = await ensureFinishLevelMaterialsQuestion(id, normalized);
+
     return NextResponse.json({
-      questions: dedupeFollowUpQuestionsForDisplay(
-        ((data ?? []) as FollowUpQuestion[]).map(normalizeFollowUpQuestion)
-      ),
+      questions: dedupeFollowUpQuestionsForDisplay(questions),
     });
   } catch (error) {
     if (isMissingTableError(error)) {

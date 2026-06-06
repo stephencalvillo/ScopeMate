@@ -37,7 +37,6 @@ export async function GET(
         url: await createSignedPhotoUrl(photo.storage_path),
       }))
     );
-
     return NextResponse.json({
       title: project.title,
       project_type: project.project_type,

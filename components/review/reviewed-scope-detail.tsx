@@ -3,18 +3,21 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { SubmittedEstimateView } from "@/components/estimate/submitted-estimate-view";
 import { ReviewedScopeSnapshotView } from "@/components/review/reviewed-scope-snapshot-view";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { displayContractorName } from "@/lib/contractor/display-contractor";
+import {
+  formatReviewDate,
+  formatReviewedScopeHeadline,
+  isReviewSubmitted,
+} from "@/lib/contractor/review-display";
 import { parseReviewScopeSnapshot } from "@/lib/contractor/review-scope-snapshot";
 import type { ReviewedScopeSummary } from "@/lib/contractor/reviewed-scopes";
-import {
-  CONTRACTOR_INVITATION_STATUS_LABELS,
-  type ScopeItem,
-  type ScopeSuggestionWithMeta,
-} from "@/types";
+import { SHARE_LINK_PLACEHOLDER_EMAIL } from "@/lib/contractor/project-share";
+import { formatProposalRange } from "@/lib/estimates/money";
+import type { ContractorEstimate, ScopeItem, ScopeSuggestionWithMeta } from "@/types";
 
 export function ReviewedScopeDetail({
   projectId,
@@ -23,6 +26,7 @@ export function ReviewedScopeDetail({
   suggestions,
   currentSummary,
   currentScopeItems,
+  estimate,
 }: {
   projectId: string;
   projectTitle: string;
@@ -30,30 +34,37 @@ export function ReviewedScopeDetail({
   suggestions: ScopeSuggestionWithMeta[];
   currentSummary: string | null;
   currentScopeItems: ScopeItem[];
+  estimate?: ContractorEstimate | null;
 }) {
   const router = useRouter();
   const { invitation } = scope;
-  const submitted = invitation.review?.status === "submitted";
-  const statusLabel = submitted
-    ? "Review submitted"
-    : CONTRACTOR_INVITATION_STATUS_LABELS[invitation.status];
-  const submittedLabel = invitation.review?.submitted_at
-    ? new Date(invitation.review.submitted_at).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : null;
+  const submitted = isReviewSubmitted(invitation);
+  const submittedLabel = formatReviewDate(invitation.review?.submitted_at);
+  const metaParts = [
+    submitted ? submittedLabel : null,
+    scope.proposal_min_total != null && scope.proposal_max_total != null
+      ? `Proposal ${formatProposalRange(scope.proposal_min_total, scope.proposal_max_total)}`
+      : null,
+    scope.total_suggestion_count > 0
+      ? `${scope.total_suggestion_count} suggestion${
+          scope.total_suggestion_count === 1 ? "" : "s"
+        }`
+      : null,
+  ].filter(Boolean);
 
   const scopeSnapshot = parseReviewScopeSnapshot(
     invitation.review?.scope_snapshot ?? null
   );
 
+  const showEmail =
+    invitation.contractor_email !== SHARE_LINK_PLACEHOLDER_EMAIL ||
+    Boolean(invitation.accepted_at);
+
   return (
     <div className="space-y-8">
       <div className="space-y-4">
         <Button variant="ghost" size="sm" className="-ml-2" asChild>
-          <Link href={`/projects/${projectId}`}>
+          <Link href={`/projects/${projectId}?tab=reviewed-scopes`}>
             <ArrowLeft className="h-4 w-4" />
             Back to {projectTitle}
           </Link>
@@ -62,38 +73,27 @@ export function ReviewedScopeDetail({
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="font-display text-4xl tracking-tight text-neutral-900">
-              {displayContractorName(invitation)}
+              {formatReviewedScopeHeadline(invitation, submitted)}
             </h1>
-            <Badge variant={submitted ? "info" : "secondary"}>{statusLabel}</Badge>
             {scope.pending_suggestion_count > 0 ? (
               <Badge variant="pending">
                 {scope.pending_suggestion_count} pending
               </Badge>
             ) : null}
           </div>
-          <p className="text-sm text-[var(--muted)]">
-            {invitation.contractor_email}
-            {invitation.contractor_company
-              ? ` · ${invitation.contractor_company}`
-              : ""}
-          </p>
-          {submittedLabel ? (
+          {showEmail ? (
             <p className="text-sm text-[var(--muted)]">
-              Submitted {submittedLabel}
+              {invitation.contractor_email}
+              {invitation.contractor_company
+                ? ` · ${invitation.contractor_company}`
+                : ""}
             </p>
+          ) : null}
+          {metaParts.length > 0 ? (
+            <p className="text-sm text-[var(--muted)]">{metaParts.join(" · ")}</p>
           ) : null}
         </div>
       </div>
-
-      <ReviewedScopeSnapshotView
-        projectId={projectId}
-        snapshot={scopeSnapshot}
-        currentSummary={currentSummary}
-        currentItems={currentScopeItems}
-        submittedLabel={submittedLabel}
-        suggestions={suggestions}
-        onUpdated={() => router.refresh()}
-      />
 
       {invitation.review?.notes ? (
         <PageSection title="General notes">
@@ -104,6 +104,18 @@ export function ReviewedScopeDetail({
           </SectionSurface>
         </PageSection>
       ) : null}
+
+      {estimate ? <SubmittedEstimateView estimate={estimate} /> : null}
+
+      <ReviewedScopeSnapshotView
+        projectId={projectId}
+        snapshot={scopeSnapshot}
+        currentSummary={currentSummary}
+        currentItems={currentScopeItems}
+        submittedLabel={submittedLabel}
+        suggestions={suggestions}
+        onUpdated={() => router.refresh()}
+      />
     </div>
   );
 }
