@@ -96,6 +96,20 @@ Contractors generate draft estimates from scope, edit line items, and submit pro
 
 ## Phase 6 - Contractor Pro
 
+**Plan:** [`PHASE_6_PLAN.md`](./PHASE_6_PLAN.md)
+
+**Status:** Planning.
+
+**Build (phased):**
+
+| Slice | Focus |
+| --- | --- |
+| **6A** | Contractor accounts, profile, dashboard, invitation linking |
+| **6B** | Bid history |
+| **6C** | Saved rates |
+| **6D** | Proposal templates |
+| **6E** | Stripe subscription (Contractor Pro) |
+
 **Features:**
 
 - Saved rates
@@ -104,6 +118,8 @@ Contractors generate draft estimates from scope, edit line items, and submit pro
 - Bid history
 
 Subscription product.
+
+**Starting point:** Marketing signup + post-review account form exist; dashboard, profile linking, and Pro features not built yet.
 
 ---
 
