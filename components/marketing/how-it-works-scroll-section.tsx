@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { howItWorksIcons } from "@/components/marketing/how-it-works-icons";
 import { HowItWorksStepPreview } from "@/components/marketing/how-it-works-step-preview";
 import { FeatureCard } from "@/components/marketing/feature-card";
+import { GridBackground } from "@/components/marketing/grid-background";
 import { cn } from "@/lib/utils";
 
 type HowItWorksStep = {
@@ -66,40 +67,45 @@ export function HowItWorksScrollSection({
   }, [steps.length]);
 
   return (
-    <section className="-mt-8 pb-16 pt-0 md:-mt-12 md:pb-20">
-      <div className="mx-auto max-w-6xl px-[var(--page-padding-x)] md:hidden">
-        <h2 className="mb-10 text-center font-display text-3xl tracking-tight text-neutral-900 text-balance">
-          {title}
-        </h2>
-        <div className="space-y-8">
-          {steps.map((step, index) => (
-            <div key={step.title} className="space-y-4">
-              <FeatureCard
-                icon={howItWorksIcons[index]}
-                title={step.title}
-                description={step.description}
-              />
-              <HowItWorksStepPreview step={index} />
-            </div>
-          ))}
+    <section className="-mt-8 pb-12 pt-0 md:-mt-12">
+      <div className="relative overflow-hidden md:hidden">
+        <GridBackground fade="bottom-reveal" />
+        <div className="relative z-10 mx-auto max-w-6xl px-[var(--page-padding-x)]">
+          <h2 className="mb-10 text-center font-display text-3xl tracking-tight text-neutral-900 text-balance">
+            {title}
+          </h2>
+          <div className="space-y-8">
+            {steps.map((step, index) => (
+              <div key={step.title} className="space-y-4">
+                <FeatureCard
+                  icon={howItWorksIcons[index]}
+                  title={step.title}
+                  description={step.description}
+                />
+                <HowItWorksStepPreview step={index} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       <div
         ref={containerRef}
-        className="relative hidden md:block"
+        className="hidden md:block"
         style={{ height: `${steps.length * STEP_SCROLL_VH}vh` }}
       >
-        <div className="sticky top-0 flex h-screen items-center">
-          <div className="mx-auto w-full max-w-6xl px-[var(--page-padding-x)]">
+        <div className="sticky top-0 h-screen overflow-hidden">
+          <GridBackground fade="bottom-reveal" />
+          <div className="relative z-10 flex h-full items-center">
+            <div className="mx-auto w-full max-w-6xl px-[var(--page-padding-x)]">
             <h2 className="mb-6 text-center font-display text-3xl tracking-tight text-neutral-900">
               {title}
             </h2>
 
-            <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            <div className="mx-auto grid w-full max-w-5xl grid-cols-2 items-center gap-12 lg:gap-16">
               <div className="relative space-y-8">
                 <div
-                  className="absolute bottom-4 left-4 top-4 hidden w-px bg-[var(--border)] lg:block"
+                  className="absolute bottom-4 left-4 top-4 w-px bg-[var(--border)]"
                   aria-hidden
                 />
 
@@ -119,7 +125,7 @@ export function HowItWorksScrollSection({
                             : "opacity-35"
                       )}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-3 pl-10">
                         <span
                           className={cn(
                             "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--accent-foreground)] transition-transform duration-500",
@@ -128,7 +134,7 @@ export function HowItWorksScrollSection({
                         >
                           {howItWorksIcons[index]}
                         </span>
-                        <div className="space-y-2">
+                        <div className="space-y-2 text-left">
                           <h3
                             className={cn(
                               "font-display tracking-tight text-neutral-900 transition-all duration-500",
@@ -154,17 +160,13 @@ export function HowItWorksScrollSection({
                 })}
               </div>
 
-              <div className="relative min-h-[420px]">
+              <div className="relative min-h-[360px] w-full">
                 {steps.map((step, index) => (
                   <div
                     key={step.title}
                     className={cn(
-                      "absolute inset-0 transition-all duration-700 ease-out",
-                      index === activeStep
-                        ? "translate-y-0 opacity-100"
-                        : index < activeStep
-                          ? "-translate-y-4 opacity-0"
-                          : "translate-y-4 opacity-0"
+                      "absolute inset-0 transition-opacity duration-700 ease-out",
+                      index === activeStep ? "opacity-100" : "opacity-0"
                     )}
                     aria-hidden={index !== activeStep}
                   >
@@ -174,7 +176,7 @@ export function HowItWorksScrollSection({
               </div>
             </div>
 
-            <div className="mt-10 flex items-center gap-2">
+            <div className="mx-auto mt-10 flex w-full max-w-5xl items-center gap-2">
               {steps.map((step, index) => (
                 <div
                   key={step.title}
@@ -188,6 +190,7 @@ export function HowItWorksScrollSection({
                 />
               ))}
             </div>
+          </div>
           </div>
         </div>
       </div>

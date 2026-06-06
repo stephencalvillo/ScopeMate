@@ -141,6 +141,24 @@ body {
   );
 }
 
+.marketing-hero-grid--bottom-reveal {
+  background-color: transparent;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 20%,
+    rgb(0 0 0 / 0.45) 55%,
+    black 85%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 20%,
+    rgb(0 0 0 / 0.45) 55%,
+    black 85%
+  );
+}
+
 @keyframes marketing-grid-drift-x {
   from {
     background-position: 0 0;

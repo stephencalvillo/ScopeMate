@@ -41,7 +41,7 @@ export default async function HomePage() {
 
       <MarketingSection
         title={homepage.choosePath.title}
-        className="bg-white"
+        className="bg-white pt-0"
       >
         <div className="grid gap-6 md:grid-cols-2">
           <PathCard
