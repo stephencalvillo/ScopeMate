@@ -67,10 +67,9 @@ export function HowItWorksScrollSection({
   }, [steps.length]);
 
   return (
-    <section className="-mt-8 pb-12 pt-0 md:-mt-12">
-      <div className="relative overflow-hidden md:hidden">
-        <GridBackground fade="bottom-reveal" />
-        <div className="relative z-10 mx-auto max-w-6xl px-[var(--page-padding-x)]">
+    <section className="bg-[var(--background)] pb-12 pt-10 md:-mt-12 md:pb-12 md:pt-0">
+      <div className="md:hidden">
+        <div className="mx-auto max-w-6xl px-[var(--page-padding-x)]">
           <h2 className="mb-10 text-center font-display text-3xl tracking-tight text-neutral-900 text-balance">
             {title}
           </h2>

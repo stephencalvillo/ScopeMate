@@ -33,7 +33,7 @@ export function Hero({
         "relative overflow-hidden",
         gridBackground
           ? compact
-            ? "pb-[0.6rem] pt-[3.45rem] md:pb-[1.15rem] md:pt-[4.6rem]"
+            ? "pb-6 pt-[3.45rem] md:pb-[1.15rem] md:pt-[4.6rem]"
             : "pb-[5.75rem] pt-[4.6rem] md:pb-[8.05rem] md:pt-[6.9rem]"
           : compact
             ? "py-[2.875rem] md:py-[4.025rem]"
