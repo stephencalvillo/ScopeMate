@@ -7,6 +7,8 @@ import { ContractorReviewEstimateBody } from "@/components/review/contractor-rev
 import { ContractorProposalOutcomeBanner } from "@/components/review/contractor-proposal-outcome-banner";
 import { SharedPhotoGallery } from "@/components/share/shared-photo-gallery";
 import { ScopeSummary } from "@/components/scope/scope-summary";
+import { SectionSurface } from "@/components/layout/page-section";
+import { Badge } from "@/components/ui/badge";
 import { formatProjectLocation } from "@/lib/location/parse";
 import type { SharedPhoto } from "@/lib/phase2/client";
 import {
@@ -60,6 +62,18 @@ export function ContractorReviewWorkspace({
 
   return (
     <div className="space-y-8">
+      {reviewSubmitted ? (
+        <SectionSurface className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="success">Review submitted</Badge>
+          </div>
+          <p className="text-sm text-neutral-800">
+            The homeowner can see your scope feedback, notes, and proposal. You
+            can leave this page anytime.
+          </p>
+        </SectionSurface>
+      ) : null}
+
       <div className="space-y-3">
         <p className="text-sm text-[var(--muted)]">
           Reviewing as {invitation.contractor_name}

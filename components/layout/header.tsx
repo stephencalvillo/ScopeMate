@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
+import { AccountMenu } from "@/components/layout/account-menu";
 import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
 
 export function Header() {
@@ -14,7 +14,7 @@ export function Header() {
           <ScopeMateLogo />
         </Link>
         <div className="flex items-center">
-          <UserButton />
+          <AccountMenu />
         </div>
       </div>
     </header>

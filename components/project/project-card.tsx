@@ -5,11 +5,28 @@ import { formatProjectLocation } from "@/lib/location/parse";
 import { projectStatusBadgeProps } from "@/lib/project-status";
 import { formatProjectTypeLabel, type Project } from "@/types";
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({
+  project,
+  href,
+}: {
+  project: Pick<
+    Project,
+    | "id"
+    | "title"
+    | "project_type"
+    | "city"
+    | "zip"
+    | "location"
+    | "ai_summary"
+    | "original_description"
+    | "accepted_estimate_id"
+  >;
+  href?: string;
+}) {
   const statusBadge = projectStatusBadgeProps(project);
 
   return (
-    <Link href={`/projects/${project.id}`}>
+    <Link href={href ?? `/projects/${project.id}`}>
       <Card className="transition hover:border-neutral-300 hover:shadow-sm">
         <CardHeader>
           <div className="flex items-start justify-between gap-3">

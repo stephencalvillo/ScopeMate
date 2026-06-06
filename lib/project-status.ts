@@ -22,14 +22,17 @@ export function projectHasAcceptedProposal(
 }
 
 export function projectStatusBadgeProps(
-  project: Pick<Project, "status" | "accepted_estimate_id">
+  project: Pick<Project, "accepted_estimate_id"> &
+    Partial<Pick<Project, "status">>
 ) {
   if (projectHasAcceptedProposal(project)) {
     return { label: "Accepted", variant: "success" as const };
   }
 
+  const status = project.status ?? "draft";
+
   return {
-    label: PROJECT_STATUS_LABELS[project.status],
-    variant: projectStatusBadgeVariant(project.status),
+    label: PROJECT_STATUS_LABELS[status],
+    variant: projectStatusBadgeVariant(status),
   };
 }

@@ -98,17 +98,17 @@ Contractors generate draft estimates from scope, edit line items, and submit pro
 
 **Plan:** [`PHASE_6_PLAN.md`](./PHASE_6_PLAN.md)
 
-**Status:** Planning.
+**Status:** In progress — 6A shipped.
 
 **Build (phased):**
 
-| Slice | Focus |
-| --- | --- |
-| **6A** | Contractor accounts, profile, dashboard, invitation linking |
-| **6B** | Bid history |
-| **6C** | Saved rates |
-| **6D** | Proposal templates |
-| **6E** | Stripe subscription (Contractor Pro) |
+| Slice | Focus | Status |
+| --- | --- | --- |
+| **6A** | Contractor accounts, profile, dashboard, invitation linking | Shipped |
+| **6B** | Bid history | Planned |
+| **6C** | Saved rates | Planned |
+| **6D** | Proposal templates | Planned |
+| **6E** | Stripe subscription (Contractor Pro) | Planned |
 
 **Features:**
 

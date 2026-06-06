@@ -2,7 +2,7 @@
 
 ## Contractor Pro
 
-**Status:** Planning.
+**Status:** In progress — 6A foundation shipped.
 
 **Depends on:** Phase 5.5 complete (estimates, proposals, acceptance).
 
@@ -79,15 +79,16 @@ Phase 6 is large. Ship in slices so each PR is reviewable and deployable.
 
 **Goal:** A contractor can sign up, land in the right place, and see their linked reviews.
 
-| Item | Notes |
+**Status:** Shipped (local).
+
+| Item | Status |
 | --- | --- |
-| Migration `013` — `contractor_profiles`, `contractor_invitations.contractor_user_id` | Profile fields: company, display name, phone optional |
-| Contractor signup completion API | Create profile, set role, link invitations by email |
-| Fix Clerk webhook + `ensureUserRecord` | Preserve contractor role; don't overwrite on update |
-| `/contractor` layout + shell | Sidebar or tabs: Reviews, Rates, Templates, Billing, Settings |
-| Reviews list | Active + submitted invitations linked to user; open review token or read-only submitted view |
-| Post-review dialog redirect | Signed-in contractors → `/contractor` not `/projects` |
-| Onboarding empty state | First visit: confirm company name from invite prefill |
+| Migration `013` — `contractor_profiles`, `contractor_invitations.contractor_user_id` | Done |
+| Contractor signup completion API | Done |
+| Fix Clerk webhook + `ensureUserRecord` role preservation | Done |
+| `/contractor` layout + reviews list | Done |
+| Post-review dialog + signup redirect to onboarding/dashboard | Done |
+| Onboarding — confirm company + contact name | Done |
 
 **Success:** Contractor signs up after submitting a review → sees that project on `/contractor`.
 

@@ -46,6 +46,16 @@ export interface User {
   created_at: string;
 }
 
+export interface ContractorProfile {
+  user_id: string;
+  company_name: string;
+  contact_name: string;
+  phone: string | null;
+  onboarding_completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Project {
   id: string;
   homeowner_id: string;
@@ -253,6 +263,7 @@ export interface ContractorInvitation {
   contractor_name: string;
   contractor_email: string;
   contractor_company: string | null;
+  contractor_user_id?: string | null;
   invitation_token: string;
   status: ContractorInvitationStatus;
   accepted_at: string | null;

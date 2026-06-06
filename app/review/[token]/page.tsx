@@ -9,7 +9,11 @@ export default async function ReviewPage({
   const { token } = await params;
 
   return (
-    <PublicShell subtitle="Contractor review">
+    <PublicShell
+      subtitle="Contractor review"
+      logoHref="/contractors"
+      learnMoreHref="/contractors"
+    >
       <ContractorReviewPage token={token} />
     </PublicShell>
   );

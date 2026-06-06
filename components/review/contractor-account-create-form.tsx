@@ -6,7 +6,7 @@ import { useSignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CONTRACTOR_SIGNUP_STORAGE_KEY } from "@/lib/contractor/signup-prefill";
+import { persistContractorSignupPrefill } from "@/lib/contractor/signup-prefill";
 
 type SignupPrefill = {
   email?: string;
@@ -92,14 +92,11 @@ export function ContractorAccountCreateForm({
   const isReady = fetchStatus === "idle" && signUp;
 
   function persistPrefill() {
-    sessionStorage.setItem(
-      CONTRACTOR_SIGNUP_STORAGE_KEY,
-      JSON.stringify({
-        companyName: prefill?.companyName ?? "",
-        contactName: prefill?.contactName ?? "",
-        email: email.trim(),
-      })
-    );
+    persistContractorSignupPrefill({
+      companyName: prefill?.companyName ?? "",
+      contactName: prefill?.contactName ?? "",
+      email: email.trim(),
+    });
   }
 
   async function completeSignup() {
@@ -109,7 +106,7 @@ export function ContractorAccountCreateForm({
       const { error: finalizeError } = await signUp.finalize({
         navigate: () => {
           onComplete?.();
-          router.push("/projects");
+          router.push("/contractor/complete-setup");
         },
       });
       if (finalizeError) {
@@ -187,7 +184,7 @@ export function ContractorAccountCreateForm({
       const origin = window.location.origin;
       const { error: ssoError } = await signUp.sso({
         strategy: "oauth_google",
-        redirectUrl: `${origin}/projects`,
+        redirectUrl: `${origin}/contractor/complete-setup`,
         redirectCallbackUrl: `${origin}/sign-up`,
       });
       if (ssoError) {
