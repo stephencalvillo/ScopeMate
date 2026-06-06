@@ -23,6 +23,12 @@ export type ProjectActivityItem = {
 };
 
 function invitationLabel(invitation: ContractorInvitationWithReview) {
+  if (isShareLinkPlaceholder(invitation)) {
+    return invitation.contractor_company
+      ? `Contractor · ${invitation.contractor_company}`
+      : "Contractor";
+  }
+
   return invitation.contractor_company
     ? `${invitation.contractor_name} · ${invitation.contractor_company}`
     : invitation.contractor_name;

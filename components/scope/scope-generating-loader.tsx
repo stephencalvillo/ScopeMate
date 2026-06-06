@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { GridBackground } from "@/components/marketing/grid-background";
 import {
   generateScopeClient,
   sleep,
@@ -94,8 +94,9 @@ export function ScopeGeneratingLoader({
   }, [projectId, additionalNotes]);
 
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="flex flex-col items-center justify-center px-8 py-16 text-center">
+    <div className="relative min-h-[22rem] overflow-hidden rounded-[8px] border border-[var(--border)] bg-[var(--background)]">
+      <GridBackground />
+      <div className="relative z-10 flex min-h-[22rem] flex-col items-center justify-center px-8 py-16 text-center">
         <Loader2
           className="mb-6 h-10 w-10 animate-spin text-neutral-900"
           aria-hidden
@@ -114,8 +115,8 @@ export function ScopeGeneratingLoader({
             />
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

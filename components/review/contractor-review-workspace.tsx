@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Link2, MapPin } from "lucide-react";
 import { SharedPhotoGallery } from "@/components/share/shared-photo-gallery";
 import { ReviewScopeList } from "@/components/review/review-scope-list";
 import { ScopeSummary } from "@/components/scope/scope-summary";
@@ -84,11 +85,13 @@ export function ContractorReviewWorkspace({
         <h1 className="font-display text-4xl tracking-tight text-neutral-900">
           {project.title}
         </h1>
-        <p className="text-sm text-[var(--muted)]">
-          {formatProjectTypeLabel(project.project_type)}
-        </p>
-        <p className="text-sm text-[var(--muted)]">
-          {formatProjectLocation(project)}
+        <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
+          <span>{formatProjectTypeLabel(project.project_type)}</span>
+          <span aria-hidden>{"\u00b7"}</span>
+          <span className="inline-flex items-center gap-1.5">
+            <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+            {formatProjectLocation(project)}
+          </span>
         </p>
       </div>
 

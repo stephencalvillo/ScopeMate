@@ -35,9 +35,9 @@
 
 ---
 
-## Phase 3 - Contractor Collaboration *(next)*
+## Phase 3 - Contractor Collaboration *(in progress — see punch list)*
 
-**Plan:** See [`PHASE_3_PLAN.md`](./PHASE_3_PLAN.md) *(design confirmed 2026-06-05)*
+**Plan:** [`PHASE_3_PLAN.md`](./PHASE_3_PLAN.md) · **Checklist:** [`PHASE_3_PUNCH_LIST.md`](./PHASE_3_PUNCH_LIST.md)
 
 **Build:**
 

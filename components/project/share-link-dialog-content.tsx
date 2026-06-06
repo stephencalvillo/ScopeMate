@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -132,17 +133,15 @@ export function ShareLinkDialogContent({
       }
     );
 
-    const data = await response.json();
     setSendingEmail(false);
 
     if (response.ok) {
-      setShareUrl(data.share_url);
-      setShareEnabled(true);
-      setMessage(`Link sent to ${email.trim()}.`);
+      setMessage(`Personal review link sent to ${email.trim()}.`);
       setEmail("");
       return;
     }
 
+    const data = await response.json();
     setMessage(data.error ?? "Could not send email.");
   }
 
@@ -196,7 +195,11 @@ export function ShareLinkDialogContent({
           </div>
 
           <form onSubmit={sendEmail} className="space-y-2 border-t pt-4">
-            <Label htmlFor="share-link-email">Or send by email</Label>
+            <Label htmlFor="share-link-email">Or send a personal review link</Label>
+            <p className="text-xs text-[var(--muted)]">
+              Sends a dedicated link to one contractor. They still confirm their
+              name before reviewing.
+            </p>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 id="share-link-email"
@@ -220,6 +223,7 @@ export function ShareLinkDialogContent({
             review.
           </p>
           <Button onClick={enableShare} disabled={loading}>
+            <Link2 className="h-4 w-4" aria-hidden />
             {loading ? "Creating link..." : "Create share link"}
           </Button>
         </div>

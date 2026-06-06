@@ -2,13 +2,26 @@
 
 ScopeMate helps homeowners define construction projects clearly and share contractor-ready scopes.
 
-## Phase 1 (current)
+## Phase 1 *(complete)*
 
 - Homeowner sign-in (Clerk: magic link + Google)
 - Create projects
 - AI scope generation
 - Edit scope items
-- Secure share links for contractors
+
+## Phase 2 *(complete)*
+
+- Photo uploads
+- Smart follow-up questions
+- Share page with scope, summary, photos
+
+## Phase 3 *(in progress)*
+
+- Unified contractor review link (copy or email)
+- Contractor suggestions + homeowner accept/reject/follow-up
+- Activity tracking
+
+See [`PHASE_3_PUNCH_LIST.md`](./PHASE_3_PUNCH_LIST.md) for ship checklist.
 
 ## Quick start
 

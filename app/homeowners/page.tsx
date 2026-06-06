@@ -13,7 +13,6 @@ export default function HomeownersPage() {
     <MarketingShell>
       <Hero
         gridBackground
-        align="left"
         headline={homeowners.hero.headline}
         subheadline={homeowners.hero.subheadline}
         primaryCta={{

@@ -13,13 +13,7 @@ export function Header() {
         >
           <ScopeMateLogo />
         </Link>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/design-system"
-            className="text-sm text-neutral-600 transition-colors hover:text-neutral-900"
-          >
-            Components
-          </Link>
+        <div className="flex items-center">
           <UserButton />
         </div>
       </div>

@@ -7,6 +7,7 @@ import {
 } from "@/lib/contractor/project-share";
 export { isShareLinkPlaceholder };
 import { buildReviewUrl } from "@/lib/contractor/urls";
+import { parseReviewScopeSnapshot } from "@/lib/contractor/review-scope-snapshot";
 import { isMissingTableError } from "@/lib/db/errors";
 import { createServiceClient } from "@/lib/db/supabase";
 import { sendContractorInvitationEmail } from "@/lib/email/send-contractor-emails";
@@ -38,6 +39,17 @@ function normalizeInvitationStatus(
   return invitation;
 }
 
+function normalizeContractorReview(
+  review: ContractorReview | null | undefined
+): ContractorReview | null {
+  if (!review) return null;
+
+  return {
+    ...review,
+    scope_snapshot: parseReviewScopeSnapshot(review.scope_snapshot),
+  };
+}
+
 export async function listInvitationsForProject(
   projectId: string
 ): Promise<ContractorInvitationWithReview[]> {
@@ -62,7 +74,7 @@ export async function listInvitationsForProject(
 
       return {
         ...invitation,
-        review: review ?? null,
+        review: normalizeContractorReview(review),
         review_url: buildReviewUrl(invitation.invitation_token),
       };
     });
@@ -263,7 +275,7 @@ export async function getReviewProjectByInvitationToken(
       first_accessed_at: invitation.first_accessed_at ?? now,
       last_accessed_at: now,
     },
-    review: review as ContractorReview,
+    review: normalizeContractorReview(review as ContractorReview)!,
     project: {
       ...(project as Project),
       scope_items: (scopeItems ?? []) as ProjectWithScope["scope_items"],

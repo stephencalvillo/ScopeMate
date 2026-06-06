@@ -10,6 +10,8 @@ const badgeVariants = cva(
         secondary: "bg-neutral-100 text-neutral-700",
         warning: "bg-[var(--accent)] text-[var(--accent-foreground)]",
         success: "bg-emerald-50 text-emerald-800 border border-emerald-100",
+        info: "bg-blue-50 text-blue-800 border border-blue-100",
+        pending: "bg-amber-50 text-amber-900 border border-amber-200",
         outline: "border border-[var(--border)] text-neutral-700",
       },
     },

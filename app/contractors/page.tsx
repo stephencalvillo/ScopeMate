@@ -12,7 +12,6 @@ export default function ContractorsPage() {
     <MarketingShell>
       <Hero
         gridBackground
-        align="left"
         headline={contractors.hero.headline}
         subheadline={contractors.hero.subheadline}
         primaryCta={{

@@ -59,7 +59,7 @@ export function ProjectActionsMenu({ projectId }: { projectId: string }) {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            size="icon"
+            className="h-11 w-11 p-0"
             aria-label="Project options"
             disabled={loading}
           >

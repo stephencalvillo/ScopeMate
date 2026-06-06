@@ -31,6 +31,15 @@ function draftAddsForCategory(suggestions: ReviewSuggestion[], category: string)
   );
 }
 
+function followUpAddsForCategory(suggestions: ReviewSuggestion[], category: string) {
+  return suggestions.filter(
+    (entry) =>
+      entry.suggestion_type === "add" &&
+      entry.status === "follow_up_requested" &&
+      (entry.category ?? "other") === category
+  );
+}
+
 function followUpForItem(suggestions: ReviewSuggestion[], itemId: string) {
   return suggestions.find(
     (entry) =>
@@ -296,6 +305,36 @@ export function ReviewScopeList({
               </div>
             ))}
 
+            {followUpAddsForCategory(suggestions, group.category).map(
+              (suggestion) => (
+                <div key={suggestion.id} className="space-y-2">
+                  <DraftSuggestionPreview
+                    suggestion={suggestion}
+                    editable={false}
+                  />
+                  <FollowUpReplyPanel
+                    suggestion={suggestion}
+                    onSubmit={async (message) => {
+                      const response = await fetch(
+                        `/api/review/${token}/suggestions/${suggestion.id}/follow-up`,
+                        {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ message }),
+                        }
+                      );
+                      if (response.ok) {
+                        onRefresh();
+                      } else {
+                        const data = await response.json();
+                        onError(data.error ?? "Could not send response.");
+                      }
+                    }}
+                  />
+                </div>
+              )
+            )}
+
             {editable ? (
               activeAddCategory === group.category ? (
                 <CategoryAddForm
@@ -331,34 +370,70 @@ function DraftSuggestionPreview({
 }: {
   suggestion: ReviewSuggestion;
   editable: boolean;
-  onRemove: () => void;
+  onRemove?: () => void;
 }) {
+  const isComment = suggestion.suggestion_type !== "add";
+
   return (
-    <div className="rounded-[8px] border border-dashed border-neutral-300 bg-white px-3 py-2">
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-        {suggestion.suggestion_type === "add" ? "Suggested add" : "Your comment"}
-      </p>
-      {suggestion.suggested_text ? (
-        <p className="mt-1 text-sm font-medium text-neutral-900">
-          {suggestion.suggested_text}
-        </p>
-      ) : null}
-      {suggestion.contractor_note ? (
-        <p className="mt-1 text-sm text-[var(--muted)]">
-          {suggestion.contractor_note}
-        </p>
-      ) : null}
-      {editable ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="mt-2 h-8 px-2"
-          onClick={onRemove}
-        >
-          Remove
-        </Button>
-      ) : null}
+    <div className="ml-6 rounded-[8px] border border-dashed border-neutral-300 bg-white px-3 py-2">
+      {isComment ? (
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="flex items-center gap-1.5 text-xs text-[var(--muted)]">
+              Your comment
+            </p>
+            {suggestion.contractor_note ? (
+              <p className="flex items-start gap-1.5 text-sm text-neutral-900">
+                <MessageSquare
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neutral-500"
+                  aria-hidden
+                />
+                <span>{suggestion.contractor_note}</span>
+              </p>
+            ) : null}
+          </div>
+          {editable ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 shrink-0 self-center px-2"
+              onClick={() => onRemove?.()}
+            >
+              Remove
+            </Button>
+          ) : null}
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+              Suggested add
+            </p>
+            {suggestion.suggested_text ? (
+              <p className="text-sm font-medium text-neutral-900">
+                {suggestion.suggested_text}
+              </p>
+            ) : null}
+            {suggestion.contractor_note ? (
+              <p className="text-sm text-neutral-900">
+                {suggestion.contractor_note}
+              </p>
+            ) : null}
+          </div>
+          {editable ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 shrink-0 self-center px-2"
+              onClick={() => onRemove?.()}
+            >
+              Remove
+            </Button>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }
@@ -383,12 +458,12 @@ function ItemCommentForm({
   }
 
   return (
-    <div className="space-y-3 rounded-[8px] border border-[var(--border)] bg-white p-3">
+    <div className="ml-6 space-y-3 rounded-[8px] border border-[var(--border)] bg-white p-3">
       <Textarea
         value={comment}
         onChange={(event) => setComment(event.target.value)}
         placeholder="Your comment on this item"
-        rows={3}
+        className="min-h-[150px]"
       />
       <div className="flex flex-wrap gap-2">
         <Button size="sm" disabled={saving || !comment.trim()} onClick={handleSave}>

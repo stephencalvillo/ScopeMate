@@ -5,24 +5,52 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { SuggestionCard } from "@/components/suggestions/suggestion-card";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
-import type { ScopeSuggestionWithMeta } from "@/types";
+import type { ContractorInvitationWithReview, ScopeSuggestionWithMeta } from "@/types";
 
-export function SuggestionsInbox({ projectId }: { projectId: string }) {
+const ACTIVE_REVIEW_STATUSES = new Set(["pending", "in_review"]);
+
+export function SuggestionsInbox({
+  projectId,
+  shareEnabled = false,
+}: {
+  projectId: string;
+  shareEnabled?: boolean;
+}) {
   const router = useRouter();
   const [suggestions, setSuggestions] = useState<ScopeSuggestionWithMeta[]>([]);
+  const [reviewInProgress, setReviewInProgress] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadSuggestions = useCallback(async () => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/suggestions`);
-      const data = await response.json();
-      if (response.ok) {
-        setSuggestions(data.suggestions ?? []);
+      const [suggestionsResponse, invitationsResponse] = await Promise.all([
+        fetch(`/api/projects/${projectId}/suggestions`),
+        shareEnabled
+          ? fetch(`/api/projects/${projectId}/invitations`)
+          : Promise.resolve(null),
+      ]);
+
+      const suggestionsData = await suggestionsResponse.json();
+      if (suggestionsResponse.ok) {
+        setSuggestions(suggestionsData.suggestions ?? []);
+      }
+
+      if (invitationsResponse) {
+        const invitationsData = await invitationsResponse.json();
+        if (invitationsResponse.ok) {
+          const invitations = (invitationsData.invitations ??
+            []) as ContractorInvitationWithReview[];
+          setReviewInProgress(
+            invitations.some((invitation) =>
+              ACTIVE_REVIEW_STATUSES.has(invitation.status)
+            )
+          );
+        }
       }
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [projectId, shareEnabled]);
 
   useEffect(() => {
     loadSuggestions();
@@ -42,7 +70,24 @@ export function SuggestionsInbox({ projectId }: { projectId: string }) {
   }
 
   if (suggestions.length === 0) {
-    return null;
+    if (!shareEnabled) {
+      return null;
+    }
+
+    return (
+      <PageSection
+        title="Contractor suggestions"
+        description="Feedback from contractors appears here after they submit their review."
+      >
+        <SectionSurface>
+          <p className="text-sm text-[var(--muted)]">
+            {reviewInProgress
+              ? "A contractor is reviewing your scope. Suggestions will appear here once they submit their review."
+              : "Create a share link below to invite a contractor to review your scope."}
+          </p>
+        </SectionSurface>
+      </PageSection>
+    );
   }
 
   return (

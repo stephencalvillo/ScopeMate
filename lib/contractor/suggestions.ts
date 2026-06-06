@@ -1,5 +1,6 @@
 import { ForbiddenError, NotFoundError } from "@/lib/auth/clerk";
 import { getInvitationByToken } from "@/lib/contractor/invitations";
+import { buildReviewScopeSnapshot } from "@/lib/contractor/review-scope-snapshot";
 import { buildProjectUrl } from "@/lib/contractor/urls";
 import { createServiceClient } from "@/lib/db/supabase";
 import {
@@ -7,6 +8,7 @@ import {
   sendFollowUpRequestedEmail,
   sendReviewCompleteEmail,
 } from "@/lib/email/send-contractor-emails";
+import { findMatchingSuggestions } from "@/lib/suggestions/matching";
 import type {
   ContractorInvitation,
   ContractorReview,
@@ -127,9 +129,52 @@ export async function listHomeownerSuggestions(projectId: string) {
     (submittedInvites ?? []).map((invite) => [invite.id, invite])
   );
 
-  return ((data ?? []) as Array<
-    ScopeSuggestion & { suggestion_follow_ups?: SuggestionFollowUp[] }
-  >).map((row) => {
+  return mapHomeownerSuggestions(data ?? [], inviteMap);
+}
+
+export async function listHomeownerSuggestionsForInvitation(
+  projectId: string,
+  invitationId: string
+) {
+  const supabase = createServiceClient();
+
+  const { data: invitation, error: inviteError } = await supabase
+    .from("contractor_invitations")
+    .select("id, contractor_name, contractor_email, status")
+    .eq("project_id", projectId)
+    .eq("id", invitationId)
+    .maybeSingle();
+
+  if (inviteError) throw inviteError;
+  if (!invitation) return [];
+
+  const { data, error } = await supabase
+    .from("scope_suggestions")
+    .select("*, suggestion_follow_ups(*)")
+    .eq("project_id", projectId)
+    .eq("invitation_id", invitationId)
+    .in("status", ["pending", "follow_up_requested", "accepted", "rejected"])
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+
+  const inviteMap = new Map([[invitation.id, invitation]]);
+  return mapHomeownerSuggestions(data ?? [], inviteMap);
+}
+
+function mapHomeownerSuggestions(
+  rows: Array<ScopeSuggestion & { suggestion_follow_ups?: SuggestionFollowUp[] }>,
+  inviteMap: Map<
+    string,
+    {
+      id: string;
+      contractor_name: string;
+      contractor_email: string;
+      status: string;
+    }
+  >
+) {
+  return rows.map((row) => {
     const invite = inviteMap.get(row.invitation_id);
     return {
       ...row,
@@ -317,12 +362,19 @@ export async function completeContractorReview({
     if (suggestionError) throw suggestionError;
   }
 
+  const scopeSnapshot = await buildReviewScopeSnapshot({
+    projectId: project.id,
+    aiSummary: project.ai_summary,
+    drafts,
+  });
+
   const { error: reviewError } = await supabase
     .from("contractor_reviews")
     .update({
       status: "submitted",
       submitted_at: now,
       updated_at: now,
+      scope_snapshot: scopeSnapshot,
     })
     .eq("id", review.id);
 
@@ -392,10 +444,22 @@ async function mergeAcceptedSuggestion(
   }
 
   if (suggestion.suggestion_type === "edit") {
+    const { data: existingItem, error: existingError } = await supabase
+      .from("scope_items")
+      .select("text")
+      .eq("id", suggestion.target_scope_item_id)
+      .maybeSingle();
+
+    if (existingError) throw existingError;
+    if (!existingItem) throw new NotFoundError("Target scope item not found.");
+
+    const suggestedText = suggestion.suggested_text?.trim();
+    const nextText = suggestedText || (existingItem.text as string);
+
     const { data, error } = await supabase
       .from("scope_items")
       .update({
-        text: suggestion.suggested_text ?? "",
+        text: nextText,
         source: "contractor",
         suggestion_id: suggestion.id,
         updated_at: new Date().toISOString(),
@@ -420,6 +484,54 @@ async function mergeAcceptedSuggestion(
 
   if (error) throw error;
   return data as ScopeItem;
+}
+
+async function resolveMatchingSuggestions({
+  acceptedSuggestion,
+  homeownerId,
+  resolvedAt,
+}: {
+  acceptedSuggestion: ScopeSuggestion;
+  homeownerId: string;
+  resolvedAt: string;
+}) {
+  if (acceptedSuggestion.suggestion_type === "note") {
+    return [];
+  }
+
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("scope_suggestions")
+    .select("*")
+    .eq("project_id", acceptedSuggestion.project_id)
+    .in("status", ["pending", "follow_up_requested"]);
+
+  if (error) throw error;
+
+  const matches = findMatchingSuggestions(
+    acceptedSuggestion,
+    (data ?? []) as ScopeSuggestion[]
+  );
+
+  if (matches.length === 0) {
+    return [];
+  }
+
+  const matchIds = matches.map((suggestion) => suggestion.id);
+  const { data: updated, error: updateError } = await supabase
+    .from("scope_suggestions")
+    .update({
+      status: "accepted",
+      resolved_at: resolvedAt,
+      resolved_by: homeownerId,
+      updated_at: resolvedAt,
+    })
+    .in("id", matchIds)
+    .select("*");
+
+  if (updateError) throw updateError;
+
+  return (updated ?? []) as ScopeSuggestion[];
 }
 
 export async function acceptSuggestion({
@@ -476,9 +588,16 @@ export async function acceptSuggestion({
 
   if (updateError) throw updateError;
 
+  const superseded = await resolveMatchingSuggestions({
+    acceptedSuggestion: updated as ScopeSuggestion,
+    homeownerId,
+    resolvedAt: now,
+  });
+
   return {
     suggestion: updated as ScopeSuggestion,
     scope_item: scopeItem,
+    superseded_suggestions: superseded,
   };
 }
 

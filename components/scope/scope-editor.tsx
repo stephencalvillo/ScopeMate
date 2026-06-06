@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AddMoreToScopeSection } from "@/components/scope/add-more-to-scope-section";
 import { GenerateScopeButton } from "@/components/scope/generate-scope-button";
+import { PhotoUploadSection } from "@/components/photos/photo-upload-section";
 import { ScopeCategoryFilter } from "@/components/scope/scope-category-filter";
 import {
   PageSection,
@@ -116,6 +117,8 @@ export function ScopeEditor({
           ) : undefined
         }
       />
+
+      <PhotoUploadSection projectId={project.id} />
 
       {!hasScope ? (
         <PageSection

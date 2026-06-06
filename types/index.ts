@@ -47,6 +47,7 @@ export interface ScopeItem {
   needs_verification: boolean;
   follow_up_question_id?: string | null;
   suggestion_id?: string | null;
+  contractor_attribution_name?: string;
   created_at: string;
   updated_at: string;
 }
@@ -175,6 +176,34 @@ export type ContractorReviewStatus = "in_progress" | "submitted";
 
 export type ScopeSuggestionType = "add" | "edit" | "remove" | "note";
 
+export interface ReviewScopeSnapshotItem {
+  id: string;
+  category: string;
+  text: string;
+  source: ScopeItemSource;
+  priority: ScopeItemPriority;
+  sort_order: number;
+  needs_verification: boolean;
+  contractor_attribution_name?: string | null;
+  suggestion_id?: string | null;
+}
+
+export interface ReviewScopeSnapshotSuggestion {
+  id: string;
+  suggestion_type: ScopeSuggestionType;
+  category: string | null;
+  suggested_text: string | null;
+  contractor_note: string | null;
+  target_scope_item_id: string | null;
+}
+
+export interface ReviewScopeSnapshot {
+  captured_at: string;
+  ai_summary: string | null;
+  scope_items: ReviewScopeSnapshotItem[];
+  suggestions: ReviewScopeSnapshotSuggestion[];
+}
+
 export type ScopeSuggestionStatus =
   | "draft"
   | "pending"
@@ -214,6 +243,7 @@ export interface ContractorReview {
   notes: string | null;
   status: ContractorReviewStatus;
   submitted_at: string | null;
+  scope_snapshot: ReviewScopeSnapshot | null;
   created_at: string;
   updated_at: string;
 }

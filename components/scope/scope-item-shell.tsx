@@ -42,6 +42,9 @@ export function getScopeItemAttribution(
   }
 
   if (item.source === "contractor" || item.suggestion_id) {
+    if (item.contractor_attribution_name) {
+      return `Suggested by ${item.contractor_attribution_name}`;
+    }
     return "Suggested by contractor";
   }
 

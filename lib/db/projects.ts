@@ -1,6 +1,7 @@
 import { recordShareLinkView } from "@/lib/contractor/activity";
 import { createServiceClient } from "@/lib/db/supabase";
 import { enrichProjectLocation, enrichProjectsLocation } from "@/lib/location/resolve";
+import { enrichScopeItemsWithContractorAttribution } from "@/lib/scope/contractor-attribution";
 import type { Project, ProjectWithScope, ScopeItem } from "@/types";
 
 export async function listProjectsForUser(userId: string): Promise<Project[]> {
@@ -31,7 +32,7 @@ export async function getProjectForUser(
   if (error) throw error;
   if (!project) return null;
 
-  const { data: scopeItems, error: scopeError } = await supabase
+  const { data: scopeItemsData, error: scopeError } = await supabase
     .from("scope_items")
     .select("*")
     .eq("project_id", projectId)
@@ -40,10 +41,14 @@ export async function getProjectForUser(
 
   if (scopeError) throw scopeError;
 
+  const scopeItems = await enrichScopeItemsWithContractorAttribution(
+    (scopeItemsData ?? []) as ScopeItem[]
+  );
+
   return enrichProjectLocation(
     {
       ...(project as Project),
-      scope_items: (scopeItems ?? []) as ScopeItem[],
+      scope_items: scopeItems,
     },
     { persist: true }
   );

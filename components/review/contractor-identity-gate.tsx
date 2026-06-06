@@ -4,7 +4,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { isShareLinkPlaceholder } from "@/lib/contractor/project-share";
+import {
+  isShareLinkPlaceholder,
+  SHARE_LINK_PLACEHOLDER_NAME,
+} from "@/lib/contractor/project-share";
 import { SectionSurface } from "@/components/layout/page-section";
 import type { ContractorInvitation } from "@/types";
 
@@ -18,8 +21,10 @@ export function ContractorIdentityGate({
   onComplete: () => void;
 }) {
   const isShareLink = isShareLinkPlaceholder(invitation);
+  const needsName =
+    isShareLink || invitation.contractor_name === SHARE_LINK_PLACEHOLDER_NAME;
   const [contractorName, setContractorName] = useState(
-    isShareLink ? "" : invitation.contractor_name
+    needsName ? "" : invitation.contractor_name
   );
   const [contractorEmail, setContractorEmail] = useState(
     isShareLink ? "" : invitation.contractor_email

@@ -15,7 +15,7 @@ const buttonVariants = cva(
         outline:
           "border-neutral-300/80 bg-linear-to-b from-white via-neutral-50 to-neutral-100 text-neutral-900 shadow-[var(--button-shadow-surface)] hover:from-neutral-50 hover:via-white hover:to-neutral-50 hover:shadow-[var(--button-shadow-surface-hover)] active:border-neutral-300 active:from-neutral-100 active:via-neutral-100 active:to-neutral-200 active:shadow-[var(--button-shadow-surface-active)]",
         ghost:
-          "border-transparent bg-transparent text-neutral-700 shadow-none hover:border-[var(--border)] hover:bg-linear-to-b hover:from-white hover:via-neutral-50 hover:to-neutral-100 hover:text-neutral-900 hover:shadow-[var(--button-shadow-surface)] active:border-neutral-200 active:bg-neutral-100 active:shadow-[var(--button-shadow-surface-active)]",
+          "border-transparent bg-transparent text-neutral-700 shadow-none hover:bg-neutral-900/10 hover:text-neutral-900 active:border-transparent active:bg-neutral-900/15 active:shadow-none active:translate-y-0",
         destructive:
           "border-red-900/40 bg-linear-to-b from-red-500 via-red-600 to-red-700 text-white shadow-[var(--button-shadow-destructive)] hover:from-red-400 hover:via-red-600 hover:to-red-700 hover:shadow-[var(--button-shadow-destructive)] active:border-red-950 active:from-red-600 active:via-red-700 active:to-red-800 active:shadow-[var(--button-shadow-destructive-active)]",
       },

@@ -1,0 +1,115 @@
+"use client";
+
+import { Suspense, useCallback, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, MapPin } from "lucide-react";
+import { ProjectActionsMenu } from "@/components/project/project-actions-menu";
+import { ProjectDetailTabs } from "@/components/project/project-detail-tabs";
+import {
+  ProjectShareHeaderActions,
+  ProjectShareHeaderRow,
+  ProjectShareProvider,
+} from "@/components/project/project-share-ui";
+import { ScopeEditor } from "@/components/scope/scope-editor";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { formatProjectLocation } from "@/lib/location/parse";
+import { projectStatusBadgeVariant } from "@/lib/project-status";
+import {
+  formatProjectTypeLabel,
+  PROJECT_STATUS_LABELS,
+  type ProjectWithScope,
+} from "@/types";
+
+function ProjectHeaderMeta({ project }: { project: ProjectWithScope }) {
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <h1 className="font-display text-4xl tracking-tight text-neutral-900">
+          {project.title}
+        </h1>
+        <Badge variant={projectStatusBadgeVariant(project.status)}>
+          {PROJECT_STATUS_LABELS[project.status]}
+        </Badge>
+      </div>
+      <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
+        <span>{formatProjectTypeLabel(project.project_type)}</span>
+        <span aria-hidden>{"\u00b7"}</span>
+        <span className="inline-flex items-center gap-1.5">
+          <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+          {formatProjectLocation(project)}
+        </span>
+      </p>
+    </div>
+  );
+}
+
+export function ProjectDetailView({
+  project,
+  autoGenerate,
+}: {
+  project: ProjectWithScope;
+  autoGenerate: boolean;
+}) {
+  const [activityRefreshKey, setActivityRefreshKey] = useState(0);
+  const handleActivityChange = useCallback(() => {
+    setActivityRefreshKey((current) => current + 1);
+  }, []);
+
+  const hasScope = project.scope_items.length > 0 || project.ai_summary;
+
+  const backButton = (
+    <Button variant="ghost" size="sm" className="-ml-2" asChild>
+      <Link href="/projects">
+        <ArrowLeft className="h-4 w-4" />
+        Back to projects
+      </Link>
+    </Button>
+  );
+
+  if (!hasScope) {
+    return (
+      <div className="space-y-8">
+        <div className="space-y-4">
+          {backButton}
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <ProjectHeaderMeta project={project} />
+            <ProjectActionsMenu projectId={project.id} />
+          </div>
+        </div>
+        <ScopeEditor project={project} autoGenerate={autoGenerate} />
+      </div>
+    );
+  }
+
+  return (
+    <ProjectShareProvider
+      project={project}
+      onActivityChange={handleActivityChange}
+    >
+      <div className="space-y-8">
+        <div className="space-y-4">
+          {backButton}
+          <ProjectShareHeaderRow>
+            <ProjectHeaderMeta project={project} />
+            <ProjectShareHeaderActions>
+              <ProjectActionsMenu projectId={project.id} />
+            </ProjectShareHeaderActions>
+          </ProjectShareHeaderRow>
+        </div>
+
+        <Suspense
+          fallback={
+            <div className="text-sm text-[var(--muted)]">Loading project...</div>
+          }
+        >
+          <ProjectDetailTabs
+            project={project}
+            autoGenerate={autoGenerate}
+            activityRefreshKey={activityRefreshKey}
+          />
+        </Suspense>
+      </div>
+    </ProjectShareProvider>
+  );
+}
