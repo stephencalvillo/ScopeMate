@@ -30,6 +30,7 @@ export interface Project {
   share_token: string | null;
   share_enabled: boolean;
   share_expires_at: string | null;
+  share_enabled_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -194,6 +195,7 @@ export interface ContractorInvitation {
   invitation_token: string;
   status: ContractorInvitationStatus;
   accepted_at: string | null;
+  first_accessed_at: string | null;
   last_accessed_at: string | null;
   expires_at: string;
   created_at: string;

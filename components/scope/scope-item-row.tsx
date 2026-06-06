@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
-import { VerificationBadge } from "@/components/scope/verification-badge";
+import { ScopeItemContent } from "@/components/scope/scope-item-content";
+import { ScopeItemShell } from "@/components/scope/scope-item-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import type { ScopeItem, ScopeItemPriority } from "@/types";
 
 export function ScopeItemRow({
@@ -62,12 +62,7 @@ export function ScopeItemRow({
   }
 
   return (
-    <div
-      className={cn(
-        "group -mx-2 rounded-[4px] px-2 py-3 transition-colors",
-        !editing && "hover:bg-neutral-50"
-      )}
-    >
+    <ScopeItemShell interactive={!editing}>
       {editing ? (
         <div className="space-y-3">
           <Input value={text} onChange={(event) => setText(event.target.value)} />
@@ -102,45 +97,32 @@ export function ScopeItemRow({
           </div>
         </div>
       ) : (
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium leading-7 text-neutral-900">
-              {item.text}
-            </p>
-            {item.needs_verification ? <VerificationBadge /> : null}
-            {item.follow_up_question_id ? (
-              <p className="mt-1 text-xs text-[var(--muted)]">
-                From your answer
-              </p>
-            ) : item.source === "contractor" || item.suggestion_id ? (
-              <p className="mt-1 text-xs text-[var(--muted)]">
-                Suggested by contractor
-              </p>
-            ) : item.source === "homeowner" ? (
-              <p className="mt-1 text-xs text-[var(--muted)]">Added by you</p>
-            ) : null}
-          </div>
-
-          <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setEditing(true)}
-              aria-label="Edit scope item"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={removeItem}
-              aria-label="Remove scope item"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        <ScopeItemContent
+          item={item}
+          actions={
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                onClick={() => setEditing(true)}
+                aria-label="Edit scope item"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                onClick={removeItem}
+                aria-label="Remove scope item"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
+          }
+        />
       )}
-    </div>
+    </ScopeItemShell>
   );
 }

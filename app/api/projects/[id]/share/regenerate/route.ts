@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
 import { getOwnedProject } from "@/lib/api/project-access";
+import { buildShareUrl } from "@/lib/contractor/urls";
+import { isMissingColumnError } from "@/lib/db/errors";
 import { createServiceClient } from "@/lib/db/supabase";
 import { generateShareToken } from "@/lib/security/tokens";
-
-function buildShareUrl(token: string) {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  return `${base}/share/${token}`;
-}
 
 export async function POST(
   _request: Request,
@@ -19,16 +16,29 @@ export async function POST(
     const supabase = createServiceClient();
     const token = generateShareToken();
 
-    const { data, error } = await supabase
+    const now = new Date().toISOString();
+    const baseUpdate = {
+      share_token: token,
+      share_enabled: true,
+    };
+
+    let result = await supabase
       .from("projects")
-      .update({
-        share_token: token,
-        share_enabled: true,
-      })
+      .update({ ...baseUpdate, share_enabled_at: now })
       .eq("id", id)
       .select("share_token, share_enabled, share_expires_at")
       .single();
 
+    if (result.error && isMissingColumnError(result.error)) {
+      result = await supabase
+        .from("projects")
+        .update(baseUpdate)
+        .eq("id", id)
+        .select("share_token, share_enabled, share_expires_at")
+        .single();
+    }
+
+    const { data, error } = result;
     if (error) throw error;
 
     return NextResponse.json({

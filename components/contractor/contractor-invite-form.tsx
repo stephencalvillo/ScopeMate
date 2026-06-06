@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SectionSurface } from "@/components/layout/page-section";
 import type { ContractorInvitationWithReview } from "@/types";
 
 export function ContractorInviteForm({
@@ -50,8 +49,7 @@ export function ContractorInviteForm({
   }
 
   return (
-    <SectionSurface>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="contractor-name">Contractor name</Label>
@@ -85,6 +83,5 @@ export function ContractorInviteForm({
           {loading ? "Sending..." : "Send invitation"}
         </Button>
       </form>
-    </SectionSurface>
   );
 }

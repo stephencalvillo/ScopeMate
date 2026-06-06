@@ -41,7 +41,7 @@ export function SectionSurface({
   return (
     <div
       className={cn(
-        "rounded-[8px] border border-[var(--border)] bg-white p-5",
+        "rounded-[8px] border border-[var(--border)] bg-white p-[var(--surface-padding)]",
         className
       )}
     >

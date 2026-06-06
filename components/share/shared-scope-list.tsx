@@ -1,16 +1,14 @@
 import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
-import { VerificationBadge } from "@/components/scope/verification-badge";
+import { ScopeItemContent } from "@/components/scope/scope-item-content";
+import { ScopeItemShell } from "@/components/scope/scope-item-shell";
 import { groupScopeItemsByCategory } from "@/lib/scope/group-by-category";
 import type { ScopeItem } from "@/types";
 
 function SharedScopeItemRow({ item }: { item: ScopeItem }) {
   return (
-    <div className="py-3">
-      <p className="text-sm font-medium leading-7 text-neutral-900">
-        {item.text}
-      </p>
-      {item.needs_verification ? <VerificationBadge /> : null}
-    </div>
+    <ScopeItemShell>
+      <ScopeItemContent item={item} showAttribution={false} />
+    </ScopeItemShell>
   );
 }
 
@@ -26,7 +24,11 @@ export function SharedScopeList({ items }: { items: ScopeItem[] }) {
   return (
     <div className="space-y-3">
       {groupScopeItemsByCategory(items).map((group) => (
-        <ScopeCategoryGroup key={group.category} category={group.category}>
+        <ScopeCategoryGroup
+          key={group.category}
+          category={group.category}
+          itemCount={group.items.length}
+        >
           {group.items.map((item) => (
             <SharedScopeItemRow key={item.id} item={item} />
           ))}

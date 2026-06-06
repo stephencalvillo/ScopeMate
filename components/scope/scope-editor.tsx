@@ -108,7 +108,14 @@ export function ScopeEditor({
 
   return (
     <div className="space-y-8">
-      <ScopeSummary summary={summary} />
+      <ScopeSummary
+        summary={summary}
+        action={
+          hasScope ? (
+            <AddMoreToScopeSection onSubmit={handleAddMore} />
+          ) : undefined
+        }
+      />
 
       {!hasScope ? (
         <PageSection
@@ -151,6 +158,7 @@ export function ScopeEditor({
                 <ScopeCategoryGroup
                   key={group.category}
                   category={group.category}
+                  itemCount={group.items.length}
                 >
                   {group.items.map((item) => (
                     <ScopeItemRow
@@ -175,8 +183,6 @@ export function ScopeEditor({
               ))
             )}
           </div>
-
-          <AddMoreToScopeSection onSubmit={handleAddMore} />
         </PageSection>
       )}
     </div>

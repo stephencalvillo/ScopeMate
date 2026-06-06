@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { ContractorInviteSection } from "@/components/contractor/contractor-invite-section";
+import { ArrowLeft, MapPin } from "lucide-react";
+import { ContractorShareAndActivity } from "@/components/contractor/contractor-share-and-activity";
 import { FollowUpQuestionsPanel } from "@/components/follow-up/follow-up-questions-panel";
 import { PhotoUploadSection } from "@/components/photos/photo-upload-section";
 import { ProjectActionsMenu } from "@/components/project/project-actions-menu";
-import { ShareLinkDock } from "@/components/project/share-link-dock";
 import { ScopeEditor } from "@/components/scope/scope-editor";
 import { SuggestionsInbox } from "@/components/suggestions/suggestions-inbox";
 import { Badge } from "@/components/ui/badge";
@@ -57,11 +56,13 @@ export default async function ProjectDetailPage({
                 {PROJECT_STATUS_LABELS[project.status]}
               </Badge>
             </div>
-            <p className="text-sm text-[var(--muted)]">
-              {formatProjectTypeLabel(project.project_type)}
-            </p>
-            <p className="text-sm text-[var(--muted)]">
-              {formatProjectLocation(project)}
+            <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
+              <span>{formatProjectTypeLabel(project.project_type)}</span>
+              <span aria-hidden>·</span>
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+                {formatProjectLocation(project)}
+              </span>
             </p>
           </div>
           <ProjectActionsMenu projectId={project.id} />
@@ -80,8 +81,7 @@ export default async function ProjectDetailPage({
             projectType={project.project_type}
           />
           <PhotoUploadSection projectId={project.id} />
-          <ContractorInviteSection projectId={project.id} />
-          <ShareLinkDock project={project} />
+          <ContractorShareAndActivity project={project} />
         </>
       ) : (
         <ScopeEditor

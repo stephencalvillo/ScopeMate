@@ -10,7 +10,7 @@ export default async function ProjectsPage() {
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-wrap items-end justify-between gap-6">
+      <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="max-w-2xl space-y-3">
           <h1 className="font-display text-4xl tracking-tight text-neutral-900 text-balance">
             Your projects

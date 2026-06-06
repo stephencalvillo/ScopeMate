@@ -1,3 +1,4 @@
+import { recordShareLinkView } from "@/lib/contractor/activity";
 import { createServiceClient } from "@/lib/db/supabase";
 import { enrichProjectLocation, enrichProjectsLocation } from "@/lib/location/resolve";
 import type { Project, ProjectWithScope, ScopeItem } from "@/types";
@@ -77,6 +78,8 @@ export async function getProjectByShareToken(
     .order("sort_order", { ascending: true });
 
   if (scopeError) throw scopeError;
+
+  await recordShareLinkView(project.id);
 
   return enrichProjectLocation(
     {

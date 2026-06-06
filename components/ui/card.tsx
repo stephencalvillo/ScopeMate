@@ -20,7 +20,12 @@ export function CardHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("space-y-1.5 p-8 pb-4", className)} {...props} />;
+  return (
+    <div
+      className={cn("space-y-1.5 p-[var(--card-padding)] pb-4", className)}
+      {...props}
+    />
+  );
 }
 
 export function CardTitle({
@@ -51,5 +56,7 @@ export function CardContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-8 pt-0", className)} {...props} />;
+  return (
+    <div className={cn("p-[var(--card-padding)] pt-0", className)} {...props} />
+  );
 }

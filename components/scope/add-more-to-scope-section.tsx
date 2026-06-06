@@ -2,10 +2,6 @@
 
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
-import {
-  PageSection,
-  SectionSurface,
-} from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -39,8 +35,7 @@ export function AddMoreToScopeSection({
     return (
       <Button
         type="button"
-        variant="ghost"
-        className="w-full justify-center sm:w-auto"
+        variant="secondary"
         disabled={disabled}
         onClick={() => setOpen(true)}
       >
@@ -51,46 +46,46 @@ export function AddMoreToScopeSection({
   }
 
   return (
-    <PageSection
-      title="Add more to your scope"
-      description="Describe anything new — ScopeMate will update your list and summary."
-      className="pt-2"
-    >
-      <SectionSurface>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Textarea
-            value={notes}
-            onChange={(event) => {
-              setNotes(event.target.value);
-              if (error) setError(null);
-            }}
-            placeholder="For example: We also want to replace the backsplash tile and add a pantry closet."
-            className="min-h-28 text-base"
-            disabled={disabled}
-            autoFocus
-          />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-neutral-900">
+          Add more to your scope
+        </p>
+        <p className="text-sm text-[var(--muted)]">
+          Describe anything new — ScopeMate will update your list and summary.
+        </p>
+      </div>
+      <Textarea
+        value={notes}
+        onChange={(event) => {
+          setNotes(event.target.value);
+          if (error) setError(null);
+        }}
+        placeholder="For example: We also want to replace the backsplash tile and add a pantry closet."
+        className="min-h-28 text-base"
+        disabled={disabled}
+        autoFocus
+      />
 
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={disabled || !notes.trim()}>
-              Add to scope
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={disabled}
-              onClick={() => {
-                setOpen(false);
-                setNotes("");
-                setError(null);
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </SectionSurface>
-    </PageSection>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" disabled={disabled || !notes.trim()}>
+          Add to scope
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={disabled}
+          onClick={() => {
+            setOpen(false);
+            setNotes("");
+            setError(null);
+          }}
+        >
+          Cancel
+        </Button>
+      </div>
+    </form>
   );
 }

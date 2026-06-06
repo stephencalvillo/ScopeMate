@@ -227,16 +227,23 @@ export async function getReviewProjectByInvitationToken(
 
   if (scopeError) throw scopeError;
 
+  const now = new Date().toISOString();
+
   await supabase
     .from("contractor_invitations")
     .update({
-      last_accessed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      first_accessed_at: invitation.first_accessed_at ?? now,
+      last_accessed_at: now,
+      updated_at: now,
     })
     .eq("id", invitation.id);
 
   return {
-    invitation,
+    invitation: {
+      ...invitation,
+      first_accessed_at: invitation.first_accessed_at ?? now,
+      last_accessed_at: now,
+    },
     review: review as ContractorReview,
     project: {
       ...(project as Project),

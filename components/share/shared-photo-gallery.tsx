@@ -129,7 +129,7 @@ export function SharedPhotoGallery({ photos }: { photos: SharedPhoto[] }) {
             </p>
           </SectionSurface>
         ) : (
-          <SectionSurface className="p-5">
+          <SectionSurface>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {photos.map((photo, index) => (
                 <button

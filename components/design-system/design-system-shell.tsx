@@ -20,8 +20,8 @@ export function DesignSystemShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="-mx-6 flex min-h-[calc(100vh-12rem)] flex-col gap-8 lg:flex-row lg:gap-0">
-      <aside className="shrink-0 border-b border-[var(--border)] px-6 pb-6 lg:w-60 lg:border-b-0 lg:border-r lg:pl-6 lg:pr-0 lg:pb-0">
+    <div className="-mx-[var(--page-padding-x)] flex min-h-[calc(100vh-12rem)] flex-col gap-8 lg:flex-row lg:gap-0">
+      <aside className="shrink-0 border-b border-[var(--border)] px-[var(--page-padding-x)] pb-6 lg:w-60 lg:border-b-0 lg:border-r lg:pl-[var(--page-padding-x)] lg:pr-0 lg:pb-0">
         <div className="mb-6">
           <p className="font-display text-lg text-neutral-900">Component library</p>
           <p className="mt-1 text-sm text-[var(--muted)]">
@@ -69,7 +69,7 @@ export function DesignSystemShell({ children }: { children: React.ReactNode }) {
         </nav>
       </aside>
 
-      <div className="min-w-0 flex-1 px-6 lg:pl-6 lg:pr-0">{children}</div>
+      <div className="min-w-0 flex-1 px-[var(--page-padding-x)] lg:pl-[var(--page-padding-x)] lg:pr-0">{children}</div>
     </div>
   );
 }

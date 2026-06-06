@@ -20,22 +20,29 @@ export const createSuggestionSchema = z
       });
     }
 
-    if (
-      (value.suggestion_type === "edit" || value.suggestion_type === "remove") &&
-      !value.target_scope_item_id
-    ) {
+    if (value.suggestion_type === "edit") {
+      if (!value.target_scope_item_id) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Select a scope item.",
+          path: ["target_scope_item_id"],
+        });
+      }
+
+      if (!value.suggested_text?.trim() && !value.contractor_note?.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Add a comment or suggested wording.",
+          path: ["contractor_note"],
+        });
+      }
+    }
+
+    if (value.suggestion_type === "remove" && !value.target_scope_item_id) {
       ctx.addIssue({
         code: "custom",
         message: "Select a scope item.",
         path: ["target_scope_item_id"],
-      });
-    }
-
-    if (value.suggestion_type === "edit" && !value.suggested_text?.trim()) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Describe the updated scope text.",
-        path: ["suggested_text"],
       });
     }
   });
@@ -60,4 +67,13 @@ export const rejectSuggestionSchema = z.object({
 
 export const reviewNotesSchema = z.object({
   notes: z.string().trim().max(4000).optional(),
+});
+
+export const generateAddSuggestionSchema = z.object({
+  category: categorySchema,
+  description: z
+    .string()
+    .trim()
+    .min(1, "Describe what you want to add.")
+    .max(2000),
 });

@@ -21,7 +21,7 @@ export function PreviewSection({
       </div>
       <div
         className={cn(
-          "rounded-[4px] border border-[var(--border)] bg-white p-6",
+          "rounded-[4px] border border-[var(--border)] bg-white p-[var(--surface-padding)]",
           className
         )}
       >
