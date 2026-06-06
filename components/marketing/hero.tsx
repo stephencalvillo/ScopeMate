@@ -33,11 +33,11 @@ export function Hero({
         "relative overflow-hidden",
         gridBackground
           ? compact
-            ? "pb-2 pt-12 md:pb-4 md:pt-16"
-            : "pb-20 pt-16 md:pb-28 md:pt-24"
+            ? "pb-[0.6rem] pt-[3.45rem] md:pb-[1.15rem] md:pt-[4.6rem]"
+            : "pb-[5.75rem] pt-[4.6rem] md:pb-[8.05rem] md:pt-[6.9rem]"
           : compact
-            ? "py-10 md:py-14"
-            : "py-16 md:py-24",
+            ? "py-[2.875rem] md:py-[4.025rem]"
+            : "py-[4.6rem] md:py-[6.9rem]",
         isCentered && "text-center",
         className
       )}
@@ -55,7 +55,7 @@ export function Hero({
         <div
           className={cn(
             compact ? "space-y-4" : "space-y-6",
-            isCentered ? "mx-auto max-w-3xl" : "max-w-2xl"
+            isCentered ? "mx-auto w-full max-w-4xl" : "max-w-2xl"
           )}
         >
         <h1
@@ -63,7 +63,8 @@ export function Hero({
             "font-display tracking-tight text-neutral-900 text-balance",
             compact
               ? "text-3xl leading-tight md:text-4xl"
-              : "text-4xl md:text-5xl md:leading-tight"
+              : "text-4xl md:text-5xl md:leading-tight",
+            isCentered && "mx-auto max-w-3xl"
           )}
         >
           {headline}
@@ -74,7 +75,7 @@ export function Hero({
               compact
                 ? "text-base leading-relaxed text-[var(--muted)] text-balance md:text-lg"
                 : "text-lg leading-relaxed text-[var(--muted)] text-balance md:text-xl",
-              isCentered && "mx-auto max-w-2xl"
+              isCentered && "mx-auto w-full max-w-4xl"
             )}
           >
             {subheadline}

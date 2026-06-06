@@ -73,6 +73,27 @@ Contractors generate draft estimates from scope, edit line items, and submit pro
 
 ---
 
+## Phase 5.5 - Proposal Acceptance *(complete)*
+
+**Build:**
+
+- Homeowner accepts one proposal per project; others auto-declined
+- Accepted / not selected badges on reviewed scopes and compare table
+- Contractor outcome banners (accepted vs project closed)
+- Floating accept dock when inline panel scrolls out of view
+- Project status badge shows **Accepted** after selection
+- Post-accept summary on project detail with link to winning proposal
+
+**Rules:**
+
+- One accepted proposal per project
+- Non-selected contractors notified and closed out
+- Acceptance is final (no undo in MVP)
+
+**Before prod:** Run migration `012_proposal_acceptance.sql`.
+
+---
+
 ## Phase 6 - Contractor Pro
 
 **Features:**

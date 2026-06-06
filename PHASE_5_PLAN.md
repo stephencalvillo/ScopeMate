@@ -41,6 +41,20 @@ Once scope is clear, contractors need to respond with **real numbers**. Phase 5 
 | Homeowner submitted proposal on reviewed scope detail | Done |
 | Proposal-aware review-complete email to homeowner | Done |
 | Compare multiple contractor proposals (reviewed scopes tab) | Done |
+| Homeowner accepts one proposal; others auto-declined | Done |
+| Accepted / not selected badges + contractor outcome banners | Done |
+| Floating accept dock + project **Accepted** badge | Done |
+| Post-accept summary on project detail | Done |
+
+---
+
+## Phase 5.5 — Proposal acceptance
+
+**Status:** Complete.
+
+**Migration:** `012_proposal_acceptance.sql` — estimate `accepted`/`declined`, `projects.accepted_estimate_id`, invitation `closed_out`.
+
+**Before prod:** Apply migration `012` in production.
 
 ---
 
@@ -60,7 +74,8 @@ Once scope is clear, contractors need to respond with **real numbers**. Phase 5 
 
 | Item | Notes |
 | ---- | ----- |
-| Apply migration `011` in prod | Run before enabling in production |
+| Apply migration `011` in prod | Run before enabling estimates in production |
+| Apply migration `012` in prod | Run before enabling proposal acceptance in production |
 
 ---
 

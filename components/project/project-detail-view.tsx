@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, MapPin } from "lucide-react";
+import { AcceptedProposalSummary } from "@/components/project/accepted-proposal-summary";
 import { ProjectActionsMenu } from "@/components/project/project-actions-menu";
 import { ProjectDetailTabs } from "@/components/project/project-detail-tabs";
 import {
@@ -15,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatProjectLocation } from "@/lib/location/parse";
 import { projectStatusBadgeProps } from "@/lib/project-status";
+import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision";
 import { formatProjectTypeLabel, type ProjectWithScope } from "@/types";
 
 function ProjectHeaderMeta({ project }: { project: ProjectWithScope }) {
@@ -43,9 +45,11 @@ function ProjectHeaderMeta({ project }: { project: ProjectWithScope }) {
 export function ProjectDetailView({
   project,
   autoGenerate,
+  acceptedProposal = null,
 }: {
   project: ProjectWithScope;
   autoGenerate: boolean;
+  acceptedProposal?: ProjectAcceptedProposalSummary | null;
 }) {
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const handleActivityChange = useCallback(() => {
@@ -63,6 +67,14 @@ export function ProjectDetailView({
     </Button>
   );
 
+  const acceptedProposalBanner =
+    acceptedProposal != null ? (
+      <AcceptedProposalSummary
+        projectId={project.id}
+        summary={acceptedProposal}
+      />
+    ) : null;
+
   if (!hasScope) {
     return (
       <div className="space-y-8">
@@ -73,6 +85,7 @@ export function ProjectDetailView({
             <ProjectActionsMenu projectId={project.id} />
           </div>
         </div>
+        {acceptedProposalBanner}
         <ScopeEditor project={project} autoGenerate={autoGenerate} />
       </div>
     );
@@ -93,6 +106,8 @@ export function ProjectDetailView({
             </ProjectShareHeaderActions>
           </ProjectShareHeaderRow>
         </div>
+
+        {acceptedProposalBanner}
 
         <Suspense
           fallback={

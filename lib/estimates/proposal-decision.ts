@@ -1,16 +1,30 @@
 import { ForbiddenError, NotFoundError } from "@/lib/auth/clerk";
+import { displayContractorName } from "@/lib/contractor/display-contractor";
+import { formatReviewDate } from "@/lib/contractor/review-display";
 import { getInvitationByToken } from "@/lib/contractor/invitations";
 import { createServiceClient } from "@/lib/db/supabase";
 import {
   getEstimateForReview,
   getProposalEstimateForInvitation,
 } from "@/lib/estimates/estimates";
-import { proposalRangeFromLineItems } from "@/lib/estimates/money";
+import {
+  formatProposalRange,
+  proposalRangeFromLineItems,
+} from "@/lib/estimates/money";
 import {
   sendProposalAcceptedEmail,
   sendProposalNotSelectedEmail,
 } from "@/lib/email/send-contractor-emails";
 import type { ContractorEstimate, Project, User } from "@/types";
+
+export type ProjectAcceptedProposalSummary = {
+  estimate: ContractorEstimate;
+  invitationId: string;
+  contractorName: string;
+  contractorCompany: string | null;
+  rangeLabel: string;
+  acceptedAtLabel: string | null;
+};
 
 export async function getProjectAcceptedEstimate(projectId: string) {
   const supabase = createServiceClient();
@@ -44,6 +58,36 @@ export async function getProjectAcceptedEstimate(projectId: string) {
   return {
     ...(estimate as ContractorEstimate),
     line_items: lineItems ?? [],
+  };
+}
+
+export async function getProjectAcceptedProposalSummary(
+  projectId: string
+): Promise<ProjectAcceptedProposalSummary | null> {
+  const estimate = await getProjectAcceptedEstimate(projectId);
+  if (!estimate) return null;
+
+  const supabase = createServiceClient();
+  const { data: invitation, error } = await supabase
+    .from("contractor_invitations")
+    .select("id, contractor_name, contractor_email, contractor_company")
+    .eq("id", estimate.invitation_id)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!invitation) return null;
+
+  const { minTotal, maxTotal } = proposalRangeFromLineItems(
+    estimate.line_items ?? []
+  );
+
+  return {
+    estimate,
+    invitationId: invitation.id,
+    contractorName: displayContractorName(invitation),
+    contractorCompany: invitation.contractor_company,
+    rangeLabel: formatProposalRange(minTotal, maxTotal),
+    acceptedAtLabel: formatReviewDate(estimate.accepted_at),
   };
 }
 

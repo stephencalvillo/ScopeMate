@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { ProjectDetailView } from "@/components/project/project-detail-view";
 import { ensureUserRecord } from "@/lib/auth/clerk";
 import { getProjectForUser } from "@/lib/db/projects";
+import { getProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision";
 
 export default async function ProjectDetailPage({
   params,
@@ -19,7 +20,16 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
+  const acceptedProposal =
+    project.accepted_estimate_id != null
+      ? await getProjectAcceptedProposalSummary(project.id)
+      : null;
+
   return (
-    <ProjectDetailView project={project} autoGenerate={generate === "1"} />
+    <ProjectDetailView
+      project={project}
+      autoGenerate={generate === "1"}
+      acceptedProposal={acceptedProposal}
+    />
   );
 }
