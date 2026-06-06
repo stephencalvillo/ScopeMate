@@ -66,9 +66,9 @@ export function HowItWorksScrollSection({
   }, [steps.length]);
 
   return (
-    <section className="py-16 md:py-20">
+    <section className="-mt-8 pb-16 pt-0 md:-mt-12 md:pb-20">
       <div className="mx-auto max-w-6xl px-[var(--page-padding-x)] md:hidden">
-        <h2 className="mb-10 font-display text-3xl tracking-tight text-neutral-900 text-balance">
+        <h2 className="mb-10 text-center font-display text-3xl tracking-tight text-neutral-900 text-balance">
           {title}
         </h2>
         <div className="space-y-8">
@@ -92,7 +92,7 @@ export function HowItWorksScrollSection({
       >
         <div className="sticky top-0 flex h-screen items-center">
           <div className="mx-auto w-full max-w-6xl px-[var(--page-padding-x)]">
-            <h2 className="mb-10 font-display text-3xl tracking-tight text-neutral-900">
+            <h2 className="mb-6 text-center font-display text-3xl tracking-tight text-neutral-900">
               {title}
             </h2>
 

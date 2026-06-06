@@ -9,6 +9,7 @@ type HeroProps = {
   secondaryCta?: { label: string; href: string };
   align?: "center" | "left";
   gridBackground?: boolean;
+  compact?: boolean;
   children?: React.ReactNode;
   className?: string;
 };
@@ -20,6 +21,7 @@ export function Hero({
   secondaryCta,
   align = "center",
   gridBackground = false,
+  compact = false,
   children,
   className,
 }: HeroProps) {
@@ -29,7 +31,13 @@ export function Hero({
     <section
       className={cn(
         "relative overflow-hidden",
-        gridBackground ? "pb-20 pt-16 md:pb-28 md:pt-24" : "py-16 md:py-24",
+        gridBackground
+          ? compact
+            ? "pb-2 pt-12 md:pb-4 md:pt-16"
+            : "pb-20 pt-16 md:pb-28 md:pt-24"
+          : compact
+            ? "py-10 md:py-14"
+            : "py-16 md:py-24",
         isCentered && "text-center",
         className
       )}
@@ -46,17 +54,26 @@ export function Hero({
       >
         <div
           className={cn(
-            "space-y-6",
+            compact ? "space-y-4" : "space-y-6",
             isCentered ? "mx-auto max-w-3xl" : "max-w-2xl"
           )}
         >
-        <h1 className="font-display text-4xl tracking-tight text-neutral-900 text-balance md:text-5xl md:leading-tight">
+        <h1
+          className={cn(
+            "font-display tracking-tight text-neutral-900 text-balance",
+            compact
+              ? "text-3xl leading-tight md:text-4xl"
+              : "text-4xl md:text-5xl md:leading-tight"
+          )}
+        >
           {headline}
         </h1>
         {subheadline ? (
           <p
             className={cn(
-              "text-lg leading-relaxed text-[var(--muted)] text-balance md:text-xl",
+              compact
+                ? "text-base leading-relaxed text-[var(--muted)] text-balance md:text-lg"
+                : "text-lg leading-relaxed text-[var(--muted)] text-balance md:text-xl",
               isCentered && "mx-auto max-w-2xl"
             )}
           >

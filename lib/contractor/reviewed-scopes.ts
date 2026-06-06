@@ -4,7 +4,7 @@ import { isShareLinkPlaceholder } from "@/lib/contractor/project-share";
 import { listHomeownerSuggestionsForInvitation } from "@/lib/contractor/suggestions";
 import { createServiceClient } from "@/lib/db/supabase";
 import { proposalRangeFromLineItems } from "@/lib/estimates/money";
-import type { ContractorInvitationWithReview } from "@/types";
+import type { ContractorInvitationWithReview, EstimateStatus } from "@/types";
 
 import type { ScopeSuggestionWithMeta } from "@/types";
 
@@ -14,6 +14,9 @@ export type ReviewedScopeSummary = {
   total_suggestion_count: number;
   proposal_min_total: number | null;
   proposal_max_total: number | null;
+  estimate_status: EstimateStatus | null;
+  is_selected_proposal: boolean;
+  project_has_selected_proposal: boolean;
   general_notes: string | null;
 };
 
@@ -64,6 +67,14 @@ export async function listReviewedScopesForProject(
   const supabase = createServiceClient();
   const invitationIds = candidates.map((invitation) => invitation.id);
 
+  const { data: projectRow, error: projectError } = await supabase
+    .from("projects")
+    .select("accepted_estimate_id")
+    .eq("id", projectId)
+    .maybeSingle();
+
+  if (projectError) throw projectError;
+
   const { data: suggestions, error } = await supabase
     .from("scope_suggestions")
     .select("invitation_id, status")
@@ -76,9 +87,11 @@ export async function listReviewedScopesForProject(
 
   const { data: estimates, error: estimatesError } = await supabase
     .from("contractor_estimates")
-    .select("invitation_id, total, estimate_line_items(labor_cost, material_cost)")
+    .select(
+      "id, invitation_id, status, total, estimate_line_items(labor_cost, material_cost)"
+    )
     .eq("project_id", projectId)
-    .eq("status", "submitted")
+    .in("status", ["submitted", "accepted", "declined"])
     .in("invitation_id", invitationIds);
 
   if (estimatesError) throw estimatesError;
@@ -87,6 +100,8 @@ export async function listReviewedScopesForProject(
     string,
     { minTotal: number; maxTotal: number }
   >();
+  const estimateStatusByInvitation = new Map<string, EstimateStatus>();
+  let selectedInvitationId: string | null = null;
 
   for (const row of estimates ?? []) {
     const lineItems =
@@ -94,6 +109,17 @@ export async function listReviewedScopesForProject(
         .estimate_line_items ?? [];
     const range = proposalRangeFromLineItems(lineItems);
     proposalRangeByInvitation.set(row.invitation_id as string, range);
+    estimateStatusByInvitation.set(
+      row.invitation_id as string,
+      row.status as EstimateStatus
+    );
+
+    if (
+      projectRow?.accepted_estimate_id &&
+      row.id === projectRow.accepted_estimate_id
+    ) {
+      selectedInvitationId = row.invitation_id as string;
+    }
   }
 
   const countsByInvitation = new Map<
@@ -119,6 +145,7 @@ export async function listReviewedScopesForProject(
       total: 0,
     };
     const proposalRange = proposalRangeByInvitation.get(invitation.id);
+    const estimateStatus = estimateStatusByInvitation.get(invitation.id) ?? null;
 
     return {
       invitation,
@@ -126,6 +153,9 @@ export async function listReviewedScopesForProject(
       total_suggestion_count: counts.total,
       proposal_min_total: proposalRange?.minTotal ?? null,
       proposal_max_total: proposalRange?.maxTotal ?? null,
+      estimate_status: estimateStatus,
+      is_selected_proposal: invitation.id === selectedInvitationId,
+      project_has_selected_proposal: Boolean(projectRow?.accepted_estimate_id),
       general_notes: invitation.review?.notes?.trim() || null,
     };
   });

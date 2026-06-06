@@ -8,7 +8,7 @@ export type ScopeItemPriority = "required" | "recommended" | "optional";
 
 export type ScopeItemStatus = "active" | "removed";
 
-export type EstimateStatus = "draft" | "submitted";
+export type EstimateStatus = "draft" | "submitted" | "accepted" | "declined";
 
 export interface EstimateLineItem {
   id: string;
@@ -31,6 +31,8 @@ export interface ContractorEstimate {
   status: EstimateStatus;
   total: number;
   submitted_at: string | null;
+  accepted_at?: string | null;
+  declined_at?: string | null;
   created_at: string;
   updated_at: string;
   line_items?: EstimateLineItem[];
@@ -59,6 +61,7 @@ export interface Project {
   share_enabled: boolean;
   share_expires_at: string | null;
   share_enabled_at?: string | null;
+  accepted_estimate_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -197,6 +200,7 @@ export type ContractorInvitationStatus =
   | "pending"
   | "in_review"
   | "submitted"
+  | "closed_out"
   | "revoked"
   | "expired";
 
@@ -314,6 +318,7 @@ export const CONTRACTOR_INVITATION_STATUS_LABELS: Record<
   pending: "Waiting for review",
   in_review: "Review in progress",
   submitted: "Review submitted",
+  closed_out: "Project closed",
   revoked: "Revoked",
   expired: "Expired",
 };

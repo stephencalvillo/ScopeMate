@@ -714,17 +714,21 @@ export function ReviewedScopeSnapshotView({
       : "Your current project scope for comparison.";
 
   return (
-    <PageSection title="Project scope">
+    <PageSection
+      title="Project scope"
+      action={
+        snapshot ? (
+          <ScopeViewSegmentedControl
+            value={view}
+            onChange={setView}
+            contractorName={contractorName}
+          />
+        ) : null
+      }
+    >
       <div className="space-y-6">
         {snapshot ? (
-          <div className="space-y-3">
-            <ScopeViewSegmentedControl
-              value={view}
-              onChange={setView}
-              contractorName={contractorName}
-            />
-            <p className="text-sm text-[var(--muted)]">{description}</p>
-          </div>
+          <p className="text-sm text-[var(--muted)]">{description}</p>
         ) : null}
 
         {!snapshot ? (

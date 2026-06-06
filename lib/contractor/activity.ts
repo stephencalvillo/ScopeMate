@@ -10,7 +10,9 @@ export type ProjectActivityKind =
   | "invitation_sent"
   | "invitation_opened"
   | "invitation_review_started"
-  | "invitation_review_submitted";
+  | "invitation_review_submitted"
+  | "proposal_accepted"
+  | "proposal_declined";
 
 export type ProjectActivityItem = {
   id: string;
@@ -158,6 +160,52 @@ export async function listProjectActivity(
             ? `Opened ${shareViews.length} times`
             : "Someone opened the review link",
       });
+    }
+  } catch (error) {
+    if (!isMissingTableError(error) && !isMissingColumnError(error)) throw error;
+  }
+
+  try {
+    const { data: estimates, error: estimatesError } = await supabase
+      .from("contractor_estimates")
+      .select(
+        "id, invitation_id, status, accepted_at, declined_at, contractor_invitations(contractor_name, contractor_company, contractor_email)"
+      )
+      .eq("project_id", projectId)
+      .in("status", ["accepted", "declined"]);
+
+    if (estimatesError) throw estimatesError;
+
+    for (const row of estimates ?? []) {
+      const invitation = row.contractor_invitations as {
+        contractor_name?: string;
+        contractor_company?: string | null;
+      } | null;
+      const label = invitation?.contractor_company
+        ? `${invitation.contractor_name} · ${invitation.contractor_company}`
+        : invitation?.contractor_name ?? "Contractor";
+
+      if (row.status === "accepted" && row.accepted_at) {
+        events.push({
+          id: `${row.id}-accepted`,
+          kind: "proposal_accepted",
+          occurred_at: row.accepted_at as string,
+          title: "Proposal accepted",
+          description: label,
+          invitation_id: row.invitation_id as string,
+        });
+      }
+
+      if (row.status === "declined" && row.declined_at) {
+        events.push({
+          id: `${row.id}-declined`,
+          kind: "proposal_declined",
+          occurred_at: row.declined_at as string,
+          title: "Proposal not selected",
+          description: label,
+          invitation_id: row.invitation_id as string,
+        });
+      }
     }
   } catch (error) {
     if (!isMissingTableError(error) && !isMissingColumnError(error)) throw error;

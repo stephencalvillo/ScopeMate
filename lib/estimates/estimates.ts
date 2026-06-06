@@ -41,6 +41,10 @@ export function estimateIsEditable(estimate: ContractorEstimate): boolean {
   return estimate.status === "draft";
 }
 
+export function estimateAwaitingDecision(estimate: ContractorEstimate): boolean {
+  return estimate.status === "submitted";
+}
+
 export async function getEstimateForReview(reviewId: string) {
   const supabase = createServiceClient();
 
@@ -79,6 +83,16 @@ export async function getSubmittedEstimateForInvitation({
   projectId: string;
   invitationId: string;
 }) {
+  return getProposalEstimateForInvitation({ projectId, invitationId });
+}
+
+export async function getProposalEstimateForInvitation({
+  projectId,
+  invitationId,
+}: {
+  projectId: string;
+  invitationId: string;
+}) {
   const supabase = createServiceClient();
 
   try {
@@ -87,7 +101,7 @@ export async function getSubmittedEstimateForInvitation({
       .select("*")
       .eq("project_id", projectId)
       .eq("invitation_id", invitationId)
-      .eq("status", "submitted")
+      .in("status", ["submitted", "accepted", "declined"])
       .maybeSingle();
 
     if (error) throw error;

@@ -195,6 +195,75 @@ function formatProposalRangeForEmail(minTotal: number, maxTotal: number) {
   return `${formatter.format(minTotal)} – ${formatter.format(maxTotal)}`;
 }
 
+export async function sendProposalAcceptedEmail({
+  to,
+  contractorName,
+  homeownerName,
+  projectTitle,
+  proposalMinTotal,
+  proposalMaxTotal,
+  reviewToken,
+  request,
+}: {
+  to: string;
+  contractorName: string;
+  homeownerName: string;
+  projectTitle: string;
+  proposalMinTotal: number;
+  proposalMaxTotal: number;
+  reviewToken: string;
+  request?: Request;
+}) {
+  const reviewUrl = buildReviewUrl(reviewToken, request);
+  const proposalLabel = formatProposalRangeForEmail(
+    proposalMinTotal,
+    proposalMaxTotal
+  );
+
+  await sendResendEmail({
+    from: getEmailFrom(),
+    to,
+    subject: `Your proposal was accepted for ${projectTitle}`,
+    html: `
+      <p>Hi ${escapeHtml(contractorName)},</p>
+      <p><strong>${escapeHtml(homeownerName)}</strong> accepted your proposal for <strong>${escapeHtml(projectTitle)}</strong>${proposalLabel ? ` (${escapeHtml(proposalLabel)})` : ""}.</p>
+      <p><a href="${reviewUrl}">Open your review</a></p>
+    `,
+  });
+}
+
+export async function sendProposalNotSelectedEmail({
+  to,
+  contractorName,
+  homeownerName,
+  projectTitle,
+  selectedContractorName,
+  reviewToken,
+  request,
+}: {
+  to: string;
+  contractorName: string;
+  homeownerName: string;
+  projectTitle: string;
+  selectedContractorName: string;
+  reviewToken: string;
+  request?: Request;
+}) {
+  const reviewUrl = buildReviewUrl(reviewToken, request);
+
+  await sendResendEmail({
+    from: getEmailFrom(),
+    to,
+    subject: `Update on ${projectTitle}`,
+    html: `
+      <p>Hi ${escapeHtml(contractorName)},</p>
+      <p><strong>${escapeHtml(homeownerName)}</strong> selected another contractor for <strong>${escapeHtml(projectTitle)}</strong>.</p>
+      <p>${escapeHtml(selectedContractorName)}'s proposal was accepted. This project is now closed on your review page.</p>
+      <p><a href="${reviewUrl}">View your review</a></p>
+    `,
+  });
+}
+
 export async function sendFollowUpRequestedEmail({
   to,
   contractorName,

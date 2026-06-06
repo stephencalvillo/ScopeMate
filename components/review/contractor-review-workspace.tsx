@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { MapPin } from "lucide-react";
 import { ContractorEstimateProvider } from "@/components/estimate/contractor-estimate-context";
 import { ContractorReviewEstimateBody } from "@/components/review/contractor-review-estimate-body";
+import { ContractorProposalOutcomeBanner } from "@/components/review/contractor-proposal-outcome-banner";
 import { SharedPhotoGallery } from "@/components/share/shared-photo-gallery";
 import { ScopeSummary } from "@/components/scope/scope-summary";
 import { formatProjectLocation } from "@/lib/location/parse";
@@ -82,6 +83,11 @@ export function ContractorReviewWorkspace({
       <ScopeSummary summary={project.ai_summary} />
 
       <SharedPhotoGallery photos={photos} />
+
+      <ContractorProposalOutcomeBanner
+        invitation={invitation}
+        estimate={estimate}
+      />
 
       <ContractorEstimateProvider
         token={token}

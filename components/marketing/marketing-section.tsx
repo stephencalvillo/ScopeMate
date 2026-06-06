@@ -42,8 +42,8 @@ export function MarketingSection({
         {(title || description) && (
           <div
             className={cn(
-              "mb-10 space-y-3",
-              centered && "mx-auto max-w-2xl text-center"
+              "mb-10 space-y-3 text-center",
+              centered && "mx-auto max-w-2xl"
             )}
           >
             {title ? (
@@ -52,7 +52,14 @@ export function MarketingSection({
               </h2>
             ) : null}
             {description ? (
-              <p className="text-base text-[var(--muted)]">{description}</p>
+              <p
+                className={cn(
+                  "text-base text-[var(--muted)]",
+                  centered && "mx-auto max-w-2xl"
+                )}
+              >
+                {description}
+              </p>
             ) : null}
           </div>
         )}

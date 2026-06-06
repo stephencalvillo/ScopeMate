@@ -36,13 +36,13 @@ export const marketingCopy = {
     choosePath: {
       title: "Choose Your Path",
       homeowners: {
-        headline: "Stop collecting apples-to-oranges bids.",
+        headline: "Stop Collecting Apples-to-Oranges Bids.",
         description:
           "Create a clear project scope before contacting contractors.",
         cta: "Create a Project",
       },
       contractors: {
-        headline: "Win more jobs with less back-and-forth.",
+        headline: "Win More Jobs With Less Back-and-Forth.",
         description:
           "Review scopes, suggest missing items, and generate polished proposals.",
         cta: "Join as a Contractor",
@@ -51,7 +51,7 @@ export const marketingCopy = {
     problemStatement:
       "Homeowners don't know what to ask. Contractors don't know what's missing. ScopeMate bridges the gap.",
     finalCta: {
-      headline: "Every successful project starts with a clear scope.",
+      headline: "Every Successful Project Starts With a Clear Scope.",
       cta: "Get Started",
     },
   },
@@ -65,22 +65,22 @@ export const marketingCopy = {
     },
     benefits: [
       {
-        title: "Know what questions to ask",
+        title: "Know What Questions to Ask",
         description:
           "Guided follow-ups surface the details contractors need before they can price your project.",
       },
       {
-        title: "Catch missing details before getting bids",
+        title: "Catch Missing Details Before Getting Bids",
         description:
           "Spot gaps early so you aren't surprised by change orders or incomplete quotes later.",
       },
       {
-        title: "Generate a professional scope in minutes",
+        title: "Generate a Professional Scope in Minutes",
         description:
           "Turn a rough description into an organized scope document you can share with confidence.",
       },
       {
-        title: "Share with contractors instantly",
+        title: "Share With Contractors Instantly",
         description:
           "Send one clear scope to every contractor so everyone is reviewing the same project.",
       },
@@ -99,22 +99,22 @@ export const marketingCopy = {
     },
     benefits: [
       {
-        title: "Receive cleaner project scopes",
+        title: "Receive Cleaner Project Scopes",
         description:
           "Homeowners arrive with organized project details instead of vague wish lists.",
       },
       {
-        title: "Identify missing items instantly",
+        title: "Identify Missing Items Instantly",
         description:
           "Review scopes and flag gaps before you invest time in a site visit or proposal.",
       },
       {
-        title: "Generate professional proposals",
+        title: "Generate Professional Proposals",
         description:
           "Respond with polished, scope-aligned proposals that build trust with homeowners.",
       },
       {
-        title: "Differentiate yourself from competitors",
+        title: "Differentiate Yourself From Competitors",
         description:
           "Stand out by engaging with well-prepared homeowners who value clarity and professionalism.",
       },
@@ -122,12 +122,12 @@ export const marketingCopy = {
   },
   signup: {
     homeowner: {
-      title: "Start your project",
+      title: "Start Your Project",
       subtitle:
         "Tell us a bit about yourself and your project. We'll help you build a clear scope next.",
     },
     contractor: {
-      title: "Create your contractor profile",
+      title: "Create Your Contractor Profile",
       subtitle:
         "Set up your company profile so homeowners can find you and share project scopes.",
     },

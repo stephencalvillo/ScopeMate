@@ -182,9 +182,11 @@ export function ContractorEstimateProvider({
   }
 
   const submitted = estimate?.status === "submitted";
-  const canEdit = editable && !submitted;
+  const proposalLocked =
+    estimate?.status === "accepted" || estimate?.status === "declined";
+  const canEdit = editable && !submitted && !proposalLocked;
   const showEstimate =
-    !loading && (canEdit || submitted || reviewSubmitted);
+    !loading && (canEdit || submitted || reviewSubmitted || proposalLocked);
 
   const applyEstimateToState = useCallback(
     (

@@ -14,23 +14,19 @@ import { ScopeEditor } from "@/components/scope/scope-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatProjectLocation } from "@/lib/location/parse";
-import { projectStatusBadgeVariant } from "@/lib/project-status";
-import {
-  formatProjectTypeLabel,
-  PROJECT_STATUS_LABELS,
-  type ProjectWithScope,
-} from "@/types";
+import { projectStatusBadgeProps } from "@/lib/project-status";
+import { formatProjectTypeLabel, type ProjectWithScope } from "@/types";
 
 function ProjectHeaderMeta({ project }: { project: ProjectWithScope }) {
+  const statusBadge = projectStatusBadgeProps(project);
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <h1 className="font-display text-4xl tracking-tight text-neutral-900">
           {project.title}
         </h1>
-        <Badge variant={projectStatusBadgeVariant(project.status)}>
-          {PROJECT_STATUS_LABELS[project.status]}
-        </Badge>
+        <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
       </div>
       <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
         <span>{formatProjectTypeLabel(project.project_type)}</span>

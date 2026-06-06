@@ -62,6 +62,12 @@ function ReviewedScopeCard({
                   {scope.pending_suggestion_count} pending
                 </Badge>
               ) : null}
+              {scope.is_selected_proposal ? (
+                <Badge variant="success">Accepted</Badge>
+              ) : null}
+              {scope.estimate_status === "declined" ? (
+                <Badge variant="secondary">Not selected</Badge>
+              ) : null}
             </div>
             {!isShareLinkOnlyPlaceholder(invitation) ? (
               <p className="truncate text-sm text-[var(--muted)]">

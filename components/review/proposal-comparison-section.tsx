@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
+import { Badge } from "@/components/ui/badge";
 import { displayContractorName } from "@/lib/contractor/display-contractor";
 import { isReviewSubmitted } from "@/lib/contractor/review-display";
 import type { ReviewedScopeSummary } from "@/lib/contractor/reviewed-scopes";
@@ -9,6 +10,22 @@ import { PROPOSAL_DISCLAIMER, formatProposalRange } from "@/lib/estimates/money"
 
 export function scopeHasProposal(scope: ReviewedScopeSummary) {
   return (scope.proposal_min_total ?? 0) > 0 || (scope.proposal_max_total ?? 0) > 0;
+}
+
+function proposalStatusBadge(scope: ReviewedScopeSummary) {
+  if (scope.is_selected_proposal || scope.estimate_status === "accepted") {
+    return <Badge variant="success">Accepted</Badge>;
+  }
+
+  if (scope.estimate_status === "declined") {
+    return <Badge variant="secondary">Not selected</Badge>;
+  }
+
+  if (scope.project_has_selected_proposal) {
+    return <Badge variant="secondary">Closed</Badge>;
+  }
+
+  return <Badge variant="pending">Pending</Badge>;
 }
 
 export function ProposalComparisonSection({
@@ -39,6 +56,7 @@ export function ProposalComparisonSection({
           <tr className="border-b border-[var(--border)] text-xs font-medium text-[var(--muted)]">
             <th className="pb-3 pr-4 font-medium">Contractor</th>
             <th className="pb-3 pr-4 font-medium">Proposal range</th>
+            <th className="pb-3 pr-4 font-medium">Status</th>
             <th className="pb-3 font-medium">
               <span className="sr-only">View proposal</span>
             </th>
@@ -68,6 +86,9 @@ export function ProposalComparisonSection({
                 </td>
                 <td className="py-3 pr-4 align-top font-display text-lg tracking-tight text-neutral-900">
                   {range}
+                </td>
+                <td className="py-3 pr-4 align-top">
+                  {proposalStatusBadge(scope)}
                 </td>
                 <td className="py-3 align-top text-right">
                   <Link

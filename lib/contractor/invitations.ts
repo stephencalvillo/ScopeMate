@@ -29,10 +29,14 @@ function syncInvitationWithReviewStatus(
   review: ContractorReview | null | undefined
 ): ContractorInvitation {
   if (
-    review?.status === "submitted" &&
-    invitation.status !== "revoked" &&
-    invitation.status !== "expired"
+    invitation.status === "closed_out" ||
+    invitation.status === "revoked" ||
+    invitation.status === "expired"
   ) {
+    return invitation;
+  }
+
+  if (review?.status === "submitted") {
     return { ...invitation, status: "submitted" satisfies ContractorInvitationStatus };
   }
 
