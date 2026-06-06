@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { buildShareUrl } from "@/lib/contractor/urls";
 import type { Project } from "@/types";
 
@@ -27,7 +28,9 @@ export function ShareLinkDialogContent({
   const [shareUrl, setShareUrl] = useState<string | null>(
     project.share_token ? buildShareUrl(project.share_token) : null
   );
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const autoCreateStarted = useRef(false);
 
@@ -47,7 +50,7 @@ export function ShareLinkDialogContent({
     if (response.ok) {
       setShareEnabled(true);
       setShareUrl(data.share_url);
-      setMessage("Share link is ready. It stays active until you turn it off.");
+      setMessage("Share link is ready. Copy it or send it by email.");
       return true;
     }
 
@@ -113,6 +116,36 @@ export function ShareLinkDialogContent({
     setMessage("Link copied.");
   }
 
+  async function sendEmail(event: React.FormEvent) {
+    event.preventDefault();
+    if (!email.trim()) return;
+
+    setSendingEmail(true);
+    setMessage(null);
+
+    const response = await fetch(
+      `/api/projects/${project.id}/share/send-email`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      }
+    );
+
+    const data = await response.json();
+    setSendingEmail(false);
+
+    if (response.ok) {
+      setShareUrl(data.share_url);
+      setShareEnabled(true);
+      setMessage(`Link sent to ${email.trim()}.`);
+      setEmail("");
+      return;
+    }
+
+    setMessage(data.error ?? "Could not send email.");
+  }
+
   const isCreating = loading && !shareUrl;
 
   return (
@@ -120,7 +153,8 @@ export function ShareLinkDialogContent({
       <DialogHeader className="mb-0">
         <DialogTitle>Share link</DialogTitle>
         <p className="text-sm text-[var(--muted)]">
-          Anyone with this link can view your scope without signing in.
+          Share one link so a contractor can review your scope, leave comments,
+          and suggest changes. No sign-in required.
         </p>
       </DialogHeader>
 
@@ -130,32 +164,60 @@ export function ShareLinkDialogContent({
           <p className="text-sm text-[var(--muted)]">Creating link...</p>
         </div>
       ) : shareEnabled && shareUrl ? (
-        <div className="space-y-3">
-          <Input readOnly value={shareUrl} className="text-sm" />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="share-link-url">Review link</Label>
+            <Input
+              id="share-link-url"
+              readOnly
+              value={shareUrl}
+              className="text-sm"
+            />
+          </div>
+
           <div className="flex flex-wrap gap-2">
-            <Button onClick={copyLink} disabled={loading}>
+            <Button onClick={copyLink} disabled={loading || sendingEmail}>
               Copy link
             </Button>
             <Button
               variant="outline"
               onClick={regenerateShare}
-              disabled={loading}
+              disabled={loading || sendingEmail}
             >
               Regenerate link
             </Button>
             <Button
               variant="ghost"
               onClick={disableShare}
-              disabled={loading}
+              disabled={loading || sendingEmail}
             >
               Turn off sharing
             </Button>
           </div>
+
+          <form onSubmit={sendEmail} className="space-y-2 border-t pt-4">
+            <Label htmlFor="share-link-email">Or send by email</Label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                id="share-link-email"
+                type="email"
+                placeholder="contractor@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+                disabled={sendingEmail}
+              />
+              <Button type="submit" disabled={sendingEmail || !email.trim()}>
+                {sendingEmail ? "Sending..." : "Send link"}
+              </Button>
+            </div>
+          </form>
         </div>
       ) : (
         <div className="space-y-3">
           <p className="text-sm text-neutral-800">
-            Create a read-only link to share your project scope with a contractor.
+            Create a link to share your project scope with a contractor for
+            review.
           </p>
           <Button onClick={enableShare} disabled={loading}>
             {loading ? "Creating link..." : "Create share link"}

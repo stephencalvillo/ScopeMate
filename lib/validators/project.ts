@@ -25,3 +25,11 @@ export const updateProjectSchema = z.object({
 export const shareProjectSchema = z.object({
   expires_in_days: z.number().int().min(1).max(365).optional(),
 });
+
+export const sendShareLinkEmailSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email("Enter a valid email address.")
+    .max(320),
+});

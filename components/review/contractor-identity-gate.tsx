@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { isShareLinkPlaceholder } from "@/lib/contractor/project-share";
 import { SectionSurface } from "@/components/layout/page-section";
 import type { ContractorInvitation } from "@/types";
 
@@ -16,8 +17,13 @@ export function ContractorIdentityGate({
   invitation: ContractorInvitation;
   onComplete: () => void;
 }) {
-  const [contractorName, setContractorName] = useState(invitation.contractor_name);
-  const [contractorEmail, setContractorEmail] = useState(invitation.contractor_email);
+  const isShareLink = isShareLinkPlaceholder(invitation);
+  const [contractorName, setContractorName] = useState(
+    isShareLink ? "" : invitation.contractor_name
+  );
+  const [contractorEmail, setContractorEmail] = useState(
+    isShareLink ? "" : invitation.contractor_email
+  );
   const [contractorCompany, setContractorCompany] = useState(
     invitation.contractor_company ?? ""
   );

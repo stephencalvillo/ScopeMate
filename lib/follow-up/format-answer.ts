@@ -1,5 +1,6 @@
 import type { FollowUpQuestion } from "@/types";
 import { formatDimensionAnswer } from "@/lib/follow-up/dimension-labels";
+import { formatExactDimensionLabel, isExactDimensionAnswer } from "@/lib/follow-up/dimension-answer";
 
 export function formatFollowUpAnswer(
   question: Pick<FollowUpQuestion, "answer" | "question_type">,
@@ -8,6 +9,10 @@ export function formatFollowUpAnswer(
   if (!question.answer) return "";
 
   if (question.question_type === "dimension_estimate") {
+    if (isExactDimensionAnswer(question.answer)) {
+      return formatExactDimensionLabel(question.answer);
+    }
+
     return formatDimensionAnswer(question.answer, projectType);
   }
 

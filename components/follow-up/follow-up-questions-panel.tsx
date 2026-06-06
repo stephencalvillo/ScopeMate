@@ -7,6 +7,7 @@ import { FollowUpQuestionCard } from "@/components/follow-up/follow-up-question-
 import { FollowUpScopeAddedConfirmation } from "@/components/follow-up/follow-up-scope-added-confirmation";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
+import { dedupeFollowUpQuestionsForDisplay } from "@/lib/follow-up/dedupe-questions";
 import {
   fetchFollowUpQuestions,
   syncFollowUpAnswersToScope,
@@ -42,7 +43,9 @@ export function FollowUpQuestionsPanel({
     async function load() {
       try {
         const result = await fetchFollowUpQuestions(projectId);
-        if (!cancelled) setQuestions(result);
+        if (!cancelled) {
+          setQuestions(dedupeFollowUpQuestionsForDisplay(result));
+        }
       } catch {
         if (!cancelled) setQuestions([]);
       } finally {
@@ -104,7 +107,9 @@ export function FollowUpQuestionsPanel({
   function handleUpdated(updated: FollowUpQuestion) {
     setQuestions((current) => {
       const previous = current.find((q) => q.id === updated.id);
-      const next = current.map((q) => (q.id === updated.id ? updated : q));
+      const next = dedupeFollowUpQuestionsForDisplay(
+        current.map((q) => (q.id === updated.id ? updated : q))
+      );
 
       if (previous && isPending(previous) && !isPending(updated)) {
         const hasAnswer = !updated.skipped && Boolean(updated.answer);

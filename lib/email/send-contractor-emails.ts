@@ -1,6 +1,41 @@
 import { getEmailFrom, getResendClient } from "@/lib/email/client";
 import { buildProjectUrl, buildReviewUrl } from "@/lib/contractor/urls";
 
+export async function sendProjectShareLinkEmail({
+  to,
+  homeownerName,
+  projectTitle,
+  reviewToken,
+  expiresAt,
+}: {
+  to: string;
+  homeownerName: string;
+  projectTitle: string;
+  reviewToken: string;
+  expiresAt: Date;
+}) {
+  const resend = getResendClient();
+  const reviewUrl = buildReviewUrl(reviewToken);
+  const expiryLabel = expiresAt.toLocaleDateString(undefined, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  await resend.emails.send({
+    from: getEmailFrom(),
+    to,
+    subject: `${homeownerName} shared a project scope with you`,
+    html: `
+      <p><strong>${escapeHtml(homeownerName)}</strong> shared the scope for <strong>${escapeHtml(projectTitle)}</strong> on ScopeMate.</p>
+      <p>Review the scope and suggest additions or changes before they move forward with pricing.</p>
+      <p><a href="${reviewUrl}">Open project review</a></p>
+      <p>This link expires on ${escapeHtml(expiryLabel)}.</p>
+      <p style="color:#6b6b6b;font-size:14px;">ScopeMate is a planning tool. Contractors remain responsible for final scope verification and pricing.</p>
+    `,
+  });
+}
+
 export async function sendContractorInvitationEmail({
   to,
   contractorName,

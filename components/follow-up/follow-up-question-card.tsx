@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DimensionEstimateButtons } from "@/components/follow-up/dimension-estimate-buttons";
+import { DimensionCustomInput } from "@/components/follow-up/dimension-custom-input";
 import { FollowUpOtherInput } from "@/components/follow-up/follow-up-other-input";
 import { SectionSurface } from "@/components/layout/page-section";
 import {
@@ -35,6 +36,7 @@ export function FollowUpQuestionCard({
 }) {
   const [textAnswer, setTextAnswer] = useState(question.answer ?? "");
   const [showOtherInput, setShowOtherInput] = useState(false);
+  const [showCustomDimensions, setShowCustomDimensions] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +60,7 @@ export function FollowUpQuestionCard({
         answer,
       });
       setShowOtherInput(false);
+      setShowCustomDimensions(false);
       onUpdated(result.question);
     } catch (err) {
       setError(
@@ -76,6 +79,7 @@ export function FollowUpQuestionCard({
         skipped: true,
       });
       setShowOtherInput(false);
+      setShowCustomDimensions(false);
       onUpdated(result.question);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not skip question.");
@@ -150,26 +154,27 @@ export function FollowUpQuestionCard({
             </div>
           ) : null}
 
-          {!showOtherInput && question.question_type === "dimension_estimate" ? (
+          {!showOtherInput && !showCustomDimensions && question.question_type === "dimension_estimate" ? (
             <div className="space-y-3">
               <DimensionEstimateButtons
                 value={textAnswer}
                 disabled={saving}
                 projectType={projectType}
                 onChange={saveAnswer}
+                onCustomDimensions={() => setShowCustomDimensions(true)}
               />
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={saving}
-                onClick={() => setShowOtherInput(true)}
-              >
-                {FOLLOW_UP_OTHER_LABEL}
-              </Button>
             </div>
           ) : null}
 
-          {!showOtherInput ? (
+          {showCustomDimensions ? (
+            <DimensionCustomInput
+              disabled={saving}
+              onSave={saveAnswer}
+              onCancel={() => setShowCustomDimensions(false)}
+            />
+          ) : null}
+
+          {!showOtherInput && !showCustomDimensions ? (
             <Button variant="ghost" size="sm" disabled={saving} onClick={skip}>
               Skip for now
             </Button>

@@ -15,8 +15,9 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: "ScopeMate",
-  description: "Define construction projects clearly before pricing begins.",
+  title: "ScopeMate — Contractor-ready scopes for every project",
+  description:
+    "ScopeMate turns messy project ideas into contractor-ready scopes. One product for homeowners and contractors to start every project on the same page.",
 };
 
 export default function RootLayout({

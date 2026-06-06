@@ -62,6 +62,140 @@ body {
   text-wrap: balance;
 }
 
+.marketing-hero-grid {
+  background-color: var(--card);
+}
+
+.marketing-hero-grid-layer {
+  position: absolute;
+  inset: -24px;
+  background-size: 24px 24px;
+  will-change: background-position, opacity;
+}
+
+.marketing-hero-grid-h-fwd {
+  background-image: repeating-linear-gradient(
+    0deg,
+    var(--border) 0,
+    var(--border) 1px,
+    transparent 1px,
+    transparent 24px
+  );
+  animation:
+    marketing-grid-drift-x 14s linear infinite,
+    marketing-grid-line-fade 9s ease-in-out infinite;
+}
+
+.marketing-hero-grid-h-rev {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 12px,
+    var(--border) 12px,
+    var(--border) 13px,
+    transparent 13px,
+    transparent 24px
+  );
+  animation:
+    marketing-grid-drift-x-rev 18s linear infinite,
+    marketing-grid-line-fade 11s ease-in-out infinite reverse;
+  animation-delay: -4s, -2s;
+}
+
+.marketing-hero-grid-v-fwd {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--border) 0,
+    var(--border) 1px,
+    transparent 1px,
+    transparent 24px
+  );
+  animation:
+    marketing-grid-drift-y 16s linear infinite,
+    marketing-grid-line-fade 10s ease-in-out infinite;
+  animation-delay: -3s, -5s;
+}
+
+.marketing-hero-grid-v-rev {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 12px,
+    var(--border) 12px,
+    var(--border) 13px,
+    transparent 13px,
+    transparent 24px
+  );
+  animation:
+    marketing-grid-drift-y-rev 20s linear infinite,
+    marketing-grid-line-fade 12s ease-in-out infinite reverse;
+  animation-delay: -7s, -1s;
+}
+
+.marketing-hero-grid-fade {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 50%,
+    var(--background) 100%
+  );
+}
+
+@keyframes marketing-grid-drift-x {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 24px 0;
+  }
+}
+
+@keyframes marketing-grid-drift-x-rev {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -24px 0;
+  }
+}
+
+@keyframes marketing-grid-drift-y {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 24px;
+  }
+}
+
+@keyframes marketing-grid-drift-y-rev {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 -24px;
+  }
+}
+
+.marketing-section-bottom-glow {
+  background: radial-gradient(
+    ellipse 90% 100% at 50% 100%,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.5) 30%,
+    transparent 65%
+  );
+}
+
+@keyframes marketing-grid-line-fade {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
 @keyframes share-dock-float-enter {
   from {
     opacity: 0;
@@ -128,5 +262,16 @@ body {
   .scope-added-enter,
   .scope-added-exit {
     animation: none;
+  }
+
+  .marketing-hero-grid-h-rev,
+  .marketing-hero-grid-v-rev {
+    display: none;
+  }
+
+  .marketing-hero-grid-h-fwd,
+  .marketing-hero-grid-v-fwd {
+    animation: none;
+    opacity: 0.45;
   }
 }

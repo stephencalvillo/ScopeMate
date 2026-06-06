@@ -1,5 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { CTAButton } from "@/components/marketing/cta-button";
+import { FeatureCard } from "@/components/marketing/feature-card";
+import { howItWorksIcons } from "@/components/marketing/how-it-works-icons";
+import { Hero } from "@/components/marketing/hero";
+import { MarketingSection } from "@/components/marketing/marketing-section";
+import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { PathCard } from "@/components/marketing/path-card";
+import { marketingCopy } from "@/lib/marketing/copy";
 
 export default async function HomePage() {
   const { userId } = await auth();
@@ -8,5 +16,75 @@ export default async function HomePage() {
     redirect("/projects");
   }
 
-  redirect("/sign-in");
+  const { homepage } = marketingCopy;
+
+  return (
+    <MarketingShell>
+      <Hero
+        gridBackground
+        headline={homepage.hero.headline}
+        subheadline={homepage.hero.subheadline}
+        primaryCta={{
+          label: homepage.hero.primaryCta,
+          href: "/homeowners/signup",
+        }}
+        secondaryCta={{
+          label: homepage.hero.secondaryCta,
+          href: "/contractors",
+        }}
+      />
+
+      <MarketingSection title={homepage.howItWorks.title}>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {homepage.howItWorks.steps.map((step, index) => (
+            <FeatureCard
+              key={step.title}
+              icon={howItWorksIcons[index]}
+              title={step.title}
+              description={step.description}
+            />
+          ))}
+        </div>
+      </MarketingSection>
+
+      <MarketingSection
+        title={homepage.choosePath.title}
+        className="bg-white"
+      >
+        <div className="grid gap-6 md:grid-cols-2">
+          <PathCard
+            audience="homeowners"
+            headline={homepage.choosePath.homeowners.headline}
+            description={homepage.choosePath.homeowners.description}
+            cta={homepage.choosePath.homeowners.cta}
+            href="/homeowners/signup"
+          />
+          <PathCard
+            audience="contractors"
+            headline={homepage.choosePath.contractors.headline}
+            description={homepage.choosePath.contractors.description}
+            cta={homepage.choosePath.contractors.cta}
+            href="/contractors/signup"
+          />
+        </div>
+      </MarketingSection>
+
+      <MarketingSection centered>
+        <p className="mx-auto max-w-2xl text-center font-display text-2xl tracking-tight text-neutral-900 text-balance md:text-3xl">
+          {homepage.problemStatement}
+        </p>
+      </MarketingSection>
+
+      <MarketingSection bottomGlow className="bg-[var(--accent)]/30">
+        <div className="mx-auto max-w-2xl space-y-6 text-center">
+          <h2 className="font-display text-3xl tracking-tight text-neutral-900 text-balance">
+            {homepage.finalCta.headline}
+          </h2>
+          <CTAButton href="/homeowners/signup" size="lg">
+            {homepage.finalCta.cta}
+          </CTAButton>
+        </div>
+      </MarketingSection>
+    </MarketingShell>
+  );
 }

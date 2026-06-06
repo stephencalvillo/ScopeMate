@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { HOMEOWNER_SIGNUP_STORAGE_KEY } from "@/components/marketing/homeowner-signup-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,29 @@ export function ProjectForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prefill, setPrefill] = useState({
+    title: "",
+    description: "",
+  });
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem(HOMEOWNER_SIGNUP_STORAGE_KEY);
+    if (!raw) return;
+
+    try {
+      const data = JSON.parse(raw) as {
+        projectType?: string;
+        projectDescription?: string;
+      };
+      setPrefill({
+        title: data.projectType ?? "",
+        description: data.projectDescription ?? "",
+      });
+      sessionStorage.removeItem(HOMEOWNER_SIGNUP_STORAGE_KEY);
+    } catch {
+      sessionStorage.removeItem(HOMEOWNER_SIGNUP_STORAGE_KEY);
+    }
+  }, []);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,6 +81,7 @@ export function ProjectForm() {
           className="min-h-48 text-base"
           placeholder="For example: We want to replace our aging roof, add a covered patio off the back of the house, and update the exterior paint. The kitchen feels cramped and we would love more counter space."
           aria-label="Project description"
+          defaultValue={prefill.description}
           required
         />
       </div>
@@ -67,6 +92,7 @@ export function ProjectForm() {
           id="title"
           name="title"
           placeholder="We will suggest one if you leave this blank"
+          defaultValue={prefill.title}
         />
       </div>
 

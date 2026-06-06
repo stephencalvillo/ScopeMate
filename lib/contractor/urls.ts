@@ -1,8 +1,34 @@
 const DEFAULT_BASE = "http://localhost:3000";
 
-export function getAppBaseUrl() {
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL;
+function normalizeBaseUrl(url: string) {
+  return url.replace(/\/$/, "");
+}
+
+function readConfiguredAppUrl() {
+  const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (configured) return normalizeBaseUrl(configured);
+  return null;
+}
+
+export function getAppBaseUrl(request?: Request) {
+  const configured = readConfiguredAppUrl();
+  if (configured) return configured;
+
+  const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (productionHost) {
+    return normalizeBaseUrl(`https://${productionHost}`);
+  }
+
+  if (request) {
+    const host =
+      request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+    const proto = request.headers.get("x-forwarded-proto") ?? "https";
+    if (host) return normalizeBaseUrl(`${proto}://${host}`);
+  }
+
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (vercelUrl) {
+    return normalizeBaseUrl(`https://${vercelUrl}`);
   }
 
   if (typeof window !== "undefined") {
@@ -12,14 +38,14 @@ export function getAppBaseUrl() {
   return DEFAULT_BASE;
 }
 
-export function buildShareUrl(token: string) {
-  return `${getAppBaseUrl()}/share/${token}`;
+export function buildShareUrl(token: string, request?: Request) {
+  return buildReviewUrl(token, request);
 }
 
-export function buildReviewUrl(token: string) {
-  return `${getAppBaseUrl()}/review/${token}`;
+export function buildReviewUrl(token: string, request?: Request) {
+  return `${getAppBaseUrl(request)}/review/${token}`;
 }
 
-export function buildProjectUrl(projectId: string) {
-  return `${getAppBaseUrl()}/projects/${projectId}`;
+export function buildProjectUrl(projectId: string, request?: Request) {
+  return `${getAppBaseUrl(request)}/projects/${projectId}`;
 }

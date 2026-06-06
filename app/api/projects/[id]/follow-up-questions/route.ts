@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
 import { getOwnedProject } from "@/lib/api/project-access";
 import { isMissingTableError } from "@/lib/db/errors";
+import { dedupeFollowUpQuestionsForDisplay } from "@/lib/follow-up/dedupe-questions";
 import { normalizeFollowUpQuestion } from "@/lib/follow-up/normalize";
 import { createServiceClient } from "@/lib/db/supabase";
 import type { FollowUpQuestion } from "@/types";
@@ -24,8 +25,8 @@ export async function GET(
     if (error) throw error;
 
     return NextResponse.json({
-      questions: ((data ?? []) as FollowUpQuestion[]).map(
-        normalizeFollowUpQuestion
+      questions: dedupeFollowUpQuestionsForDisplay(
+        ((data ?? []) as FollowUpQuestion[]).map(normalizeFollowUpQuestion)
       ),
     });
   } catch (error) {

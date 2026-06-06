@@ -1,5 +1,11 @@
 import { NotFoundError } from "@/lib/auth/clerk";
 import { INVITATION_EXPIRY_DAYS } from "@/lib/contractor/constants";
+import { recordShareLinkView } from "@/lib/contractor/activity";
+import {
+  ensureShareInvitationForToken,
+  isShareLinkPlaceholder,
+} from "@/lib/contractor/project-share";
+export { isShareLinkPlaceholder };
 import { buildReviewUrl } from "@/lib/contractor/urls";
 import { isMissingTableError } from "@/lib/db/errors";
 import { createServiceClient } from "@/lib/db/supabase";
@@ -179,9 +185,18 @@ export async function getInvitationByToken(
     .maybeSingle();
 
   if (error) throw error;
-  if (!data) throw new NotFoundError("This review link is not available.");
 
-  const invitation = normalizeInvitationStatus(data as ContractorInvitation);
+  let invitation = data as ContractorInvitation | null;
+
+  if (!invitation) {
+    invitation = await ensureShareInvitationForToken(token);
+  }
+
+  if (!invitation) {
+    throw new NotFoundError("This review link is not available.");
+  }
+
+  invitation = normalizeInvitationStatus(invitation);
 
   if (invitation.status === "revoked" || invitation.status === "expired") {
     throw new NotFoundError("This review link is not available.");
@@ -237,6 +252,10 @@ export async function getReviewProjectByInvitationToken(
       updated_at: now,
     })
     .eq("id", invitation.id);
+
+  if (project.share_enabled && project.share_token === token) {
+    await recordShareLinkView(project.id);
+  }
 
   return {
     invitation: {

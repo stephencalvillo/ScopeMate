@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
 import { getOwnedProject } from "@/lib/api/project-access";
+import { ensureUserRecord } from "@/lib/auth/clerk";
+import {
+  ensureProjectShareInvitation,
+  revokeProjectShareInvitation,
+} from "@/lib/contractor/project-share";
 import { buildShareUrl } from "@/lib/contractor/urls";
 import { isMissingColumnError } from "@/lib/db/errors";
 import { createServiceClient } from "@/lib/db/supabase";
@@ -14,6 +19,7 @@ export async function POST(
   try {
     const { id } = await context.params;
     const project = await getOwnedProject(id);
+    const homeowner = await ensureUserRecord();
     const body = await request.json().catch(() => ({}));
     const input = shareProjectSchema.parse(body);
     const supabase = createServiceClient();
@@ -35,7 +41,7 @@ export async function POST(
       .from("projects")
       .update({ ...baseUpdate, share_enabled_at: now })
       .eq("id", id)
-      .select("share_token, share_enabled, share_expires_at")
+      .select("*")
       .single();
 
     if (result.error && isMissingColumnError(result.error)) {
@@ -43,15 +49,21 @@ export async function POST(
         .from("projects")
         .update(baseUpdate)
         .eq("id", id)
-        .select("share_token, share_enabled, share_expires_at")
+        .select("*")
         .single();
     }
 
     const { data, error } = result;
     if (error) throw error;
 
+    await ensureProjectShareInvitation({
+      project: data,
+      invitedBy: homeowner.id,
+      token: data.share_token,
+    });
+
     return NextResponse.json({
-      share_url: buildShareUrl(data.share_token),
+      share_url: buildShareUrl(data.share_token, request),
       share_enabled: data.share_enabled,
       share_expires_at: data.share_expires_at,
     });
@@ -77,6 +89,9 @@ export async function DELETE(
       .eq("id", id);
 
     if (error) throw error;
+
+    await revokeProjectShareInvitation(id);
+
     return NextResponse.json({ share_enabled: false });
   } catch (error) {
     return jsonError(error);

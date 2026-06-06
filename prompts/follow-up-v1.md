@@ -18,5 +18,6 @@ Rules:
 - For choice questions, provide 2-4 clear choices. Include "Other" when a fixed list may not fit.
 - For text questions, choices should be null.
 - For dimension_estimate, choices should be ["small", "medium", "large", "not_sure"].
+- Use exactly one dimension_estimate question per project. Never ask size in a text or choice question too.
 
 Return JSON matching the provided schema only.

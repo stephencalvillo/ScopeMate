@@ -1,4 +1,5 @@
 import { listInvitationsForProject } from "@/lib/contractor/invitations";
+import { isShareLinkPlaceholder } from "@/lib/contractor/project-share";
 import { isMissingColumnError, isMissingTableError } from "@/lib/db/errors";
 import { createServiceClient } from "@/lib/db/supabase";
 import type { ContractorInvitationWithReview } from "@/types";
@@ -30,8 +31,10 @@ function invitationLabel(invitation: ContractorInvitationWithReview) {
 function buildInvitationActivity(
   invitation: ContractorInvitationWithReview
 ): ProjectActivityItem[] {
-  const events: ProjectActivityItem[] = [
-    {
+  const events: ProjectActivityItem[] = [];
+
+  if (!isShareLinkPlaceholder(invitation)) {
+    events.push({
       id: `${invitation.id}-sent`,
       kind: "invitation_sent",
       occurred_at: invitation.created_at,
@@ -39,8 +42,8 @@ function buildInvitationActivity(
       description: `${invitationLabel(invitation)} (${invitation.contractor_email})`,
       invitation_id: invitation.id,
       invitation,
-    },
-  ];
+    });
+  }
 
   if (invitation.status === "revoked") {
     return events;
@@ -88,10 +91,12 @@ function buildInvitationActivity(
 export async function recordShareLinkView(projectId: string) {
   const supabase = createServiceClient();
 
-  try {
-    await supabase.from("project_share_views").insert({ project_id: projectId });
-  } catch (error) {
-    if (!isMissingTableError(error) && !isMissingColumnError(error)) throw error;
+  const { error } = await supabase
+    .from("project_share_views")
+    .insert({ project_id: projectId });
+
+  if (error && !isMissingTableError(error) && !isMissingColumnError(error)) {
+    console.error("Could not record share link view:", error);
   }
 }
 
@@ -123,7 +128,7 @@ export async function listProjectActivity(
           (project.share_enabled_at as string | null) ??
           (project.updated_at as string),
         title: "Share link created",
-        description: "Read-only link is active",
+        description: "Contractor review link is active",
       });
     }
 
@@ -141,11 +146,11 @@ export async function listProjectActivity(
         id: `${projectId}-share-viewed`,
         kind: "share_link_viewed",
         occurred_at: latestView,
-        title: "Share link viewed",
+        title: "Share link opened",
         description:
           shareViews.length > 1
-            ? `Viewed ${shareViews.length} times`
-            : "Someone opened the public share link",
+            ? `Opened ${shareViews.length} times`
+            : "Someone opened the review link",
       });
     }
   } catch (error) {
