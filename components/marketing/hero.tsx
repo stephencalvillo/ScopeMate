@@ -48,23 +48,20 @@ export function Hero({
           "relative z-10 mx-auto space-y-6",
           gridBackground
             ? "max-w-6xl px-[var(--page-padding-x)]"
-            : "max-w-3xl",
-          !isCentered && !gridBackground && "max-w-2xl"
+            : "max-w-[60rem]",
+          !isCentered && !gridBackground && "max-w-[52.5rem]"
         )}
       >
         <div
           className={cn(
-            compact ? "space-y-4" : "space-y-6",
-            isCentered ? "mx-auto w-full max-w-4xl" : "max-w-2xl"
+            "space-y-6",
+            isCentered ? "mx-auto w-full max-w-[70rem]" : "max-w-[52.5rem]"
           )}
         >
         <h1
           className={cn(
-            "font-display tracking-tight text-neutral-900 text-balance",
-            compact
-              ? "text-3xl leading-tight md:text-4xl"
-              : "text-4xl md:text-5xl md:leading-tight",
-            isCentered && "mx-auto max-w-3xl"
+            "font-display text-4xl tracking-tight text-neutral-900 text-balance md:text-5xl md:leading-tight",
+            isCentered && "mx-auto max-w-[60rem]"
           )}
         >
           {headline}
@@ -72,10 +69,8 @@ export function Hero({
         {subheadline ? (
           <p
             className={cn(
-              compact
-                ? "text-base leading-relaxed text-[var(--muted)] text-balance md:text-lg"
-                : "text-lg leading-relaxed text-[var(--muted)] text-balance md:text-xl",
-              isCentered && "mx-auto w-full max-w-4xl"
+              "text-lg leading-relaxed text-[var(--muted)] text-balance md:text-xl",
+              isCentered && "mx-auto w-full max-w-[70rem]"
             )}
           >
             {subheadline}
