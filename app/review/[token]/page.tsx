@@ -1,12 +1,10 @@
 import { Suspense } from "react";
 import { auth } from "@clerk/nextjs/server";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ContractorShell } from "@/components/contractor/contractor-shell";
 import { PublicShell } from "@/components/layout/public-shell";
 import { ContractorReviewPage } from "@/components/review/contractor-review-page";
 import { HomeownerReviewRedirect } from "@/components/review/homeowner-review-redirect";
-import { REVIEW_SESSION_COOKIE } from "@/lib/contractor/constants";
 import { getInvitationByToken } from "@/lib/contractor/invitations";
 import { getHomeownerReviewRedirect } from "@/lib/contractor/review-homeowner-redirect";
 
@@ -37,8 +35,6 @@ export default async function ReviewPage({
   if (as !== "contractor") {
     const homeownerRedirect = await getHomeownerReviewRedirect(token);
     if (homeownerRedirect) {
-      const cookieStore = await cookies();
-      cookieStore.delete(REVIEW_SESSION_COOKIE);
       redirect(homeownerRedirect);
     }
   }
