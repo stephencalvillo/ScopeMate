@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
+import { HomeownerAccountCreateForm } from "@/components/project/homeowner-account-create-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -32,7 +33,6 @@ export function HomeownerAccountCreateDialog({
   const [continuing, setContinuing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const returnUrl = projectReturnUrl(projectId);
-  const signUpHref = `/sign-up?redirect_url=${encodeURIComponent(returnUrl)}`;
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
 
   return (
@@ -88,19 +88,17 @@ export function HomeownerAccountCreateDialog({
             </Button>
           </>
         ) : (
-          <div className="space-y-3">
-            <Button type="button" className="w-full" asChild>
-              <Link href={signUpHref}>Create account</Link>
-            </Button>
+          <>
+            <HomeownerAccountCreateForm returnUrl={returnUrl} />
             <Button
               type="button"
-              variant="ghost"
-              className="w-full text-[var(--muted)]"
+              variant="outline"
+              className="mt-2 w-full"
               asChild
             >
               <Link href={signInHref}>Sign in with existing account</Link>
             </Button>
-          </div>
+          </>
         )}
       </DialogContent>
     </Dialog>
