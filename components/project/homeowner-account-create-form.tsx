@@ -45,13 +45,15 @@ export function HomeownerAccountCreateForm({
   onComplete?: () => void | Promise<void>;
 }) {
   const router = useRouter();
-  const { isLoaded, signUp, setActive } = useSignUp();
+  const { signUp, fetchStatus } = useSignUp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [pendingVerification, setPendingVerification] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isReady = fetchStatus === "idle" && signUp;
 
   async function activateSession() {
     if (!signUp) {
@@ -67,20 +69,18 @@ export function HomeownerAccountCreateForm({
       return;
     }
 
-    if (!signUp.createdSessionId) {
-      throw new Error(
-        "Your account was created, but the session could not start. Try signing in instead."
-      );
+    const { error: finalizeError } = await signUp.finalize();
+    if (finalizeError) {
+      throw finalizeError;
     }
 
-    await setActive({ session: signUp.createdSessionId });
     await onComplete?.();
     router.refresh();
   }
 
   async function handleCreateAccount(event: React.FormEvent) {
     event.preventDefault();
-    if (!isLoaded || !signUp) return;
+    if (!isReady) return;
 
     setLoading(true);
     setError(null);
@@ -104,7 +104,7 @@ export function HomeownerAccountCreateForm({
 
   async function handleVerifyCode(event: React.FormEvent) {
     event.preventDefault();
-    if (!isLoaded || !signUp) return;
+    if (!isReady) return;
 
     setLoading(true);
     setError(null);
@@ -126,7 +126,7 @@ export function HomeownerAccountCreateForm({
     }
   }
 
-  if (!isLoaded) {
+  if (!isReady) {
     return (
       <div className="flex items-center justify-center gap-2 py-6 text-sm text-[var(--muted)]">
         <Loader2 className="h-4 w-4 animate-spin" />

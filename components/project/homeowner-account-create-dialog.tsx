@@ -58,16 +58,20 @@ export function HomeownerAccountCreateDialog({
               onClick={() => {
                 setContinuing(true);
                 setError(null);
-                void onAccountReady()
-                  .then(() => onOpenChange(false))
-                  .catch((continueError) => {
+                void (async () => {
+                  try {
+                    await onAccountReady();
+                    onOpenChange(false);
+                  } catch (continueError) {
                     setError(
                       continueError instanceof Error
                         ? continueError.message
                         : "Could not continue to share link."
                     );
-                  })
-                  .finally(() => setContinuing(false));
+                  } finally {
+                    setContinuing(false);
+                  }
+                })();
               }}
             >
               {continuing ? (
