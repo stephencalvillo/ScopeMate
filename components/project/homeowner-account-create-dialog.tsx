@@ -88,14 +88,19 @@ export function HomeownerAccountCreateDialog({
             </Button>
           </>
         ) : (
-          <>
+          <div className="space-y-3">
             <Button type="button" className="w-full" asChild>
               <Link href={signUpHref}>Create account</Link>
             </Button>
-            <Button type="button" variant="outline" className="w-full" asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full text-[var(--muted)]"
+              asChild
+            >
               <Link href={signInHref}>Sign in with existing account</Link>
             </Button>
-          </>
+          </div>
         )}
       </DialogContent>
     </Dialog>
