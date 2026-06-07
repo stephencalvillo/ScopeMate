@@ -1,10 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { ContractorIdentityGate } from "@/components/review/contractor-identity-gate";
 import { ContractorReviewUnlock } from "@/components/review/contractor-review-unlock";
 import { ContractorReviewWorkspace } from "@/components/review/contractor-review-workspace";
+import { HomeownerReviewEntryPrompt } from "@/components/review/homeowner-review-entry-prompt";
 import { ReviewExpiredNotice } from "@/components/review/review-expired-notice";
 import { ReviewSubmittedDialog } from "@/components/review/review-submitted-dialog";
 import type { SharedPhoto } from "@/lib/phase2/client";
@@ -29,9 +32,12 @@ type ReviewPayload = {
   suggestions: ReviewSuggestion[];
   estimate?: ContractorEstimate | null;
   can_edit: boolean;
+  is_share_link: boolean;
 };
 
 export function ContractorReviewPage({ token }: { token: string }) {
+  const searchParams = useSearchParams();
+  const { isLoaded, isSignedIn } = useAuth();
   const [payload, setPayload] = useState<ReviewPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [unavailable, setUnavailable] = useState(false);
@@ -100,8 +106,19 @@ export function ContractorReviewPage({ token }: { token: string }) {
     !payload.can_edit &&
     payload.review.status !== "submitted";
 
+  const showHomeownerEntryPrompt =
+    searchParams.get("as") !== "contractor" &&
+    payload.is_share_link &&
+    !payload.can_edit &&
+    isLoaded &&
+    !isSignedIn;
+
   return (
     <>
+      {showHomeownerEntryPrompt ? (
+        <HomeownerReviewEntryPrompt token={token} />
+      ) : null}
+
       {showUnlock ? (
         <div className="mb-6">
           <ContractorReviewUnlock

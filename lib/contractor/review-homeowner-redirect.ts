@@ -53,7 +53,7 @@ export async function getHomeownerReviewRedirect(token: string) {
     project.homeowner_id === null &&
     guest?.projectId === project.id &&
     project.guest_access_token != null &&
-    guest.token === project.guest_access_token;
+    guest?.token === project.guest_access_token;
 
   if (!isSignedInOwner && !isGuestOwner) {
     return null;

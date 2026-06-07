@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
 import { canEditReview } from "@/lib/contractor/review-access";
 import { getReviewProjectByInvitationToken } from "@/lib/contractor/invitations";
+import { isShareLinkInvitation } from "@/lib/contractor/project-share";
 import { listContractorActionableSuggestions } from "@/lib/contractor/suggestions";
 import { getEstimateForReview } from "@/lib/estimates/estimates";
 import { loadProjectReadinessSummary } from "@/lib/project/readiness-summary";
@@ -37,6 +38,7 @@ export async function GET(
     );
     const estimate = await getEstimateForReview(review.id);
     const can_edit = await canEditReview(token, invitation);
+    const is_share_link = isShareLinkInvitation(invitation, project);
 
     return NextResponse.json({
       invitation,
@@ -47,6 +49,7 @@ export async function GET(
       suggestions,
       estimate,
       can_edit,
+      is_share_link,
     });
   } catch (error) {
     return jsonError(error);
