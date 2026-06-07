@@ -18,10 +18,12 @@ export function ProjectDetailTabs({
   project,
   autoGenerate = false,
   activityRefreshKey: activityRefreshKeyProp,
+  showTabs = true,
 }: {
   project: ProjectWithScope;
   autoGenerate?: boolean;
   activityRefreshKey?: number;
+  showTabs?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -68,8 +70,9 @@ export function ProjectDetailTabs({
   }, [project.id]);
 
   useEffect(() => {
+    if (!showTabs) return;
     loadTabCounts();
-  }, [loadTabCounts]);
+  }, [loadTabCounts, showTabs]);
 
   function setTab(tab: ProjectTabId) {
     const params = new URLSearchParams(searchParams.toString());
@@ -102,22 +105,26 @@ export function ProjectDetailTabs({
     );
   }, []);
 
+  const showOverview = !showTabs || activeTab === "overview";
+
   return (
     <div className="space-y-8">
-      <ProjectTabNav
-        activeTab={activeTab}
-        counts={counts}
-        onTabChange={setTab}
-      />
+      {showTabs ? (
+        <ProjectTabNav
+          activeTab={activeTab}
+          counts={counts}
+          onTabChange={setTab}
+        />
+      ) : null}
 
-      {activeTab === "overview" ? (
+      {showOverview ? (
         <div className="space-y-8">
           <ScopeEditor project={project} autoGenerate={autoGenerate} />
           <ContractorShareSection />
         </div>
       ) : null}
 
-      {activeTab === "activity" ? (
+      {showTabs && activeTab === "activity" ? (
         <ProjectActivitySection
           projectId={project.id}
           refreshKey={activityRefreshKey}
@@ -125,7 +132,7 @@ export function ProjectDetailTabs({
         />
       ) : null}
 
-      {activeTab === "reviewed-scopes" ? (
+      {showTabs && activeTab === "reviewed-scopes" ? (
         <ReviewedProjectScopesSection
           projectId={project.id}
           embedded
@@ -133,7 +140,7 @@ export function ProjectDetailTabs({
         />
       ) : null}
 
-      {activeTab === "needs-attention" ? (
+      {showTabs && activeTab === "needs-attention" ? (
         <NeedsAttentionPanel
           projectId={project.id}
           onCountChange={handleNeedsAttentionCount}

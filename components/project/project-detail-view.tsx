@@ -139,6 +139,7 @@ export function ProjectDetailView({
             project={project}
             autoGenerate={autoGenerate}
             activityRefreshKey={activityRefreshKey}
+            showTabs={!isGuestProject}
           />
         </Suspense>
       </div>
