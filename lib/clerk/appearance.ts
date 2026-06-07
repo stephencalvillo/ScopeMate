@@ -29,8 +29,12 @@ export function getClerkAppearance() {
     ...clerkAppearance,
     elements: {
       ...clerkAppearance.elements,
-      socialButtonsRoot: "hidden",
-      dividerRow: "hidden",
+      socialButtonsRoot: "hidden !important",
+      socialButtonsBlockButton: "hidden !important",
+      socialButtonsIconButton: "hidden !important",
+      dividerRow: "hidden !important",
+      dividerLine: "hidden !important",
+      dividerText: "hidden !important",
     },
   };
 }
