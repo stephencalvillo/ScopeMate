@@ -54,3 +54,15 @@ export function DialogTitle({
     />
   );
 }
+
+export function DialogDescription({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Description>) {
+  return (
+    <DialogPrimitive.Description
+      className={cn("text-sm text-stone-500", className)}
+      {...props}
+    />
+  );
+}

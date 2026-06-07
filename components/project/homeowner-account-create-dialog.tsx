@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -79,10 +80,10 @@ export function HomeownerAccountCreateDialog({
           <DialogTitle className="font-display text-xl font-normal tracking-tight text-balance">
             Finish creating your account
           </DialogTitle>
+          <DialogDescription className="text-[var(--muted)]">
+            Share and manage your projects with multiple contractors.
+          </DialogDescription>
         </DialogHeader>
-        <p className="text-sm text-[var(--muted)]">
-          Share and manage your projects with multiple contractors.
-        </p>
 
         {isSignedIn ? (
           <>

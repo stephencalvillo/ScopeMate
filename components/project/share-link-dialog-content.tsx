@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -151,10 +152,10 @@ export function ShareLinkDialogContent({
     <div className="space-y-4">
       <DialogHeader className="mb-0">
         <DialogTitle>Share link</DialogTitle>
-        <p className="text-sm text-[var(--muted)]">
+        <DialogDescription className="text-[var(--muted)]">
           Share one link so a contractor can review your scope, leave comments,
           and suggest changes. No sign-in required.
-        </p>
+        </DialogDescription>
       </DialogHeader>
 
       {isCreating ? (

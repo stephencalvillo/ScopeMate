@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserButton } from "@clerk/nextjs";
+import { useAuth, UserButton } from "@clerk/nextjs";
 import { Briefcase, Home, UserPlus } from "lucide-react";
 
 type AccountMenuProps = {
@@ -9,6 +9,7 @@ type AccountMenuProps = {
 };
 
 export function AccountMenu({ variant = "homeowner" }: AccountMenuProps) {
+  const { isLoaded, isSignedIn } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [hasContractorProfile, setHasContractorProfile] = useState<boolean | null>(
     null
@@ -19,7 +20,12 @@ export function AccountMenu({ variant = "homeowner" }: AccountMenuProps) {
   }, []);
 
   useEffect(() => {
-    if (!mounted) {
+    if (!mounted || !isLoaded) {
+      return;
+    }
+
+    if (!isSignedIn) {
+      setHasContractorProfile(false);
       return;
     }
 
@@ -51,7 +57,7 @@ export function AccountMenu({ variant = "homeowner" }: AccountMenuProps) {
     return () => {
       cancelled = true;
     };
-  }, [mounted]);
+  }, [isLoaded, isSignedIn, mounted]);
 
   if (!mounted) {
     return (
