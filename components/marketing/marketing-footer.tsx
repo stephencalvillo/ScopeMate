@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
+import { GridBackground } from "@/components/marketing/grid-background";
 import { cn } from "@/lib/utils";
 
 const footerNavLinks = [
@@ -50,9 +51,11 @@ export function MarketingFooter() {
   return (
     <footer
       ref={footerRef}
-      className="bg-white text-neutral-900"
+      className="relative overflow-hidden bg-white text-neutral-900"
     >
-      <div className="mx-auto max-w-6xl px-[var(--page-padding-x)] pb-5 pt-8 md:pt-12">
+      <GridBackground fade="footer" layers="minimal" />
+
+      <div className="relative z-10 mx-auto max-w-6xl px-[var(--page-padding-x)] pb-5 pt-8 md:pt-12">
         <Link
           href="/"
           aria-label="ScopeMate home"

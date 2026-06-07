@@ -141,6 +141,16 @@ body {
   );
 }
 
+.marketing-hero-grid--footer-fade {
+  background-color: transparent;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 100%
+  );
+  mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+}
+
 .marketing-hero-grid--bottom-reveal {
   background-color: transparent;
   -webkit-mask-image: linear-gradient(
