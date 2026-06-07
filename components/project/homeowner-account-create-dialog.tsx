@@ -1,11 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
-import { HomeownerAccountCreateForm } from "@/components/project/homeowner-account-create-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getClerkAppearance } from "@/lib/clerk/appearance";
 
 function projectReturnUrl(projectId: string) {
   return `/projects/${projectId}?claim=1&share=1`;
@@ -29,11 +28,63 @@ export function HomeownerAccountCreateDialog({
   onOpenChange: (open: boolean) => void;
   onAccountReady: () => void | Promise<void>;
 }) {
+  const clerk = useClerk();
   const { isSignedIn } = useAuth();
   const [continuing, setContinuing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const returnUrl = projectReturnUrl(projectId);
-  const signInHref = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
+  const clerkAppearance = getClerkAppearance();
+
+  useEffect(() => {
+    if (!open || !isSignedIn) return;
+
+    let cancelled = false;
+    setContinuing(true);
+    setError(null);
+
+    void (async () => {
+      try {
+        await onAccountReady();
+        if (!cancelled) {
+          onOpenChange(false);
+        }
+      } catch (continueError) {
+        if (!cancelled) {
+          setError(
+            continueError instanceof Error
+              ? continueError.message
+              : "Could not continue to share link."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setContinuing(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn, onAccountReady, onOpenChange, open]);
+
+  function openClerkSignUp() {
+    onOpenChange(false);
+    clerk.openSignUp({
+      appearance: clerkAppearance,
+      forceRedirectUrl: returnUrl,
+      fallbackRedirectUrl: returnUrl,
+    });
+  }
+
+  function openClerkSignIn() {
+    onOpenChange(false);
+    clerk.openSignIn({
+      appearance: clerkAppearance,
+      forceRedirectUrl: returnUrl,
+      fallbackRedirectUrl: returnUrl,
+    });
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -44,7 +95,7 @@ export function HomeownerAccountCreateDialog({
 
         <DialogHeader className="text-center">
           <DialogTitle className="font-display text-xl font-normal tracking-tight text-balance">
-            Create your account
+            Finish creating your account
           </DialogTitle>
         </DialogHeader>
         <p className="text-sm text-[var(--muted)]">
@@ -54,51 +105,31 @@ export function HomeownerAccountCreateDialog({
         {isSignedIn ? (
           <>
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            <Button
-              type="button"
-              className="w-full"
-              disabled={continuing}
-              onClick={() => {
-                setContinuing(true);
-                setError(null);
-                void (async () => {
-                  try {
-                    await onAccountReady();
-                    onOpenChange(false);
-                  } catch (continueError) {
-                    setError(
-                      continueError instanceof Error
-                        ? continueError.message
-                        : "Could not continue to share link."
-                    );
-                  } finally {
-                    setContinuing(false);
-                  }
-                })();
-              }}
-            >
+            <div className="mt-4 flex items-center justify-center gap-2 py-2 text-sm text-[var(--muted)]">
               {continuing ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Continuing...
                 </>
               ) : (
-                "Continue to share link"
+                "Preparing your share link..."
               )}
-            </Button>
+            </div>
           </>
         ) : (
-          <>
-            <HomeownerAccountCreateForm returnUrl={returnUrl} />
+          <div className="mt-4 flex flex-col gap-2">
+            <Button type="button" className="w-full" onClick={openClerkSignUp}>
+              Sign up
+            </Button>
             <Button
               type="button"
               variant="outline"
-              className="mt-2 w-full"
-              asChild
+              className="w-full"
+              onClick={openClerkSignIn}
             >
-              <Link href={signInHref}>Sign in with existing account</Link>
+              Sign in with existing account
             </Button>
-          </>
+          </div>
         )}
       </DialogContent>
     </Dialog>
