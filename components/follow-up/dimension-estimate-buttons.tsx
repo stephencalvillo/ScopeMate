@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { FollowUpAnswerButton } from "@/components/follow-up/follow-up-answer-button";
 import {
   DIMENSION_OPTIONS,
   getDimensionLabels,
@@ -23,38 +23,22 @@ export function DimensionEstimateButtons({
   const labels = getDimensionLabels(projectType);
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <>
       {DIMENSION_OPTIONS.map((option) => (
-        <button
+        <FollowUpAnswerButton
           key={option}
-          type="button"
+          selected={value === option}
           disabled={disabled}
           onClick={() => onChange(option)}
-          className={cn(
-            "rounded-full border px-4 py-2 text-sm transition-colors",
-            value === option
-              ? "border-neutral-900 bg-neutral-900 text-white"
-              : "border-[var(--border)] bg-white text-neutral-900 hover:bg-neutral-50",
-            disabled && "opacity-50"
-          )}
         >
           {labels[option]}
-        </button>
+        </FollowUpAnswerButton>
       ))}
       {onCustomDimensions ? (
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={onCustomDimensions}
-          className={cn(
-            "rounded-full border px-4 py-2 text-sm transition-colors",
-            "border-[var(--border)] bg-white text-neutral-900 hover:bg-neutral-50",
-            disabled && "opacity-50"
-          )}
-        >
+        <FollowUpAnswerButton disabled={disabled} onClick={onCustomDimensions}>
           {DIMENSION_CUSTOM_LABEL}
-        </button>
+        </FollowUpAnswerButton>
       ) : null}
-    </div>
+    </>
   );
 }

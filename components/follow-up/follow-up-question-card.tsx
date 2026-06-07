@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { FollowUpAnswerButton } from "@/components/follow-up/follow-up-answer-button";
 import { Input } from "@/components/ui/input";
 import { DimensionEstimateButtons } from "@/components/follow-up/dimension-estimate-buttons";
 import { DimensionCustomInput } from "@/components/follow-up/dimension-custom-input";
@@ -41,6 +41,7 @@ export function FollowUpQuestionCard({
   const [textAnswer, setTextAnswer] = useState(question.answer ?? "");
   const [showOtherInput, setShowOtherInput] = useState(false);
   const [showCustomDimensions, setShowCustomDimensions] = useState(false);
+  const [pendingChoice, setPendingChoice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,10 +68,12 @@ export function FollowUpQuestionCard({
       const result = await answerFollowUpQuestion(projectId, question.id, {
         answer,
       });
+      setPendingChoice(null);
       setShowOtherInput(false);
       setShowCustomDimensions(false);
       onUpdated(result.question);
     } catch (err) {
+      setPendingChoice(null);
       setError(
         err instanceof Error ? err.message : "Could not save your answer."
       );
@@ -124,7 +127,7 @@ export function FollowUpQuestionCard({
           ) : null}
 
           {!showOtherInput && question.question_type === "text" ? (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Input
                 value={textAnswer}
                 onChange={(e) => setTextAnswer(e.target.value)}
@@ -132,48 +135,78 @@ export function FollowUpQuestionCard({
                 disabled={saving}
                 className="max-w-md"
               />
-              <Button
-                size="sm"
+              <FollowUpAnswerButton
                 disabled={saving || !textAnswer.trim()}
                 onClick={() => saveAnswer(textAnswer.trim())}
               >
                 Save
-              </Button>
+              </FollowUpAnswerButton>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={skip}
+                className="ml-auto shrink-0 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-50"
+              >
+                Skip for now
+              </button>
             </div>
           ) : null}
 
           {!showOtherInput && question.question_type === "choice" ? (
-            <div className="flex flex-wrap gap-2">
-              {choiceOptions.map((choice) => (
-                <Button
-                  key={choice}
-                  variant="secondary"
-                  size="sm"
-                  disabled={saving}
-                  onClick={() => {
-                    if (isOtherChoice(choice)) {
-                      setShowOtherInput(true);
-                      return;
-                    }
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+                {choiceOptions.map((choice) => (
+                  <FollowUpAnswerButton
+                    key={choice}
+                    selected={pendingChoice === choice}
+                    disabled={saving}
+                    onClick={() => {
+                      if (isOtherChoice(choice)) {
+                        setShowOtherInput(true);
+                        return;
+                      }
 
-                    saveAnswer(choice);
-                  }}
-                >
-                  {choice}
-                </Button>
-              ))}
+                      setPendingChoice(choice);
+                      void saveAnswer(choice);
+                    }}
+                  >
+                    {choice}
+                  </FollowUpAnswerButton>
+                ))}
+              </div>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={skip}
+                className="ml-auto shrink-0 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-50"
+              >
+                Skip for now
+              </button>
             </div>
           ) : null}
 
           {!showOtherInput && !showCustomDimensions && question.question_type === "dimension_estimate" ? (
-            <div className="space-y-3">
-              <DimensionEstimateButtons
-                value={textAnswer}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+                <DimensionEstimateButtons
+                  value={textAnswer}
+                  disabled={saving}
+                  projectType={projectType}
+                  onChange={(value) => {
+                    setTextAnswer(value);
+                    void saveAnswer(value);
+                  }}
+                  onCustomDimensions={() => setShowCustomDimensions(true)}
+                />
+              </div>
+              <button
+                type="button"
                 disabled={saving}
-                projectType={projectType}
-                onChange={saveAnswer}
-                onCustomDimensions={() => setShowCustomDimensions(true)}
-              />
+                onClick={skip}
+                className="ml-auto shrink-0 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-50"
+              >
+                Skip for now
+              </button>
             </div>
           ) : null}
 
@@ -183,12 +216,6 @@ export function FollowUpQuestionCard({
               onSave={saveAnswer}
               onCancel={() => setShowCustomDimensions(false)}
             />
-          ) : null}
-
-          {!showOtherInput && !showCustomDimensions ? (
-            <Button variant="ghost" size="sm" disabled={saving} onClick={skip}>
-              Skip for now
-            </Button>
           ) : null}
         </div>
       ) : null}
