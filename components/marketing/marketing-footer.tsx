@@ -12,35 +12,33 @@ export function MarketingFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-black text-white">
-      <div className="w-full overflow-hidden leading-none">
+    <footer className="bg-white text-neutral-900">
+      <div className="mx-auto max-w-6xl px-[var(--page-padding-x)] pb-5 pt-8 md:pt-12">
         <Link
           href="/"
-          className="block w-full text-white transition-opacity hover:opacity-90"
+          className="block w-full transition-opacity hover:opacity-80"
           aria-label="ScopeMate home"
         >
-          <ScopeMateLogo fullWidth className="block" />
+          <ScopeMateLogo fullWidth className="text-neutral-900" />
         </Link>
-      </div>
 
-      <div className="flex flex-col gap-4 px-[23px] pb-5 pt-3 font-display text-xs sm:flex-row sm:items-center sm:justify-between md:px-6">
-        <p className="shrink-0 text-white">
-          © {year} ScopeMate. All rights reserved.
-        </p>
-        <nav
-          aria-label="Footer"
-          className="flex flex-wrap items-center gap-x-5 gap-y-2"
-        >
-          {footerNavLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="text-white underline decoration-solid underline-offset-[3px] transition-opacity hover:opacity-80"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="mt-3 flex flex-col gap-4 font-display text-xs sm:flex-row sm:items-center sm:justify-between">
+          <p className="shrink-0">© {year} ScopeMate. All rights reserved.</p>
+          <nav
+            aria-label="Footer"
+            className="flex flex-wrap items-center gap-x-5 gap-y-2"
+          >
+            {footerNavLinks.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="text-neutral-900 underline decoration-solid underline-offset-[3px] transition-opacity hover:opacity-70"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </div>
     </footer>
   );
