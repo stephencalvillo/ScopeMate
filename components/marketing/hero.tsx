@@ -79,7 +79,7 @@ export function Hero({
         {(primaryCta || secondaryCta) && (
           <div
             className={cn(
-              "flex flex-col gap-3 pt-2 sm:flex-row sm:items-center",
+              "flex flex-col gap-3 pb-12 pt-2 sm:flex-row sm:items-center",
               isCentered && "sm:justify-center"
             )}
           >

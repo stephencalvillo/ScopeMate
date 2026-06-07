@@ -64,13 +64,13 @@ body {
 
 .marketing-hero-grid {
   background-color: var(--card);
+  contain: layout paint style;
 }
 
 .marketing-hero-grid-layer {
   position: absolute;
   inset: -24px;
   background-size: 24px 24px;
-  will-change: background-position, opacity;
 }
 
 .marketing-hero-grid-h-fwd {

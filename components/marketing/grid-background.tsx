@@ -14,9 +14,7 @@ export function GridBackground({ fade = "hero" }: GridBackgroundProps) {
       aria-hidden
     >
       <div className="marketing-hero-grid-layer marketing-hero-grid-h-fwd" />
-      <div className="marketing-hero-grid-layer marketing-hero-grid-h-rev" />
       <div className="marketing-hero-grid-layer marketing-hero-grid-v-fwd" />
-      <div className="marketing-hero-grid-layer marketing-hero-grid-v-rev" />
       {fade === "hero" ? (
         <div className="marketing-hero-grid-fade pointer-events-none absolute inset-0" />
       ) : null}

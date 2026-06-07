@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Check, Copy, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -179,7 +180,11 @@ const previews = [
   ComparePreview,
 ] as const;
 
-export function HowItWorksStepPreview({ step }: { step: number }) {
+export const HowItWorksStepPreview = memo(function HowItWorksStepPreview({
+  step,
+}: {
+  step: number;
+}) {
   const Preview = previews[step] ?? DescribePreview;
   return <Preview />;
-}
+});

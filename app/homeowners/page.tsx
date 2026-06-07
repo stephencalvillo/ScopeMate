@@ -36,7 +36,6 @@ export default function HomeownersPage() {
       <MarketingSection
         title="From idea to scope"
         description="ScopeMate guides you through the details contractors need to price your project accurately."
-        gridBackground
         className="bg-white"
         centered
       >

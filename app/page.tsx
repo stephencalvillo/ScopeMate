@@ -61,7 +61,7 @@ export default async function HomePage() {
         </div>
       </MarketingSection>
 
-      <MarketingSection bottomGlow className="bg-[var(--accent)]/30">
+      <MarketingSection className="bg-white">
         <div className="mx-auto max-w-2xl space-y-6 text-center">
           <div className="space-y-3">
             <h2 className="font-display text-3xl tracking-tight text-neutral-900 text-balance">
