@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, hoverRevealOnDesktopClassName } from "@/lib/utils";
 
 export function IconActionButton({
   label,
@@ -29,7 +29,7 @@ export function IconActionButton({
         onClick={onClick}
         className={cn(
           "rounded-full p-1.5 text-neutral-600 transition-colors",
-          "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100",
+          hoverRevealOnDesktopClassName,
           "hover:bg-white hover:text-neutral-900",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1",
           "disabled:cursor-not-allowed disabled:opacity-50"

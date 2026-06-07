@@ -19,7 +19,7 @@ import { ScopeItemShell } from "@/components/scope/scope-item-shell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { groupScopeItemsByCategory, compareScopeCategories } from "@/lib/scope/group-by-category";
-import { cn } from "@/lib/utils";
+import { cn, hoverRevealOnDesktopClassName } from "@/lib/utils";
 import type { ScopeItem, ScopeSuggestion, SuggestionFollowUp } from "@/types";
 
 type ReviewSuggestion = ScopeSuggestion & { follow_ups?: SuggestionFollowUp[] };
@@ -282,7 +282,7 @@ export function ReviewScopeList({
                               }
                               className={cn(
                                 "rounded-full p-1.5 text-neutral-600 transition-opacity",
-                                "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+                                hoverRevealOnDesktopClassName,
                                 (showCommentForm || draft) && "opacity-100",
                                 "hover:bg-white/80 hover:text-neutral-900"
                               )}

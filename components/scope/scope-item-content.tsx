@@ -1,6 +1,5 @@
 import { VerificationBadge } from "@/components/scope/verification-badge";
 import { getScopeItemAttribution } from "@/components/scope/scope-item-shell";
-import { cn } from "@/lib/utils";
 import type { ScopeItem } from "@/types";
 
 export function ScopeItemContent({
@@ -19,12 +18,7 @@ export function ScopeItemContent({
   return (
     <div className="w-full min-w-0 flex-1 space-y-1">
       <div className="flex w-full items-center gap-3">
-        <p
-          className={cn(
-            "min-w-0 flex-1 text-sm font-medium text-neutral-900",
-            compact ? "leading-5" : "leading-7"
-          )}
-        >
+        <p className="min-w-0 flex-1 text-sm font-medium leading-5 text-neutral-900">
           {item.text}
         </p>
         {actions ? (

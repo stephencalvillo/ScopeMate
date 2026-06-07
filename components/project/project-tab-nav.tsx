@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, horizontalScrollTabsClassName } from "@/lib/utils";
 
 export type ProjectTabId =
   | "overview"
@@ -29,11 +29,12 @@ export function ProjectTabNav({
   onTabChange: (tab: ProjectTabId) => void;
 }) {
   return (
-    <nav
-      className="flex gap-6 border-b border-[var(--border)]"
-      aria-label="Project sections"
-    >
-      {TABS.map((tab) => {
+    <div className={horizontalScrollTabsClassName}>
+      <nav
+        className="flex w-max min-w-full gap-6 border-b border-[var(--border)]"
+        aria-label="Project sections"
+      >
+        {TABS.map((tab) => {
         const count =
           tab.countKey === "reviewedScopes"
             ? counts.reviewedScopes
@@ -50,7 +51,7 @@ export function ProjectTabNav({
             aria-selected={isActive}
             onClick={() => onTabChange(tab.id)}
             className={cn(
-              "-mb-px border-b-2 pb-3 text-sm font-medium transition-colors",
+              "-mb-px shrink-0 whitespace-nowrap border-b-2 pb-3 text-sm font-medium transition-colors",
               isActive
                 ? "border-neutral-900 text-neutral-900"
                 : "border-transparent text-[var(--muted)] hover:text-neutral-800"
@@ -72,7 +73,8 @@ export function ProjectTabNav({
           </button>
         );
       })}
-    </nav>
+      </nav>
+    </div>
   );
 }
 

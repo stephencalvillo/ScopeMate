@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
+import { IconActionButton } from "@/components/review/icon-action-button";
 import { ScopeItemContent } from "@/components/scope/scope-item-content";
 import { ScopeItemShell } from "@/components/scope/scope-item-shell";
 import { Button } from "@/components/ui/button";
@@ -101,24 +102,12 @@ export function ScopeItemRow({
           item={item}
           actions={
             <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-                onClick={() => setEditing(true)}
-                aria-label="Edit scope item"
-              >
+              <IconActionButton label="Edit" onClick={() => setEditing(true)}>
                 <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-                onClick={removeItem}
-                aria-label="Remove scope item"
-              >
+              </IconActionButton>
+              <IconActionButton label="Remove" onClick={removeItem}>
                 <Trash2 className="h-4 w-4" />
-              </Button>
+              </IconActionButton>
             </>
           }
         />

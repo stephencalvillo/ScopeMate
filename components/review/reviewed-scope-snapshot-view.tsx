@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Check, Loader2, MessageSquare, X } from "lucide-react";
+import { IconActionButton } from "@/components/review/icon-action-button";
 import { EstimateRangeHeader } from "@/components/estimate/estimate-range-inputs";
 import { SubmittedScopeEstimateRange } from "@/components/estimate/submitted-scope-estimate-range";
 import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
@@ -41,56 +42,6 @@ function SuggestionTypeLabel({ label }: { label: string }) {
   );
 }
 
-function IconActionButton({
-  label,
-  onClick,
-  disabled,
-  loading,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-  children: React.ReactNode;
-}) {
-  const isDisabled = disabled || loading;
-
-  return (
-    <span className="group/icon relative inline-flex">
-      <button
-        type="button"
-        aria-label={label}
-        disabled={isDisabled}
-        onClick={onClick}
-        className={cn(
-          "rounded-full p-1.5 text-neutral-600 transition-colors",
-          "hover:bg-white hover:text-neutral-900",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1",
-          "disabled:cursor-not-allowed disabled:opacity-50"
-        )}
-      >
-        {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-        ) : (
-          children
-        )}
-      </button>
-      <span
-        role="tooltip"
-        className={cn(
-          "pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-20 -translate-x-1/2 whitespace-nowrap",
-          "rounded-[6px] bg-neutral-900 px-2 py-1 text-xs font-medium text-white shadow-sm",
-          "opacity-0 transition-opacity duration-150",
-          "group-hover/icon:opacity-100 group-focus-within/icon:opacity-100"
-        )}
-      >
-        {label}
-      </span>
-    </span>
-  );
-}
-
 function editSuggestionForItem(
   suggestions: ReviewScopeSnapshotSuggestion[],
   itemId: string
@@ -124,30 +75,32 @@ function ScopeViewSegmentedControl({
   const fromContractorLabel = `From ${contractorName.trim().split(/\s+/)[0] || contractorName}`;
 
   return (
-    <div
-      className="inline-flex rounded-[4px] border border-[var(--border)] bg-white p-0.5"
-      role="tablist"
-      aria-label="Scope view"
-    >
-      {(
-        [
-          { id: "submitted" as const, label: fromContractorLabel },
-          { id: "current" as const, label: "Original" },
-        ] as const
-      ).map((option) => (
-        <Button
-          key={option.id}
-          type="button"
-          role="tab"
-          aria-selected={value === option.id}
-          size="sm"
-          variant={value === option.id ? "secondary" : "ghost"}
-          className="h-8 px-2.5 text-xs"
-          onClick={() => onChange(option.id)}
-        >
-          {option.label}
-        </Button>
-      ))}
+    <div className="max-w-full overflow-x-auto overscroll-x-contain">
+      <div
+        className="inline-flex w-max rounded-[4px] border border-[var(--border)] bg-white p-0.5"
+        role="tablist"
+        aria-label="Scope view"
+      >
+        {(
+          [
+            { id: "submitted" as const, label: fromContractorLabel },
+            { id: "current" as const, label: "Original" },
+          ] as const
+        ).map((option) => (
+          <Button
+            key={option.id}
+            type="button"
+            role="tab"
+            aria-selected={value === option.id}
+            size="sm"
+            variant={value === option.id ? "secondary" : "ghost"}
+            className="h-8 shrink-0 whitespace-nowrap px-2.5 text-xs"
+            onClick={() => onChange(option.id)}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 }

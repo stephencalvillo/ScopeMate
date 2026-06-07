@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SectionSurface } from "@/components/layout/page-section";
 import { formatProposalRange, proposalRangeFromLineItems } from "@/lib/estimates/money";
-import { cn } from "@/lib/utils";
+import { cn, mobileFullWidthCtaClassName } from "@/lib/utils";
 import type { ContractorEstimate } from "@/types";
 
 const ACCEPT_DESCRIPTION =
@@ -72,11 +72,14 @@ function AcceptProposalActions({
       <>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-[var(--muted)]">{FLOAT_DESCRIPTION}</p>
-          <div className="flex shrink-0 justify-end">
-            <Button type="button" disabled={loading} onClick={onAccept}>
-              {loading ? "Accepting..." : "Accept proposal"}
-            </Button>
-          </div>
+          <Button
+            type="button"
+            className={mobileFullWidthCtaClassName}
+            disabled={loading}
+            onClick={onAccept}
+          >
+            {loading ? "Accepting..." : "Accept proposal"}
+          </Button>
         </div>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
       </>
@@ -86,8 +89,13 @@ function AcceptProposalActions({
   return (
     <>
       <p className="text-sm text-neutral-800">{ACCEPT_DESCRIPTION}</p>
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" disabled={loading} onClick={onAccept}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        <Button
+          type="button"
+          className={mobileFullWidthCtaClassName}
+          disabled={loading}
+          onClick={onAccept}
+        >
           {loading ? "Accepting..." : "Accept proposal"}
         </Button>
       </div>

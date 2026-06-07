@@ -14,7 +14,7 @@ import { Link2 } from "lucide-react";
 import { ShareLinkDialog } from "@/components/project/share-link-dialog-content";
 import { SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, mobileFullWidthCtaClassName } from "@/lib/utils";
 import type { Project } from "@/types";
 
 const SHARE_DOCK_DESCRIPTION =
@@ -156,9 +156,10 @@ export function ProjectShareProvider({
                 <p className="text-sm text-[var(--muted)]">
                   {SHARE_DOCK_DESCRIPTION}
                 </p>
-                <div className="flex shrink-0 justify-end">
-                  <ShareLinkTriggerButton onClick={openShareDialog} />
-                </div>
+                <ShareLinkTriggerButton
+                  onClick={openShareDialog}
+                  className={mobileFullWidthCtaClassName}
+                />
               </div>
             </SectionSurface>
           </div>
@@ -223,9 +224,10 @@ export function ProjectShareInlineDock() {
       <SectionSurface>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-[var(--muted)]">{SHARE_DOCK_DESCRIPTION}</p>
-          <div className="flex shrink-0 justify-end">
-            <ShareLinkTriggerButton onClick={openShareDialog} />
-          </div>
+          <ShareLinkTriggerButton
+            onClick={openShareDialog}
+            className={mobileFullWidthCtaClassName}
+          />
         </div>
       </SectionSurface>
     </div>
