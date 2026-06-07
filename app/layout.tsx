@@ -15,10 +15,29 @@ const lexend = Lexend({
   variable: "--font-lexend",
 });
 
+const appUrl = (() => {
+  const configured = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
+  return configured || "http://localhost:3000";
+})();
+
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
   title: "ScopeMate — Contractor-ready scopes for every project",
   description:
     "ScopeMate turns messy project ideas into contractor-ready scopes. One product for homeowners and contractors to start every project on the same page.",
+  openGraph: {
+    title: "ScopeMate — Contractor-ready scopes for every project",
+    description:
+      "ScopeMate turns messy project ideas into contractor-ready scopes. One product for homeowners and contractors to start every project on the same page.",
+    siteName: "ScopeMate",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ScopeMate — Contractor-ready scopes for every project",
+    description:
+      "ScopeMate turns messy project ideas into contractor-ready scopes. One product for homeowners and contractors to start every project on the same page.",
+  },
 };
 
 export default function RootLayout({
