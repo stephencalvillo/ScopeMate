@@ -6,6 +6,8 @@ import {
 } from "@/lib/auth/guest-project";
 import { createServiceClient } from "@/lib/db/supabase";
 import { isMissingColumnError } from "@/lib/db/errors";
+import { parseLocation } from "@/lib/location/parse";
+import { lookupCityStateFromZip } from "@/lib/location/zip-lookup";
 import { resolveProjectTitle } from "@/lib/projects/title";
 import { createGuestProjectSchema } from "@/lib/validators/project";
 
@@ -28,6 +30,16 @@ export async function POST(request: Request) {
     const input = createGuestProjectSchema.parse(body);
     const guestAccessToken = generateGuestAccessToken();
     const title = await resolveProjectTitle(input.original_description);
+    const parsed = parseLocation(input.zip);
+    let city = parsed.city || parsed.location;
+
+    if (!parsed.city && parsed.zip) {
+      const cityState = await lookupCityStateFromZip(parsed.zip);
+      if (cityState) {
+        city = cityState;
+      }
+    }
+
     const supabase = createServiceClient();
 
     const baseRow = {
@@ -35,9 +47,9 @@ export async function POST(request: Request) {
       guest_access_token: guestAccessToken,
       title,
       project_type: "unspecified",
-      city: "Location TBD",
-      zip: "N/A",
-      location: "Location TBD",
+      city,
+      zip: parsed.zip || input.zip,
+      location: parsed.location,
       original_description: input.original_description,
       status: "draft" as const,
     };

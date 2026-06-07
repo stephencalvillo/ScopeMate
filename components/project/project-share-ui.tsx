@@ -133,8 +133,9 @@ export function ProjectShareProvider({
       try {
         await claimProject();
       } catch (error) {
-        console.error(error);
-        return;
+        throw error instanceof Error
+          ? error
+          : new Error("Could not save this project to your account.");
       }
     }
 

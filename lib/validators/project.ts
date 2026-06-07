@@ -20,6 +20,13 @@ export const createGuestProjectSchema = z.object({
     .trim()
     .min(20, "Describe your project in at least a few sentences")
     .max(8000),
+  zip: z
+    .string()
+    .trim()
+    .regex(
+      /^\d{5}(?:-\d{4})?$/,
+      "Enter a valid 5-digit ZIP code"
+    ),
 });
 
 export const updateProjectSchema = z.object({

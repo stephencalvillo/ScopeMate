@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSignUp } from "@clerk/nextjs";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,15 @@ function clerkErrorMessage(error: unknown) {
     return first?.longMessage ?? first?.message ?? "Could not create account.";
   }
 
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof (error as { message: unknown }).message === "string"
+  ) {
+    return (error as { message: string }).message;
+  }
+
   if (error instanceof Error) {
     return error.message;
   }
@@ -32,10 +42,10 @@ export function HomeownerAccountCreateForm({
   onComplete,
 }: {
   projectId: string;
-  onComplete?: () => void;
+  onComplete?: () => void | Promise<void>;
 }) {
   const router = useRouter();
-  const { signUp, fetchStatus } = useSignUp();
+  const { isLoaded, signUp, setActive } = useSignUp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -43,34 +53,34 @@ export function HomeownerAccountCreateForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isReady = fetchStatus === "idle" && signUp;
+  async function activateSession() {
+    if (!signUp) {
+      throw new Error("Sign-up is not ready yet. Refresh and try again.");
+    }
 
-  async function finishSignup() {
-    if (!signUp) return;
-
-    if (signUp.status === "complete") {
-      const { error: finalizeError } = await signUp.finalize({
-        navigate: () => {
-          onComplete?.();
-          router.refresh();
-        },
-      });
-      if (finalizeError) {
-        throw finalizeError;
+    if (signUp.status !== "complete") {
+      const { error: sendError } = await signUp.verifications.sendEmailCode();
+      if (sendError) {
+        throw sendError;
       }
+      setPendingVerification(true);
       return;
     }
 
-    const { error: sendError } = await signUp.verifications.sendEmailCode();
-    if (sendError) {
-      throw sendError;
+    if (!signUp.createdSessionId) {
+      throw new Error(
+        "Your account was created, but the session could not start. Try signing in instead."
+      );
     }
-    setPendingVerification(true);
+
+    await setActive({ session: signUp.createdSessionId });
+    await onComplete?.();
+    router.refresh();
   }
 
   async function handleCreateAccount(event: React.FormEvent) {
     event.preventDefault();
-    if (!isReady) return;
+    if (!isLoaded || !signUp) return;
 
     setLoading(true);
     setError(null);
@@ -84,7 +94,7 @@ export function HomeownerAccountCreateForm({
         throw passwordError;
       }
 
-      await finishSignup();
+      await activateSession();
     } catch (submitError) {
       setError(clerkErrorMessage(submitError));
     } finally {
@@ -94,7 +104,7 @@ export function HomeownerAccountCreateForm({
 
   async function handleVerifyCode(event: React.FormEvent) {
     event.preventDefault();
-    if (!isReady) return;
+    if (!isLoaded || !signUp) return;
 
     setLoading(true);
     setError(null);
@@ -108,7 +118,7 @@ export function HomeownerAccountCreateForm({
         throw verifyError;
       }
 
-      await finishSignup();
+      await activateSession();
     } catch (verifyError) {
       setError(clerkErrorMessage(verifyError));
     } finally {
@@ -116,11 +126,20 @@ export function HomeownerAccountCreateForm({
     }
   }
 
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center gap-2 py-6 text-sm text-[var(--muted)]">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Loading secure sign-up...
+      </div>
+    );
+  }
+
   if (pendingVerification) {
     return (
       <form onSubmit={handleVerifyCode} className="space-y-4">
         <p className="text-sm text-[var(--muted)]">
-          Enter the verification code sent to {email.trim()}.
+          Check your email for a verification code sent to {email.trim()}.
         </p>
         <div className="space-y-2">
           <Label htmlFor="homeowner_verification_code">Verification code</Label>

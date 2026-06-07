@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export function HomeownerDescribeForm() {
@@ -19,11 +21,12 @@ export function HomeownerDescribeForm() {
     const original_description = String(
       formData.get("project_description") ?? ""
     ).trim();
+    const zip = String(formData.get("zip") ?? "").trim();
 
     const response = await fetch("/api/projects/guest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ original_description }),
+      body: JSON.stringify({ original_description, zip }),
     });
 
     const data = await response.json();
@@ -53,6 +56,20 @@ export function HomeownerDescribeForm() {
         aria-label="Project description"
         required
       />
+
+      <div className="space-y-2">
+        <Label htmlFor="zip">ZIP code</Label>
+        <Input
+          id="zip"
+          name="zip"
+          inputMode="numeric"
+          autoComplete="postal-code"
+          placeholder="e.g. 78701"
+          pattern="\d{5}(-\d{4})?"
+          maxLength={10}
+          required
+        />
+      </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 

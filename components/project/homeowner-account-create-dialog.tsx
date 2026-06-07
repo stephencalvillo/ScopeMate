@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { Loader2 } from "lucide-react";
 import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
 import { HomeownerAccountCreateForm } from "@/components/project/homeowner-account-create-form";
 import { Button } from "@/components/ui/button";
@@ -21,9 +23,11 @@ export function HomeownerAccountCreateDialog({
   projectId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAccountReady: () => void;
+  onAccountReady: () => void | Promise<void>;
 }) {
   const { isSignedIn } = useAuth();
+  const [continuing, setContinuing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(
     `/projects/${projectId}?claim=1`
   )}`;
@@ -45,16 +49,37 @@ export function HomeownerAccountCreateDialog({
         </p>
 
         {isSignedIn ? (
-          <Button
-            type="button"
-            className="w-full"
-            onClick={() => {
-              onAccountReady();
-              onOpenChange(false);
-            }}
-          >
-            Continue to share link
-          </Button>
+          <>
+            {error ? <p className="text-sm text-red-600">{error}</p> : null}
+            <Button
+              type="button"
+              className="w-full"
+              disabled={continuing}
+              onClick={() => {
+                setContinuing(true);
+                setError(null);
+                void onAccountReady()
+                  .then(() => onOpenChange(false))
+                  .catch((continueError) => {
+                    setError(
+                      continueError instanceof Error
+                        ? continueError.message
+                        : "Could not continue to share link."
+                    );
+                  })
+                  .finally(() => setContinuing(false));
+              }}
+            >
+              {continuing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Continuing...
+                </>
+              ) : (
+                "Continue to share link"
+              )}
+            </Button>
+          </>
         ) : (
           <>
             <Button type="button" variant="outline" className="w-full" asChild>
@@ -63,11 +88,22 @@ export function HomeownerAccountCreateDialog({
 
             <HomeownerAccountCreateForm
               projectId={projectId}
-              onComplete={() => {
-                onAccountReady();
-                onOpenChange(false);
+              onComplete={async () => {
+                setError(null);
+                try {
+                  await onAccountReady();
+                  onOpenChange(false);
+                } catch (continueError) {
+                  setError(
+                    continueError instanceof Error
+                      ? continueError.message
+                      : "Could not save this project to your account."
+                  );
+                  throw continueError;
+                }
               }}
             />
+            {error ? <p className="text-sm text-red-600">{error}</p> : null}
           </>
         )}
       </DialogContent>
