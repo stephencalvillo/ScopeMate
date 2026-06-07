@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
+import { assertReviewEditor } from "@/lib/contractor/review-access";
 import { getReviewProjectByInvitationToken } from "@/lib/contractor/invitations";
 import {
   completeContractorReview,
@@ -12,6 +13,7 @@ export async function POST(
 ) {
   try {
     const { token } = await context.params;
+    await assertReviewEditor(token);
     const { project } = await getReviewProjectByInvitationToken(token);
     const homeowner = await getHomeownerForProject(project.id);
     const result = await completeContractorReview({

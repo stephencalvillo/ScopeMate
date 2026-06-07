@@ -20,6 +20,7 @@ import {
   serializeDraftEntries,
   type CategoryPricingMode,
   type DraftEstimateEntry,
+  type EstimatePriceInputMode,
 } from "@/lib/estimates/inline-estimate";
 import { applySavedRatesToEntries } from "@/lib/contractor/apply-rates";
 import {
@@ -39,6 +40,7 @@ type ContractorEstimateContextValue = {
   showEstimate: boolean;
   entries: DraftEstimateEntry[];
   pricingMode: CategoryPricingMode;
+  priceInputMode: EstimatePriceInputMode;
   computedMinTotal: number;
   computedMaxTotal: number;
   computedTotal: number;
@@ -66,8 +68,8 @@ type ContractorEstimateContextValue = {
     patch: { labor_cost?: string; material_cost?: string }
   ) => void;
   setPricingMode: (mode: CategoryPricingMode) => void;
+  setPriceInputMode: (mode: EstimatePriceInputMode) => void;
   generateDraft: () => Promise<void>;
-  applySavedRates: () => Promise<void>;
   saveDraft: () => Promise<void>;
   submitProposal: () => Promise<void>;
   persistDraftForReview: () => Promise<void>;
@@ -86,6 +88,50 @@ function draftTotal(entries: DraftEstimateEntry[]) {
       ),
     }))
   );
+}
+
+function flattenEntriesToFlatCost(entries: DraftEstimateEntry[]) {
+  return entries.map((entry) => {
+    const { high } = estimateRangeBounds(
+      Number(entry.labor_cost) || 0,
+      Number(entry.material_cost) || 0
+    );
+    const value = String(high);
+    return { ...entry, labor_cost: value, material_cost: value };
+  });
+}
+
+async function fetchSavedContractorRates() {
+  const response = await fetch("/api/contractor/rates");
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error ?? "Could not load saved rates.");
+  }
+
+  return (data.rates ?? []) as Array<{
+    category: string;
+    labor_cost: number;
+    material_cost: number;
+  }>;
+}
+
+function applyRatesToDraftEntries(
+  entries: DraftEstimateEntry[],
+  pricingMode: CategoryPricingMode
+) {
+  return fetchSavedContractorRates()
+    .then((rates) => {
+      if (rates.length === 0) {
+        return { entries, applied: false };
+      }
+
+      return {
+        entries: applySavedRatesToEntries({ entries, rates, pricingMode }),
+        applied: true,
+      };
+    })
+    .catch(() => ({ entries, applied: false }));
 }
 
 function activeEntries(
@@ -148,6 +194,8 @@ export function ContractorEstimateProvider({
   const [pricingMode, setPricingModeState] = useState<CategoryPricingMode>(
     initialPricingMode
   );
+  const [priceInputMode, setPriceInputModeState] =
+    useState<EstimatePriceInputMode>("range");
   const [entries, setEntries] = useState<DraftEstimateEntry[]>(() =>
     buildDraftEntries({
       scopeItems,
@@ -323,53 +371,41 @@ export function ContractorEstimateProvider({
     }
 
     const nextEstimate = data.estimate as ContractorEstimate;
-    applyEstimateToState(nextEstimate);
-    setMessage(
-      "Draft prices prefilled from local market averages. Review and adjust before submitting."
+    const nextPricingMode = inferGlobalPricingMode(
+      scopeItems,
+      nextEstimate.line_items ?? []
     );
-  }, [applyEstimateToState, token]);
+    let nextEntries = mergeDraftAddEntries(
+      buildDraftEntries({
+        scopeItems,
+        lineItems: nextEstimate.line_items ?? [],
+        pricingModeByCategory: buildPricingModeMap(
+          scopeItems,
+          nextEstimate.line_items ?? [],
+          nextPricingMode
+        ),
+      }),
+      nextEstimate.line_items ?? [],
+      nextPricingMode,
+      []
+    );
 
-  const applySavedRates = useCallback(async () => {
-    setError(null);
-    setMessage(null);
+    const { entries: ratedEntries, applied } = await applyRatesToDraftEntries(
+      nextEntries,
+      nextPricingMode
+    );
+    nextEntries = ratedEntries;
 
-    try {
-      const response = await fetch("/api/contractor/rates");
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Could not load saved rates.");
-      }
-
-      const rates = (data.rates ?? []) as Array<{
-        category: string;
-        labor_cost: number;
-        material_cost: number;
-      }>;
-
-      if (rates.length === 0) {
-        throw new Error(
-          "Add saved rates in your contractor portal before applying them."
-        );
-      }
-
-      setEntries((current) =>
-        applySavedRatesToEntries({
-          entries: current,
-          rates,
-          pricingMode,
-        })
-      );
-      setDirty(true);
-      setMessage("Applied your saved rates. Review and adjust before submitting.");
-    } catch (applyError) {
-      setError(
-        applyError instanceof Error
-          ? applyError.message
-          : "Could not apply saved rates."
-      );
-    }
-  }, [pricingMode, scopeItems]);
+    setEstimate(nextEstimate);
+    setPricingModeState(nextPricingMode);
+    setEntries(nextEntries);
+    setDirty(applied);
+    setMessage(
+      applied
+        ? "Prefilled with your saved rates. Review and adjust before submitting."
+        : "Draft prices prefilled from local market averages. Review and adjust before submitting."
+    );
+  }, [scopeItems, token]);
 
   useEffect(() => {
     if (
@@ -459,6 +495,16 @@ export function ContractorEstimateProvider({
       return next;
     });
     markDirty();
+  }
+
+  function setPriceInputMode(mode: EstimatePriceInputMode) {
+    if (mode === priceInputMode) return;
+
+    setPriceInputModeState(mode);
+    if (mode === "flat") {
+      setEntries((current) => flattenEntriesToFlatCost(current));
+      markDirty();
+    }
   }
 
   function applyCategoryPricingMode(
@@ -619,6 +665,7 @@ export function ContractorEstimateProvider({
         showEstimate,
         entries,
         pricingMode,
+        priceInputMode,
         computedMinTotal,
         computedMaxTotal,
         computedTotal,
@@ -635,8 +682,8 @@ export function ContractorEstimateProvider({
         updateAddSuggestionEstimate,
         updateSectionEstimate,
         setPricingMode,
+        setPriceInputMode,
         generateDraft,
-        applySavedRates,
         saveDraft,
         submitProposal,
         persistDraftForReview: async () => {

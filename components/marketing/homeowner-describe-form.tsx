@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { TimelineStartChoices } from "@/components/project/timeline-start-choices";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ export function HomeownerDescribeForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [targetStart, setTargetStart] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,7 +28,11 @@ export function HomeownerDescribeForm() {
     const response = await fetch("/api/projects/guest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ original_description, zip }),
+      body: JSON.stringify({
+        original_description,
+        zip,
+        ...(targetStart ? { target_start: targetStart } : {}),
+      }),
     });
 
     const data = await response.json();
@@ -56,6 +62,8 @@ export function HomeownerDescribeForm() {
         aria-label="Project description"
         required
       />
+
+      <TimelineStartChoices value={targetStart} onChange={setTargetStart} />
 
       <div className="space-y-2">
         <Label htmlFor="zip">ZIP code</Label>

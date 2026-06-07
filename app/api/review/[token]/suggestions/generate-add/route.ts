@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
 import { parseContractorScopeAddition } from "@/lib/ai/parse-contractor-scope-addition";
+import { assertReviewEditor } from "@/lib/contractor/review-access";
 import { getReviewProjectByInvitationToken } from "@/lib/contractor/invitations";
 import { createDraftSuggestion } from "@/lib/contractor/suggestions";
 import { generateAddSuggestionSchema } from "@/lib/validators/suggestion";
@@ -11,6 +12,7 @@ export async function POST(
 ) {
   try {
     const { token } = await context.params;
+    await assertReviewEditor(token);
     const body = await request.json();
     const input = generateAddSuggestionSchema.parse(body);
     const { project } = await getReviewProjectByInvitationToken(token);

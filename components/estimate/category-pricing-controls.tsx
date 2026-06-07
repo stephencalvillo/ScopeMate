@@ -4,39 +4,40 @@ import { EstimateRangeInputs } from "@/components/estimate/estimate-range-inputs
 import { useContractorEstimate } from "@/components/estimate/contractor-estimate-context";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { CategoryPricingMode } from "@/lib/estimates/inline-estimate";
 
-function PricingModeToggle({
-  mode,
+function SegmentedToggle<T extends string>({
+  value,
+  options,
   disabled,
   onChange,
+  className,
 }: {
-  mode: CategoryPricingMode;
+  value: T;
+  options: Array<{ value: T; label: string }>;
   disabled?: boolean;
-  onChange: (mode: CategoryPricingMode) => void;
+  onChange: (value: T) => void;
+  className?: string;
 }) {
   return (
-    <div className="inline-flex rounded-[4px] border border-[var(--border)] bg-white p-0.5">
-      <Button
-        type="button"
-        size="sm"
-        variant={mode === "item" ? "secondary" : "ghost"}
-        className="h-8 px-2.5 text-xs"
-        disabled={disabled}
-        onClick={() => onChange("item")}
-      >
-        Per item
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant={mode === "section" ? "secondary" : "ghost"}
-        className="h-8 px-2.5 text-xs"
-        disabled={disabled}
-        onClick={() => onChange("section")}
-      >
-        Section
-      </Button>
+    <div
+      className={cn(
+        "inline-flex rounded-[4px] border border-[var(--border)] bg-white p-0.5",
+        className
+      )}
+    >
+      {options.map((option) => (
+        <Button
+          key={option.value}
+          type="button"
+          size="sm"
+          variant={value === option.value ? "secondary" : "ghost"}
+          className="h-8 px-2.5 text-xs"
+          disabled={disabled}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </Button>
+      ))}
     </div>
   );
 }
@@ -56,12 +57,46 @@ export function ScopePricingModeControl({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <span className="text-sm text-[var(--muted)]">Price as:</span>
-      <PricingModeToggle
-        mode={pricingMode}
+      <SegmentedToggle
+        value={pricingMode}
         disabled={saving || generating}
+        options={[
+          { value: "item", label: "Per item" },
+          { value: "section", label: "Section" },
+        ]}
         onChange={setPricingMode}
       />
     </div>
+  );
+}
+
+export function EstimatePriceInputModeControl({
+  className,
+}: {
+  className?: string;
+}) {
+  const {
+    showEstimate,
+    canEdit,
+    saving,
+    generating,
+    priceInputMode,
+    setPriceInputMode,
+  } = useContractorEstimate();
+
+  if (!showEstimate || !canEdit) return null;
+
+  return (
+    <SegmentedToggle
+      className={className}
+      value={priceInputMode}
+      disabled={saving || generating}
+      options={[
+        { value: "range", label: "Range" },
+        { value: "flat", label: "Flat cost" },
+      ]}
+      onChange={setPriceInputMode}
+    />
   );
 }
 
@@ -80,6 +115,7 @@ export function CategorySectionEstimateInputs({
     saving,
     generating,
     pricingMode,
+    priceInputMode,
     getSectionEntry,
     updateSectionEstimate,
   } = useContractorEstimate();
@@ -96,6 +132,7 @@ export function CategorySectionEstimateInputs({
       maxValue={sectionEntry?.material_cost ?? "0"}
       disabled={disabled}
       readOnly={submitted || reviewSubmitted}
+      inputMode={priceInputMode}
       onMinChange={(value) =>
         updateSectionEstimate(category, { labor_cost: value })
       }
@@ -121,6 +158,7 @@ export function DraftAddSuggestionEstimateInputs({
     saving,
     generating,
     pricingMode,
+    priceInputMode,
     getEntryForAddSuggestion,
     updateAddSuggestionEstimate,
   } = useContractorEstimate();
@@ -137,6 +175,7 @@ export function DraftAddSuggestionEstimateInputs({
       maxValue={entry.material_cost}
       disabled={disabled}
       readOnly={submitted || reviewSubmitted}
+      inputMode={priceInputMode}
       onMinChange={(value) =>
         updateAddSuggestionEstimate(suggestionId, { labor_cost: value })
       }
@@ -162,6 +201,7 @@ export function ScopeItemEstimateInputs({
     saving,
     generating,
     pricingMode,
+    priceInputMode,
     getEntryForScopeItem,
     updateScopeItemEstimate,
   } = useContractorEstimate();
@@ -178,6 +218,7 @@ export function ScopeItemEstimateInputs({
       maxValue={entry.material_cost}
       disabled={disabled}
       readOnly={submitted || reviewSubmitted}
+      inputMode={priceInputMode}
       onMinChange={(value) =>
         updateScopeItemEstimate(scopeItemId, { labor_cost: value })
       }

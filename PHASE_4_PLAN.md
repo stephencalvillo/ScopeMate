@@ -41,10 +41,7 @@ Homeowners and contractors need a shared vocabulary for budget conversations **w
 
 ## Next up
 
-| Step | Task |
-| ---- | ---- |
-| 1 | Optional dollar planning bands per tier (still not line-item quotes) |
-| 2 | Phase 4 test plan + mark complete in ROADMAP |
+Moved to **Phase 6.5C** — visual finish tier cards + homeowner-only planning bands. See [`PHASE_6.5_PLAN.md`](./PHASE_6.5_PLAN.md).
 
 ---
 

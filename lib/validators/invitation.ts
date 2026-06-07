@@ -14,6 +14,14 @@ export const createInvitationSchema = z.object({
   contractor_company: z.string().trim().max(120).optional(),
 });
 
+export const contractorEmailUnlockSchema = z.object({
+  contractor_email: z
+    .string()
+    .trim()
+    .email("Enter a valid email address.")
+    .max(320),
+});
+
 export const contractorIdentitySchema = z.object({
   contractor_name: z
     .string()

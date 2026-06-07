@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:setup": "node scripts/setup-db.mjs",
-    "db:setup-phase2": "node scripts/setup-phase2.mjs"
+    "db:setup-phase2": "node scripts/setup-phase2.mjs",
+    "migrate:dev-to-prod": "node scripts/migrate-dev-to-prod.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.3",

@@ -123,6 +123,25 @@ Subscription product.
 
 ---
 
+## Phase 6.5 - Scope Quality Pack
+
+**Plan:** [`PHASE_6.5_PLAN.md`](./PHASE_6.5_PLAN.md)
+
+**Status:** Planned — after 6B or in parallel.
+
+**Goal:** Richer optional context for contractors without becoming a pricing engine or blocking share.
+
+| Slice | Focus |
+| --- | --- |
+| **6.5A** | Trade-aware quantity follow-ups (cabinets, hardscape, paint, etc.) |
+| **6.5B** | Photo types — current vs inspiration |
+| **6.5C** | Visual finish tiers + homeowner-only planning bands |
+| **6.5D** | Project readiness summary on contractor review |
+
+**Precedes:** Phase 7 marketplace / qualified leads.
+
+---
+
 ## Phase 7 - Marketplace
 
 - Homeowners request bids

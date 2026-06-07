@@ -47,6 +47,7 @@ export function EstimateRangeInputs({
   onMaxChange,
   disabled = false,
   readOnly = false,
+  inputMode = "range",
   className,
 }: {
   minValue: string;
@@ -55,6 +56,7 @@ export function EstimateRangeInputs({
   onMaxChange?: (value: string) => void;
   disabled?: boolean;
   readOnly?: boolean;
+  inputMode?: "range" | "flat";
   className?: string;
 }) {
   if (readOnly) {
@@ -76,6 +78,19 @@ export function EstimateRangeInputs({
       );
     }
 
+    if (inputMode === "flat" || low === high) {
+      return (
+        <div
+          className={cn(
+            "flex h-11 items-center justify-end self-start text-sm text-neutral-800",
+            className
+          )}
+        >
+          <span>{formatCurrency(high)}</span>
+        </div>
+      );
+    }
+
     return (
       <div
         className={cn(
@@ -86,6 +101,31 @@ export function EstimateRangeInputs({
         <span>{formatCurrency(low)}</span>
         <span className="h-px w-4 shrink-0 bg-neutral-300" aria-hidden />
         <span>{formatCurrency(high)}</span>
+      </div>
+    );
+  }
+
+  if (inputMode === "flat") {
+    const flatValue =
+      minValue === maxValue
+        ? maxValue
+        : String(
+            estimateRangeBounds(Number(minValue) || 0, Number(maxValue) || 0)
+              .high
+          );
+
+    return (
+      <div className={cn("flex w-full items-center justify-end self-start", className)}>
+        <CurrencyAmountInput
+          value={flatValue}
+          disabled={disabled}
+          aria-label="Flat cost"
+          className="w-[7.5rem]"
+          onChange={(value) => {
+            onMinChange?.(value);
+            onMaxChange?.(value);
+          }}
+        />
       </div>
     );
   }
@@ -112,12 +152,18 @@ export function EstimateRangeInputs({
   );
 }
 
-export function EstimateRangeHeader({ className }: { className?: string }) {
+export function EstimateRangeHeader({
+  className,
+  inputMode = "range",
+}: {
+  className?: string;
+  inputMode?: "range" | "flat";
+}) {
   return (
     <div className={cn("hidden items-center gap-4 md:flex", className)}>
       <span className="min-w-0 flex-1" aria-hidden />
       <span className="shrink-0 text-xs font-medium text-[var(--muted)] md:w-[15rem]">
-        Range
+        {inputMode === "flat" ? "Flat cost" : "Range"}
       </span>
     </div>
   );

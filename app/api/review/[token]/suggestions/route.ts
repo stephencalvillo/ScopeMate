@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
+import { assertReviewEditor } from "@/lib/contractor/review-access";
 import {
   createDraftSuggestion,
   listDraftSuggestionsForInvitation,
@@ -27,6 +28,7 @@ export async function POST(
 ) {
   try {
     const { token } = await context.params;
+    await assertReviewEditor(token);
     const body = await request.json();
     const input = createSuggestionSchema.parse(body);
 

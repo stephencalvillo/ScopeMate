@@ -1,19 +1,19 @@
-import { MapPin } from "lucide-react";
 import { ProposalDisclaimerInfo } from "@/components/estimate/proposal-disclaimer-info";
 import { ReadOnlyProposalEstimate } from "@/components/contractor/read-only-proposal-estimate";
 import { SharedPhotoGallery } from "@/components/share/shared-photo-gallery";
+import { ProjectReadinessSummary } from "@/components/review/project-readiness-summary";
 import { ScopeSummary } from "@/components/scope/scope-summary";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { PageBreadcrumbHeader } from "@/components/layout/page-breadcrumb-header";
 import { Badge } from "@/components/ui/badge";
 import { formatReviewDate } from "@/lib/contractor/review-display";
-import { formatProjectLocation } from "@/lib/location/parse";
 import {
   formatProposalRange,
   proposalRangeFromLineItems,
 } from "@/lib/estimates/money";
 import type { ReactNode } from "react";
 import type { SharedPhoto } from "@/lib/phase2/client";
+import type { ProjectReadinessSummary as ProjectReadinessSummaryData } from "@/lib/project/readiness-summary";
 import { formatProjectTypeLabel, type ContractorEstimate, type ProjectWithScope } from "@/types";
 
 type StatusBadge = {
@@ -40,13 +40,8 @@ export function ContractorProjectHeader({
           <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
         ) : null}
       </div>
-      <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
-        <span>{formatProjectTypeLabel(project.project_type)}</span>
-        <span aria-hidden>{"\u00b7"}</span>
-        <span className="inline-flex items-center gap-1.5">
-          <MapPin className="h-4 w-4 shrink-0" aria-hidden />
-          {formatProjectLocation(project)}
-        </span>
+      <p className="text-sm text-[var(--muted)]">
+        {formatProjectTypeLabel(project.project_type)}
       </p>
     </div>
   );
@@ -154,6 +149,7 @@ export function AcceptedProjectEstimateSection({
 export function ContractorProjectDetailView({
   project,
   photos,
+  readiness,
   estimate,
   notes,
   audience,
@@ -163,6 +159,7 @@ export function ContractorProjectDetailView({
 }: {
   project: ProjectWithScope;
   photos: SharedPhoto[];
+  readiness?: ProjectReadinessSummaryData;
   estimate?: ContractorEstimate | null;
   notes?: string | null;
   audience: "homeowner" | "contractor";
@@ -199,6 +196,8 @@ export function ContractorProjectDetailView({
         />
       ) : null}
 
+      {readiness ? <ProjectReadinessSummary readiness={readiness} /> : null}
+
       <ScopeSummary summary={project.ai_summary} />
 
       <SharedPhotoGallery photos={photos} />
@@ -226,6 +225,7 @@ export function ContractorProjectDetailView({
 export function AcceptedProposalProjectView({
   project,
   photos,
+  readiness,
   estimate,
   notes,
   audience,
@@ -233,6 +233,7 @@ export function AcceptedProposalProjectView({
 }: {
   project: ProjectWithScope;
   photos: SharedPhoto[];
+  readiness?: ProjectReadinessSummaryData;
   estimate: ContractorEstimate;
   notes?: string | null;
   audience: "homeowner" | "contractor";
@@ -242,6 +243,7 @@ export function AcceptedProposalProjectView({
     <ContractorProjectDetailView
       project={project}
       photos={photos}
+      readiness={readiness}
       estimate={estimate}
       notes={notes}
       audience={audience}

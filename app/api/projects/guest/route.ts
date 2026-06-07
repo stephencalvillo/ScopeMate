@@ -8,6 +8,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { isMissingColumnError } from "@/lib/db/errors";
 import { parseLocation } from "@/lib/location/parse";
 import { lookupCityStateFromZip } from "@/lib/location/zip-lookup";
+import { saveProjectTimelineAnswer } from "@/lib/follow-up/timeline";
 import { resolveProjectTitle } from "@/lib/projects/title";
 import { createGuestProjectSchema } from "@/lib/validators/project";
 
@@ -75,6 +76,14 @@ export async function POST(request: Request) {
     if (error) throw error;
     if (!data) {
       throw new Error("Could not create guest project.");
+    }
+
+    if (input.target_start) {
+      try {
+        await saveProjectTimelineAnswer(data.id, input.target_start);
+      } catch (timelineError) {
+        console.error("Failed to save timeline answer:", timelineError);
+      }
     }
 
     const response = NextResponse.json(data, { status: 201 });

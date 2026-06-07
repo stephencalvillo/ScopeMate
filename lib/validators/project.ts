@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { TIMELINE_CHOICES } from "@/lib/follow-up/timeline";
+
+export const timelineStartSchema = z.enum(TIMELINE_CHOICES);
 
 export const createProjectSchema = z.object({
   title: z.string().trim().max(120).optional(),
@@ -27,6 +30,7 @@ export const createGuestProjectSchema = z.object({
       /^\d{5}(?:-\d{4})?$/,
       "Enter a valid 5-digit ZIP code"
     ),
+  target_start: timelineStartSchema.optional(),
 });
 
 export const updateProjectSchema = z.object({

@@ -1,4 +1,4 @@
-import { NotFoundError } from "@/lib/auth/clerk";
+import { ForbiddenError, NotFoundError } from "@/lib/auth/clerk";
 import { INVITATION_EXPIRY_DAYS } from "@/lib/contractor/constants";
 import { recordShareLinkView } from "@/lib/contractor/activity";
 import {
@@ -351,6 +351,17 @@ export async function completeContractorIdentity({
   contractorCompany?: string;
 }) {
   const invitation = await getInvitationByToken(token);
+  const normalizedEmail = contractorEmail.trim().toLowerCase();
+
+  if (
+    !isShareLinkPlaceholder(invitation) &&
+    normalizedEmail !== invitation.contractor_email.trim().toLowerCase()
+  ) {
+    throw new ForbiddenError(
+      "Use the email address this invitation was sent to."
+    );
+  }
+
   const supabase = createServiceClient();
   const now = new Date().toISOString();
 
@@ -358,7 +369,7 @@ export async function completeContractorIdentity({
     .from("contractor_invitations")
     .update({
       contractor_name: contractorName,
-      contractor_email: contractorEmail.toLowerCase(),
+      contractor_email: normalizedEmail,
       contractor_company: contractorCompany ?? null,
       accepted_at: invitation.accepted_at ?? now,
       status:

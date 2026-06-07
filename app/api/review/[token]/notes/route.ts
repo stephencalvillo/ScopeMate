@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
+import { assertReviewEditor } from "@/lib/contractor/review-access";
 import { updateReviewNotes } from "@/lib/contractor/suggestions";
 import { reviewNotesSchema } from "@/lib/validators/suggestion";
 
@@ -9,6 +10,7 @@ export async function PUT(
 ) {
   try {
     const { token } = await context.params;
+    await assertReviewEditor(token);
     const body = await request.json();
     const input = reviewNotesSchema.parse(body);
     const review = await updateReviewNotes(token, input.notes);

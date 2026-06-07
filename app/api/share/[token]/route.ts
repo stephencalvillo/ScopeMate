@@ -3,6 +3,7 @@ import { formatProjectLocation } from "@/lib/location/parse";
 import { jsonError } from "@/lib/api/response";
 import { getProjectByShareToken } from "@/lib/db/projects";
 import { createServiceClient } from "@/lib/db/supabase";
+import { loadProjectReadinessSummary } from "@/lib/project/readiness-summary";
 import { createSignedPhotoUrl } from "@/lib/storage/photos";
 import type { ProjectPhoto } from "@/types";
 
@@ -35,7 +36,17 @@ export async function GET(
         id: photo.id,
         file_name: photo.file_name,
         url: await createSignedPhotoUrl(photo.storage_path),
+        photo_type:
+          "photo_type" in photo
+            ? ((photo as ProjectPhoto & { photo_type?: string }).photo_type ??
+              "current")
+            : "current",
       }))
+    );
+    const readiness = await loadProjectReadinessSummary(
+      project.id,
+      project,
+      photos
     );
     return NextResponse.json({
       title: project.title,
@@ -46,6 +57,7 @@ export async function GET(
       ai_summary: project.ai_summary,
       scope_items: project.scope_items,
       photos,
+      readiness,
     });
   } catch (error) {
     return jsonError(error);

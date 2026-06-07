@@ -4,6 +4,7 @@ import { jsonError } from "@/lib/api/response";
 import { getAccessibleProject } from "@/lib/api/project-access";
 import { generateFollowUpQuestionsForProject } from "@/lib/ai/generate-follow-up";
 import { generateScopeForProject } from "@/lib/ai/generate-scope";
+import { syncAllFollowUpAnswersToScope } from "@/lib/follow-up/to-scope-item";
 import type { Project } from "@/types";
 
 import { generateScopeSchema } from "@/lib/validators/scope";
@@ -33,6 +34,23 @@ export async function POST(
 
     const result = await generateScopeForProject(project, { additionalNotes });
 
+    let scopeItems = result.scope_items;
+
+    try {
+      const syncedFollowUpItems = await syncAllFollowUpAnswersToScope(
+        id,
+        result.project_type
+      );
+      if (syncedFollowUpItems.length > 0) {
+        const existingIds = new Set(scopeItems.map((item) => item.id));
+        scopeItems = [...scopeItems, ...syncedFollowUpItems.filter(
+          (item) => !existingIds.has(item.id)
+        )].sort((a, b) => a.sort_order - b.sort_order);
+      }
+    } catch (syncError) {
+      console.error("Follow-up scope sync failed:", syncError);
+    }
+
     const updatedProject: Project = {
       ...project,
       ai_summary: result.ai_summary,
@@ -57,6 +75,7 @@ export async function POST(
 
     return NextResponse.json({
       ...result,
+      scope_items: scopeItems,
       follow_up_questions: followUpQuestions,
     });
   } catch (error) {

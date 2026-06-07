@@ -148,25 +148,25 @@ export async function generateFollowUpQuestionsForProject(
   }
 
   const normalizedExisting = (existingQuestions ?? []) as FollowUpQuestion[];
-  const withFinishLevel = await ensureFinishLevelMaterialsQuestion(
+  const questions = await ensureFinishLevelMaterialsQuestion(
     project.id,
     normalizedExisting
   );
 
-  if (withFinishLevel.length !== normalizedExisting.length) {
-    return withFinishLevel;
+  if (questions.length !== normalizedExisting.length) {
+    return questions;
   }
 
-  const unanswered = withFinishLevel.filter(
+  const unanswered = questions.filter(
     (q) => !q.skipped && (q.answer === null || q.answer === "")
   );
 
   if (unanswered.length > 0) {
-    return withFinishLevel;
+    return questions;
   }
 
-  if (withFinishLevel.length > 0) {
-    return withFinishLevel;
+  if (questions.length > 0) {
+    return questions;
   }
 
   const openai = getOpenAIClient();
@@ -174,7 +174,7 @@ export async function generateFollowUpQuestionsForProject(
   const userPrompt = buildFollowUpUserPrompt(
     project,
     (scopeItems ?? []) as ScopeItem[],
-    withFinishLevel
+    questions
   );
 
   const inputSnapshot = buildInputSnapshot({
@@ -212,16 +212,16 @@ export async function generateFollowUpQuestionsForProject(
     parsed.questions.filter((question) => question.category !== "materials"),
     Math.max(MAX_FOLLOW_UP_QUESTIONS - 1, 1)
   );
-  const questions = dedupeFollowUpQuestions(
+  const generatedQuestions = dedupeFollowUpQuestions(
     [buildFinishLevelMaterialsQuestion(), ...aiQuestions],
     MAX_FOLLOW_UP_QUESTIONS
   );
 
-  if (questions.length === 0) {
+  if (generatedQuestions.length === 0) {
     return [];
   }
 
-  const rows = questions.map((q, index) => ({
+  const rows = generatedQuestions.map((q, index) => ({
     project_id: project.id,
     question: q.question,
     question_type: q.question_type,

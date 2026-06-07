@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
+import { canEditReview } from "@/lib/contractor/review-access";
 import { getReviewProjectByInvitationToken } from "@/lib/contractor/invitations";
 import { listContractorActionableSuggestions } from "@/lib/contractor/suggestions";
 import { getEstimateForReview } from "@/lib/estimates/estimates";
+import { loadProjectReadinessSummary } from "@/lib/project/readiness-summary";
 import { listProjectPhotosWithUrls } from "@/lib/storage/photos";
 
 export async function GET(
@@ -18,21 +20,33 @@ export async function GET(
         id: photo.id,
         file_name: photo.file_name,
         url: photo.url,
+        photo_type:
+          "photo_type" in photo
+            ? ((photo as { photo_type?: string }).photo_type ?? "current")
+            : "current",
       }))
+    );
+    const readiness = await loadProjectReadinessSummary(
+      project.id,
+      project,
+      photos
     );
     const suggestions = await listContractorActionableSuggestions(
       invitation.id,
       review
     );
     const estimate = await getEstimateForReview(review.id);
+    const can_edit = await canEditReview(token, invitation);
 
     return NextResponse.json({
       invitation,
       review,
       project,
       photos,
+      readiness,
       suggestions,
       estimate,
+      can_edit,
     });
   } catch (error) {
     return jsonError(error);

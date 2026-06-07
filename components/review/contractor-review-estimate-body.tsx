@@ -2,8 +2,10 @@
 
 import { ContractorEstimateBar } from "@/components/estimate/contractor-estimate-bar";
 import { useContractorEstimate } from "@/components/estimate/contractor-estimate-context";
-import { ApplySavedRatesControl } from "@/components/estimate/apply-saved-rates-control";
-import { ScopePricingModeControl } from "@/components/estimate/category-pricing-controls";
+import {
+  EstimatePriceInputModeControl,
+  ScopePricingModeControl,
+} from "@/components/estimate/category-pricing-controls";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { GridLoadingCard } from "@/components/marketing/grid-loading-card";
 import { ReviewSubmitActions } from "@/components/review/review-submit-actions";
@@ -50,9 +52,9 @@ export function ContractorReviewEstimateBody({
         }
         action={
           isPreparingEstimate ? undefined : (
-            <div className="flex flex-col items-start gap-3 sm:items-end">
+            <div className="flex flex-wrap items-center gap-[16px] sm:justify-end">
               <ScopePricingModeControl />
-              <ApplySavedRatesControl />
+              <EstimatePriceInputModeControl />
             </div>
           )
         }

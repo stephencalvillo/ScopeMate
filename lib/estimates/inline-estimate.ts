@@ -5,6 +5,8 @@ import type { EstimateLineItemInput } from "@/lib/estimates/estimates";
 
 export type CategoryPricingMode = "item" | "section";
 
+export type EstimatePriceInputMode = "range" | "flat";
+
 export const SECTION_ESTIMATE_PREFIX = "section:";
 
 export function sectionEstimateKey(category: string) {

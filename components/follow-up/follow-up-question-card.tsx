@@ -16,6 +16,7 @@ import {
   FINISH_LEVEL_PLANNING_NOTE,
   isFinishLevelMaterialsQuestion,
 } from "@/lib/follow-up/finish-level";
+import { isTimelineQuestion } from "@/lib/follow-up/timeline";
 import { answerFollowUpQuestion } from "@/lib/phase2/client";
 import type { FollowUpQuestion } from "@/types";
 
@@ -54,7 +55,10 @@ export function FollowUpQuestionCard({
       return [];
     }
 
-    if (isFinishLevelMaterialsQuestion(question)) {
+    if (
+      isFinishLevelMaterialsQuestion(question) ||
+      isTimelineQuestion(question)
+    ) {
       return question.choices;
     }
 

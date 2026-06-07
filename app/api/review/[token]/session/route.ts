@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
-import { completeContractorIdentity } from "@/lib/contractor/invitations";
+import { assertReviewEmailUnlock } from "@/lib/contractor/review-access";
 import { reviewSessionCookie } from "@/lib/contractor/review-session";
-import { contractorIdentitySchema } from "@/lib/validators/invitation";
+import { contractorEmailUnlockSchema } from "@/lib/validators/invitation";
 
 export async function POST(
   request: Request,
@@ -11,16 +11,14 @@ export async function POST(
   try {
     const { token } = await context.params;
     const body = await request.json();
-    const input = contractorIdentitySchema.parse(body);
+    const input = contractorEmailUnlockSchema.parse(body);
 
-    const invitation = await completeContractorIdentity({
+    await assertReviewEmailUnlock({
       token,
-      contractorName: input.contractor_name,
       contractorEmail: input.contractor_email,
-      contractorCompany: input.contractor_company,
     });
 
-    const response = NextResponse.json({ invitation });
+    const response = NextResponse.json({ ok: true });
     response.cookies.set(reviewSessionCookie(token));
     return response;
   } catch (error) {

@@ -111,4 +111,5 @@ export type SharedPhoto = {
   id: string;
   file_name: string;
   url: string;
+  photo_type?: "current" | "inspiration" | string;
 };

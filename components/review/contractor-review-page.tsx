@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { ContractorIdentityGate } from "@/components/review/contractor-identity-gate";
+import { ContractorReviewUnlock } from "@/components/review/contractor-review-unlock";
 import { ContractorReviewWorkspace } from "@/components/review/contractor-review-workspace";
 import { ReviewExpiredNotice } from "@/components/review/review-expired-notice";
 import { ReviewSubmittedDialog } from "@/components/review/review-submitted-dialog";
 import type { SharedPhoto } from "@/lib/phase2/client";
+import type { ProjectReadinessSummary as ProjectReadinessSummaryData } from "@/lib/project/readiness-summary";
 import type {
   ContractorInvitation,
   ContractorEstimate,
@@ -23,8 +25,10 @@ type ReviewPayload = {
   review: ContractorReview;
   project: ProjectWithScope;
   photos: SharedPhoto[];
+  readiness: ProjectReadinessSummaryData;
   suggestions: ReviewSuggestion[];
   estimate?: ContractorEstimate | null;
+  can_edit: boolean;
 };
 
 export function ContractorReviewPage({ token }: { token: string }) {
@@ -91,8 +95,22 @@ export function ContractorReviewPage({ token }: { token: string }) {
     );
   }
 
+  const showUnlock =
+    payload.invitation.accepted_at &&
+    !payload.can_edit &&
+    payload.review.status !== "submitted";
+
   return (
     <>
+      {showUnlock ? (
+        <div className="mb-6">
+          <ContractorReviewUnlock
+            token={token}
+            onUnlocked={() => loadReview({ silent: true })}
+          />
+        </div>
+      ) : null}
+
       <ContractorReviewWorkspace
         token={token}
         payload={payload}

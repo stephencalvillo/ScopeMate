@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
+import { assertReviewEditor } from "@/lib/contractor/review-access";
 import {
   updateDraftSuggestion,
   withdrawDraftSuggestion,
@@ -12,6 +13,7 @@ export async function PATCH(
 ) {
   try {
     const { token, suggestionId } = await context.params;
+    await assertReviewEditor(token);
     const body = await request.json();
     const input = updateSuggestionSchema.parse(body);
 
@@ -33,6 +35,7 @@ export async function DELETE(
 ) {
   try {
     const { token, suggestionId } = await context.params;
+    await assertReviewEditor(token);
     const suggestion = await withdrawDraftSuggestion(token, suggestionId);
     return NextResponse.json({ suggestion });
   } catch (error) {

@@ -90,6 +90,7 @@ export function ContractorIdentityGate({
             type="email"
             value={contractorEmail}
             onChange={(event) => setContractorEmail(event.target.value)}
+            readOnly={!isShareLink}
             required
           />
         </div>
