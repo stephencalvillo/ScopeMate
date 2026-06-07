@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  Suspense,
   useCallback,
   useContext,
   useEffect,
@@ -10,7 +11,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { Link2 } from "lucide-react";
 import { HomeownerAccountCreateDialog } from "@/components/project/homeowner-account-create-dialog";
@@ -58,6 +59,40 @@ export function ShareLinkTriggerButton({
       Create share link
     </Button>
   );
+}
+
+function ProjectShareReturnHandler({
+  projectId,
+  isGuestProject,
+  onOpenShare,
+}: {
+  projectId: string;
+  isGuestProject: boolean;
+  onOpenShare: () => void;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { isSignedIn } = useAuth();
+  const opened = useRef(false);
+
+  useEffect(() => {
+    if (opened.current) return;
+    if (searchParams.get("share") !== "1") return;
+    if (!isSignedIn || isGuestProject) return;
+
+    opened.current = true;
+    onOpenShare();
+    router.replace(`/projects/${projectId}`);
+  }, [
+    isGuestProject,
+    isSignedIn,
+    onOpenShare,
+    projectId,
+    router,
+    searchParams,
+  ]);
+
+  return null;
 }
 
 export function ProjectShareProvider({
@@ -203,6 +238,14 @@ export function ProjectShareProvider({
       }}
     >
       {children}
+
+      <Suspense fallback={null}>
+        <ProjectShareReturnHandler
+          projectId={project.id}
+          isGuestProject={isGuestProject}
+          onOpenShare={openShareLinkDialog}
+        />
+      </Suspense>
 
       {mode === "float" ? (
         <div

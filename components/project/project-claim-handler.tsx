@@ -30,7 +30,7 @@ export function ProjectClaimHandler({
       });
 
       if (response.ok) {
-        router.replace(`/projects/${projectId}`);
+        router.replace(`/projects/${projectId}?share=1`);
         router.refresh();
       }
     })();

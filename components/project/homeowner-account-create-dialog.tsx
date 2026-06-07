@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
-import { HomeownerAccountCreateForm } from "@/components/project/homeowner-account-create-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,6 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
+function projectReturnUrl(projectId: string) {
+  return `/projects/${projectId}?claim=1&share=1`;
+}
 
 export function HomeownerAccountCreateDialog({
   projectId,
@@ -28,9 +31,9 @@ export function HomeownerAccountCreateDialog({
   const { isSignedIn } = useAuth();
   const [continuing, setContinuing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const signInHref = `/sign-in?redirect_url=${encodeURIComponent(
-    `/projects/${projectId}?claim=1`
-  )}`;
+  const returnUrl = projectReturnUrl(projectId);
+  const signUpHref = `/sign-up?redirect_url=${encodeURIComponent(returnUrl)}`;
+  const signInHref = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -86,28 +89,12 @@ export function HomeownerAccountCreateDialog({
           </>
         ) : (
           <>
+            <Button type="button" className="w-full" asChild>
+              <Link href={signUpHref}>Create account</Link>
+            </Button>
             <Button type="button" variant="outline" className="w-full" asChild>
               <Link href={signInHref}>Sign in with existing account</Link>
             </Button>
-
-            <HomeownerAccountCreateForm
-              projectId={projectId}
-              onComplete={async () => {
-                setError(null);
-                try {
-                  await onAccountReady();
-                  onOpenChange(false);
-                } catch (continueError) {
-                  setError(
-                    continueError instanceof Error
-                      ? continueError.message
-                      : "Could not save this project to your account."
-                  );
-                  throw continueError;
-                }
-              }}
-            />
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
           </>
         )}
       </DialogContent>
