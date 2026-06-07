@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ProjectCard } from "@/components/project/project-card";
 import { ContractorReviewsList } from "@/components/contractor/contractor-reviews-list";
+import { ContractorBidHistorySection } from "@/components/contractor/contractor-bid-history-section";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
-import type { ContractorReviewListItem } from "@/lib/contractor/profile";
+import type { ContractorReviewListItem } from "@/lib/contractor/review-list-item";
 
 function AcceptedProjectsGrid({
   projects,
@@ -27,6 +28,9 @@ function AcceptedProjectsGrid({
           key={item.invitation.id}
           project={item.project}
           href={item.review_url}
+          showProjectType={false}
+          aiSummaryOnly
+          proposalRange={item.proposal_range}
         />
       ))}
     </div>
@@ -36,11 +40,13 @@ function AcceptedProjectsGrid({
 export function ContractorPortfolio({
   accepted,
   inReview,
+  history,
 }: {
   accepted: ContractorReviewListItem[];
   inReview: ContractorReviewListItem[];
+  history: ContractorReviewListItem[];
 }) {
-  const isEmpty = accepted.length === 0 && inReview.length === 0;
+  const isEmpty = accepted.length === 0 && inReview.length === 0 && history.length === 0;
 
   if (isEmpty) {
     return (
@@ -62,18 +68,19 @@ export function ContractorPortfolio({
 
   return (
     <div className="space-y-12">
-      <PageSection
-        title="Active"
-        description="Projects where the homeowner accepted your proposal."
-      >
+      <PageSection title="Active">
         <AcceptedProjectsGrid projects={accepted} />
       </PageSection>
 
-      <PageSection
-        title="In review"
-        description="Open reviews you can continue or proposals awaiting a homeowner decision."
-      >
+      <PageSection title="In review">
         <ContractorReviewsList reviews={inReview} emptyState="in-review" />
+      </PageSection>
+
+      <PageSection
+        title="History"
+        description="Past proposals and closed reviews."
+      >
+        <ContractorBidHistorySection reviews={history} />
       </PageSection>
     </div>
   );

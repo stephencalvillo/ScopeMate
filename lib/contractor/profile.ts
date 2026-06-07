@@ -14,30 +14,19 @@ import type {
   ContractorProfile,
   ContractorReview,
   EstimateStatus,
-  Project,
   User,
 } from "@/types";
+import { type ContractorReviewListItem } from "@/lib/contractor/review-list-item";
 
-export type ContractorReviewListItem = {
-  invitation: ContractorInvitationWithReview;
-  project: Pick<
-    Project,
-    | "id"
-    | "title"
-    | "city"
-    | "zip"
-    | "location"
-    | "project_type"
-    | "accepted_estimate_id"
-    | "ai_summary"
-    | "original_description"
-  >;
-  review_url: string;
-  proposal_range: string | null;
-  estimate_status: EstimateStatus | null;
-  is_selected_proposal: boolean;
-  project_has_selected_proposal: boolean;
-};
+export type { ContractorReviewListItem };
+export {
+  filterActiveContractorReviews,
+  isAcceptedContractorReview,
+  isActiveContractorReview,
+  isHistoryContractorReview,
+  isInReviewContractorReview,
+  partitionContractorReviews,
+} from "@/lib/contractor/review-list-item";
 
 export type UpsertContractorProfileInput = {
   company_name: string;
@@ -142,6 +131,7 @@ export async function listContractorReviews(
         contractor_estimates(
           id,
           status,
+          submitted_at,
           accepted_at,
           declined_at,
           estimate_line_items(labor_cost, material_cost)
@@ -164,6 +154,7 @@ export async function listContractorReviews(
         | {
             id: string;
             status: EstimateStatus;
+            submitted_at: string | null;
             estimate_line_items: Array<{
               labor_cost: number;
               material_cost: number;
@@ -172,6 +163,7 @@ export async function listContractorReviews(
         | Array<{
             id: string;
             status: EstimateStatus;
+            submitted_at: string | null;
             estimate_line_items: Array<{
               labor_cost: number;
               material_cost: number;
@@ -223,55 +215,14 @@ export async function listContractorReviews(
       review_url: buildReviewUrl(invitation.invitation_token),
       proposal_range: proposalRange || null,
       estimate_status: estimate?.status ?? null,
+      estimate_id: estimate?.id ?? null,
+      estimate_submitted_at: estimate?.submitted_at ?? null,
       is_selected_proposal: isSelectedProposal,
       project_has_selected_proposal: projectHasSelectedProposal,
     });
   }
 
   return items;
-}
-
-export function isActiveContractorReview(item: ContractorReviewListItem): boolean {
-  const status = item.invitation.status;
-
-  if (status === "closed_out" || status === "expired" || status === "revoked") {
-    return false;
-  }
-
-  if (item.estimate_status === "declined") {
-    return false;
-  }
-
-  if (item.project_has_selected_proposal && !item.is_selected_proposal) {
-    return false;
-  }
-
-  if (item.is_selected_proposal || item.estimate_status === "accepted") {
-    return false;
-  }
-
-  return true;
-}
-
-export function isAcceptedContractorReview(item: ContractorReviewListItem) {
-  return item.is_selected_proposal || item.estimate_status === "accepted";
-}
-
-export function isInReviewContractorReview(item: ContractorReviewListItem) {
-  return isActiveContractorReview(item);
-}
-
-export function partitionContractorReviews(reviews: ContractorReviewListItem[]) {
-  return {
-    accepted: reviews.filter(isAcceptedContractorReview),
-    inReview: reviews.filter(isInReviewContractorReview),
-  };
-}
-
-export function filterActiveContractorReviews(
-  reviews: ContractorReviewListItem[]
-) {
-  return reviews.filter(isActiveContractorReview);
 }
 
 export function contractorNeedsOnboarding(profile: ContractorProfile | null) {

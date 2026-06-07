@@ -15,7 +15,7 @@ export default async function ContractorDashboardPage() {
     redirect("/contractor/onboarding");
   }
 
-  const { accepted, inReview } = partitionContractorReviews(
+  const { accepted, inReview, history } = partitionContractorReviews(
     await listContractorReviews(user.id)
   );
 
@@ -29,11 +29,15 @@ export default async function ContractorDashboardPage() {
           {profile.company_name
             ? `${profile.company_name} · `
             : ""}
-          Track active jobs and reviews in progress.
+          Track active jobs, reviews in progress, and past proposals.
         </p>
       </div>
 
-      <ContractorPortfolio accepted={accepted} inReview={inReview} />
+      <ContractorPortfolio
+        accepted={accepted}
+        inReview={inReview}
+        history={history}
+      />
     </div>
   );
 }

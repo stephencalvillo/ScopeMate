@@ -1,8 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { AcceptedProposalSummary } from "@/components/project/accepted-proposal-summary";
 import { ProjectActionsMenu } from "@/components/project/project-actions-menu";
 import { ProjectDetailTabs } from "@/components/project/project-detail-tabs";
@@ -12,8 +11,9 @@ import {
   ProjectShareProvider,
 } from "@/components/project/project-share-ui";
 import { ScopeEditor } from "@/components/scope/scope-editor";
+import { MyProjectsBreadcrumb } from "@/components/layout/my-projects-breadcrumb";
+import { PageBreadcrumbHeader } from "@/components/layout/page-breadcrumb-header";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { formatProjectLocation } from "@/lib/location/parse";
 import { projectStatusBadgeProps } from "@/lib/project-status";
 import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision";
@@ -58,14 +58,7 @@ export function ProjectDetailView({
 
   const hasScope = project.scope_items.length > 0 || project.ai_summary;
 
-  const backButton = (
-    <Button variant="ghost" size="sm" className="-ml-2" asChild>
-      <Link href="/projects">
-        <ArrowLeft className="h-4 w-4" />
-        Back to projects
-      </Link>
-    </Button>
-  );
+  const breadcrumb = <MyProjectsBreadcrumb href="/projects" />;
 
   const acceptedProposalBanner =
     acceptedProposal != null ? (
@@ -78,13 +71,12 @@ export function ProjectDetailView({
   if (!hasScope) {
     return (
       <div className="space-y-8">
-        <div className="space-y-4">
-          {backButton}
+        <PageBreadcrumbHeader breadcrumb={breadcrumb}>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <ProjectHeaderMeta project={project} />
             <ProjectActionsMenu projectId={project.id} />
           </div>
-        </div>
+        </PageBreadcrumbHeader>
         {acceptedProposalBanner}
         <ScopeEditor project={project} autoGenerate={autoGenerate} />
       </div>
@@ -97,15 +89,14 @@ export function ProjectDetailView({
       onActivityChange={handleActivityChange}
     >
       <div className="space-y-8">
-        <div className="space-y-4">
-          {backButton}
+        <PageBreadcrumbHeader breadcrumb={breadcrumb}>
           <ProjectShareHeaderRow>
             <ProjectHeaderMeta project={project} />
             <ProjectShareHeaderActions>
               <ProjectActionsMenu projectId={project.id} />
             </ProjectShareHeaderActions>
           </ProjectShareHeaderRow>
-        </div>
+        </PageBreadcrumbHeader>
 
         {acceptedProposalBanner}
 

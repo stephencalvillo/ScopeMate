@@ -8,6 +8,9 @@ import { formatProjectTypeLabel, type Project } from "@/types";
 export function ProjectCard({
   project,
   href,
+  showProjectType = true,
+  aiSummaryOnly = false,
+  proposalRange,
 }: {
   project: Pick<
     Project,
@@ -22,8 +25,14 @@ export function ProjectCard({
     | "accepted_estimate_id"
   >;
   href?: string;
+  showProjectType?: boolean;
+  aiSummaryOnly?: boolean;
+  proposalRange?: string | null;
 }) {
   const statusBadge = projectStatusBadgeProps(project);
+  const summary = aiSummaryOnly
+    ? project.ai_summary
+    : (project.ai_summary ?? project.original_description);
 
   return (
     <Link href={href ?? `/projects/${project.id}`}>
@@ -35,11 +44,16 @@ export function ProjectCard({
           </div>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-[var(--muted)]">
-          <p>{formatProjectTypeLabel(project.project_type)}</p>
+          {showProjectType ? (
+            <p>{formatProjectTypeLabel(project.project_type)}</p>
+          ) : null}
           <p>{formatProjectLocation(project)}</p>
-          <p className="line-clamp-2 text-neutral-500">
-            {project.ai_summary ?? project.original_description}
-          </p>
+          {proposalRange ? (
+            <p className="font-medium text-neutral-900">{proposalRange}</p>
+          ) : null}
+          {summary ? (
+            <p className="line-clamp-2 text-neutral-500">{summary}</p>
+          ) : null}
         </CardContent>
       </Card>
     </Link>

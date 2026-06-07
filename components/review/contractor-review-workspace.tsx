@@ -3,12 +3,15 @@
 import { useMemo, useState } from "react";
 import { MapPin } from "lucide-react";
 import { ContractorEstimateProvider } from "@/components/estimate/contractor-estimate-context";
+import {
+  AcceptedProposalProjectView,
+  ContractorProjectDetailView,
+} from "@/components/review/accepted-proposal-project-view";
 import { ContractorReviewEstimateBody } from "@/components/review/contractor-review-estimate-body";
-import { ContractorProposalOutcomeBanner } from "@/components/review/contractor-proposal-outcome-banner";
 import { SharedPhotoGallery } from "@/components/share/shared-photo-gallery";
 import { ScopeSummary } from "@/components/scope/scope-summary";
-import { SectionSurface } from "@/components/layout/page-section";
-import { Badge } from "@/components/ui/badge";
+import { MyProjectsBreadcrumb } from "@/components/layout/my-projects-breadcrumb";
+import { PageBreadcrumbHeader } from "@/components/layout/page-breadcrumb-header";
 import { formatProjectLocation } from "@/lib/location/parse";
 import type { SharedPhoto } from "@/lib/phase2/client";
 import {
@@ -50,6 +53,9 @@ export function ContractorReviewWorkspace({
 
   const reviewSubmitted = review.status === "submitted";
   const editable = !reviewSubmitted;
+  const proposalAccepted = estimate?.status === "accepted";
+  const projectClosed =
+    invitation.status === "closed_out" || estimate?.status === "declined";
 
   const draftAddSuggestions = useMemo(
     () =>
@@ -60,48 +66,67 @@ export function ContractorReviewWorkspace({
     [suggestions]
   );
 
+  const breadcrumb = <MyProjectsBreadcrumb href="/contractor" />;
+
+  if (proposalAccepted && estimate) {
+    return (
+      <AcceptedProposalProjectView
+        breadcrumb={breadcrumb}
+        project={project}
+        photos={photos}
+        estimate={estimate}
+        notes={notes}
+        audience="contractor"
+      />
+    );
+  }
+
+  if (reviewSubmitted) {
+    return (
+      <ContractorProjectDetailView
+        breadcrumb={breadcrumb}
+        project={project}
+        photos={photos}
+        estimate={estimate}
+        notes={notes}
+        audience="contractor"
+        statusBadge={
+          projectClosed
+            ? { label: "Project closed", variant: "secondary" }
+            : { label: "Review submitted", variant: "info" }
+        }
+        estimateMode={projectClosed ? "plain" : "submitted"}
+      />
+    );
+  }
+
   return (
     <div className="space-y-8">
-      {reviewSubmitted ? (
-        <SectionSurface className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="success">Review submitted</Badge>
-          </div>
-          <p className="text-sm text-neutral-800">
-            The homeowner can see your scope feedback, notes, and proposal. You
-            can leave this page anytime.
+      <PageBreadcrumbHeader breadcrumb={breadcrumb}>
+        <div className="space-y-3">
+          <p className="text-sm text-[var(--muted)]">
+            Reviewing as {invitation.contractor_name}
+            {invitation.contractor_company
+              ? ` · ${invitation.contractor_company}`
+              : ""}
           </p>
-        </SectionSurface>
-      ) : null}
-
-      <div className="space-y-3">
-        <p className="text-sm text-[var(--muted)]">
-          Reviewing as {invitation.contractor_name}
-          {invitation.contractor_company
-            ? ` · ${invitation.contractor_company}`
-            : ""}
-        </p>
-        <h1 className="font-display text-4xl tracking-tight text-neutral-900">
-          {project.title}
-        </h1>
-        <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
-          <span>{formatProjectTypeLabel(project.project_type)}</span>
-          <span aria-hidden>{"\u00b7"}</span>
-          <span className="inline-flex items-center gap-1.5">
-            <MapPin className="h-4 w-4 shrink-0" aria-hidden />
-            {formatProjectLocation(project)}
-          </span>
-        </p>
-      </div>
+          <h1 className="font-display text-4xl tracking-tight text-neutral-900">
+            {project.title}
+          </h1>
+          <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
+            <span>{formatProjectTypeLabel(project.project_type)}</span>
+            <span aria-hidden>{"\u00b7"}</span>
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+              {formatProjectLocation(project)}
+            </span>
+          </p>
+        </div>
+      </PageBreadcrumbHeader>
 
       <ScopeSummary summary={project.ai_summary} />
 
       <SharedPhotoGallery photos={photos} />
-
-      <ContractorProposalOutcomeBanner
-        invitation={invitation}
-        estimate={estimate}
-      />
 
       <ContractorEstimateProvider
         token={token}

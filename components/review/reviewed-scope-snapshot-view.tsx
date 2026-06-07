@@ -9,7 +9,7 @@ import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
 import { ScopeItemContent } from "@/components/scope/scope-item-content";
 import { ScopeItemShell } from "@/components/scope/scope-item-shell";
 import { ScopeSummary } from "@/components/scope/scope-summary";
-import { PageSection, SectionSurface } from "@/components/layout/page-section";
+import { SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -667,53 +667,47 @@ export function ReviewedScopeSnapshotView({
       : "Your current project scope for comparison.";
 
   return (
-    <PageSection
-      title="Project scope"
-      action={
-        snapshot ? (
+    <section className="space-y-6">
+      {snapshot ? (
+        <div className="space-y-2">
           <ScopeViewSegmentedControl
             value={view}
             onChange={setView}
             contractorName={contractorName}
           />
-        ) : null
-      }
-    >
-      <div className="space-y-6">
-        {snapshot ? (
           <p className="text-sm text-[var(--muted)]">{description}</p>
-        ) : null}
+        </div>
+      ) : null}
 
-        {!snapshot ? (
-          <SectionSurface>
-            <p className="text-sm text-neutral-800">
-              No scope snapshot was saved for this review. Use the suggestions
-              below to see what this contractor proposed.
-            </p>
-          </SectionSurface>
-        ) : view === "submitted" ? (
-          <div className="space-y-6">
-            {snapshot.ai_summary ? (
-              <ScopeSummary summary={snapshot.ai_summary} />
-            ) : null}
-            <SubmittedScopeList
-              snapshot={snapshot}
-              projectId={projectId}
-              suggestionsById={suggestionsById}
-              onUpdated={onUpdated}
-              estimateDisplay={submittedEstimateDisplay}
-            />
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {currentSummary ? <ScopeSummary summary={currentSummary} /> : null}
-            <CurrentScopeList
-              items={currentItems}
-              estimateDisplay={currentEstimateDisplay}
-            />
-          </div>
-        )}
-      </div>
-    </PageSection>
+      {!snapshot ? (
+        <SectionSurface>
+          <p className="text-sm text-neutral-800">
+            No scope snapshot was saved for this review. Use the suggestions
+            below to see what this contractor proposed.
+          </p>
+        </SectionSurface>
+      ) : view === "submitted" ? (
+        <div className="space-y-6">
+          {snapshot.ai_summary ? (
+            <ScopeSummary summary={snapshot.ai_summary} />
+          ) : null}
+          <SubmittedScopeList
+            snapshot={snapshot}
+            projectId={projectId}
+            suggestionsById={suggestionsById}
+            onUpdated={onUpdated}
+            estimateDisplay={submittedEstimateDisplay}
+          />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {currentSummary ? <ScopeSummary summary={currentSummary} /> : null}
+          <CurrentScopeList
+            items={currentItems}
+            estimateDisplay={currentEstimateDisplay}
+          />
+        </div>
+      )}
+    </section>
   );
 }

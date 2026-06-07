@@ -20,7 +20,7 @@ export function ContractorShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-[var(--page-padding-x)] py-12">
+      <main className="mx-auto max-w-5xl px-[var(--page-padding-x)] pt-6 pb-12">
         {children}
       </main>
     </div>

@@ -22,7 +22,7 @@ function reviewStatusBadge(item: ContractorReviewListItem) {
   }
 
   if (item.invitation.review?.status === "submitted" || item.invitation.status === "submitted") {
-    return <Badge variant="success">Review submitted</Badge>;
+    return <Badge variant="info">Review submitted</Badge>;
   }
 
   if (item.invitation.status === "in_review") {

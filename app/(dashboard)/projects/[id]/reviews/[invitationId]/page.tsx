@@ -4,6 +4,7 @@ import { ensureUserRecord } from "@/lib/auth/clerk";
 import { getReviewedScopeDetailForProject } from "@/lib/contractor/reviewed-scopes";
 import { getSubmittedEstimateForInvitation } from "@/lib/estimates/estimates";
 import { getProjectForUser } from "@/lib/db/projects";
+import { listProjectPhotosWithUrls } from "@/lib/storage/photos";
 
 export default async function ReviewedScopePage({
   params,
@@ -31,16 +32,24 @@ export default async function ReviewedScopePage({
     projectId: id,
     invitationId,
   });
+  const photos = await listProjectPhotosWithUrls(id).then((rows) =>
+    rows.map((photo) => ({
+      id: photo.id,
+      file_name: photo.file_name,
+      url: photo.url,
+    }))
+  );
 
   return (
     <ReviewedScopeDetail
       projectId={project.id}
-      projectTitle={project.title}
+      project={project}
       scope={detail}
       suggestions={detail.suggestions}
       currentSummary={project.ai_summary}
       currentScopeItems={project.scope_items}
       estimate={estimate}
+      photos={photos}
     />
   );
 }

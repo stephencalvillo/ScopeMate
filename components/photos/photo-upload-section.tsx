@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { PhotoLightbox } from "@/components/share/shared-photo-gallery";
 import {
   PageSection,
@@ -105,6 +105,7 @@ function toSharedPhotos(photos: ProjectPhotoWithUrl[]): SharedPhoto[] {
 }
 
 export function PhotoUploadSection({ projectId }: { projectId: string }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [photos, setPhotos] = useState<ProjectPhotoWithUrl[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -171,11 +172,40 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
 
   const sharedPhotos = toSharedPhotos(photos);
 
+  function openPhotoPicker() {
+    if (!uploading) fileInputRef.current?.click();
+  }
+
   return (
     <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        className="hidden"
+        onChange={(event) => {
+          if (event.target.files) handleFiles(event.target.files);
+          event.target.value = "";
+        }}
+      />
+
       <PageSection
         title="Project photos"
         description="Photos help contractors understand your space. No need for perfect angles."
+        action={
+          !loading && photos.length === 0 ? (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={uploading}
+              onClick={openPhotoPicker}
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              Add photos
+            </Button>
+          ) : null
+        }
       >
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
@@ -185,12 +215,9 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
             Loading photos
           </div>
         ) : photos.length === 0 ? (
-          <PhotoDropZone
-            onFiles={handleFiles}
-            uploading={uploading}
-            label="No photos yet"
-            hint="Click to browse or drag photos here"
-          />
+          <SectionSurface>
+            <p className="text-sm text-[var(--muted)]">No photos yet.</p>
+          </SectionSurface>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {photos.map((photo, index) => (
