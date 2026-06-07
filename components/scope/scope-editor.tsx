@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AddMoreToScopeSection } from "@/components/scope/add-more-to-scope-section";
 import { GenerateScopeButton } from "@/components/scope/generate-scope-button";
+import { FollowUpQuestionsPanel } from "@/components/follow-up/follow-up-questions-panel";
 import { PhotoUploadSection } from "@/components/photos/photo-upload-section";
 import { ScopeCategoryFilter } from "@/components/scope/scope-category-filter";
 import {
@@ -116,6 +117,11 @@ export function ScopeEditor({
             <AddMoreToScopeSection onSubmit={handleAddMore} />
           ) : undefined
         }
+      />
+
+      <FollowUpQuestionsPanel
+        projectId={project.id}
+        projectType={project.project_type}
       />
 
       <PhotoUploadSection projectId={project.id} />

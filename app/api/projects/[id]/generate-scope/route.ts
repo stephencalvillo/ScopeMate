@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { checkScopeGenerationLimit } from "@/lib/api/rate-limit";
 import { jsonError } from "@/lib/api/response";
-import { getOwnedProject } from "@/lib/api/project-access";
+import { getAccessibleProject } from "@/lib/api/project-access";
 import { generateFollowUpQuestionsForProject } from "@/lib/ai/generate-follow-up";
 import { generateScopeForProject } from "@/lib/ai/generate-scope";
-import { ensureUserRecord } from "@/lib/auth/clerk";
 import type { Project } from "@/types";
 
 import { generateScopeSchema } from "@/lib/validators/scope";
@@ -15,9 +14,10 @@ export async function POST(
 ) {
   try {
     const { id } = await context.params;
-    const user = await ensureUserRecord();
+    const project = await getAccessibleProject(id);
+    const rateLimitKey = project.homeowner_id ?? `guest:${project.id}`;
 
-    if (!checkScopeGenerationLimit(user.id)) {
+    if (!checkScopeGenerationLimit(rateLimitKey)) {
       return NextResponse.json(
         {
           error:
@@ -27,7 +27,6 @@ export async function POST(
       );
     }
 
-    const project = await getOwnedProject(id);
     const rawBody = await request.json().catch(() => ({}));
     const { additional_notes: additionalNotes } =
       generateScopeSchema.parse(rawBody);

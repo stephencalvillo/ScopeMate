@@ -14,6 +14,14 @@ export const createProjectSchema = z.object({
     .max(8000),
 });
 
+export const createGuestProjectSchema = z.object({
+  original_description: z
+    .string()
+    .trim()
+    .min(20, "Describe your project in at least a few sentences")
+    .max(8000),
+});
+
 export const updateProjectSchema = z.object({
   title: z.string().trim().min(1).max(120).optional(),
   location: z.string().trim().min(2).max(120).optional(),

@@ -1,10 +1,18 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
 import { ProjectList } from "@/components/project/project-list";
 import { Button } from "@/components/ui/button";
 import { ensureUserRecord } from "@/lib/auth/clerk";
 import { listProjectsForUser } from "@/lib/db/projects";
 
 export default async function ProjectsPage() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/homeowners/signup");
+  }
+
   const user = await ensureUserRecord();
   const projects = await listProjectsForUser(user.id);
 

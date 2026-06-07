@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
-import { getOwnedProject } from "@/lib/api/project-access";
+import { getAccessibleProject } from "@/lib/api/project-access";
 import { createServiceClient } from "@/lib/db/supabase";
 import { createScopeItemSchema } from "@/lib/validators/scope";
 
@@ -10,7 +10,7 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    await getOwnedProject(id);
+    await getAccessibleProject(id);
     const supabase = createServiceClient();
 
     const { data, error } = await supabase
@@ -33,7 +33,7 @@ export async function POST(
 ) {
   try {
     const { id } = await context.params;
-    await getOwnedProject(id);
+    await getAccessibleProject(id);
     const body = await request.json();
     const input = createScopeItemSchema.parse(body);
     const supabase = createServiceClient();

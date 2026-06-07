@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
-import { getOwnedProject } from "@/lib/api/project-access";
+import { getAccessibleProject } from "@/lib/api/project-access";
 import { createServiceClient } from "@/lib/db/supabase";
 import { followUpAnswerSchema } from "@/lib/validators/follow-up";
 import { normalizeFollowUpQuestion } from "@/lib/follow-up/normalize";
@@ -13,7 +13,7 @@ export async function PATCH(
 ) {
   try {
     const { id, questionId } = await context.params;
-    const project = await getOwnedProject(id);
+    const project = await getAccessibleProject(id);
 
     const body = followUpAnswerSchema.parse(await request.json());
     const supabase = createServiceClient();

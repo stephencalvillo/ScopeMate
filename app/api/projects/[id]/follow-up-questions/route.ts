@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
-import { getOwnedProject } from "@/lib/api/project-access";
+import { getAccessibleProject } from "@/lib/api/project-access";
 import { isMissingTableError } from "@/lib/db/errors";
 import { dedupeFollowUpQuestionsForDisplay } from "@/lib/follow-up/dedupe-questions";
 import { ensureFinishLevelMaterialsQuestion } from "@/lib/follow-up/finish-level";
@@ -14,7 +14,7 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    await getOwnedProject(id);
+    await getAccessibleProject(id);
 
     const supabase = createServiceClient();
     const { data, error } = await supabase

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
-import { getOwnedProject } from "@/lib/api/project-access";
+import { getAccessibleProject } from "@/lib/api/project-access";
 import { createServiceClient } from "@/lib/db/supabase";
 import { deleteProjectPhoto } from "@/lib/storage/photos";
 import type { ProjectPhoto } from "@/types";
@@ -11,7 +11,7 @@ export async function DELETE(
 ) {
   try {
     const { id, photoId } = await context.params;
-    await getOwnedProject(id);
+    await getAccessibleProject(id);
 
     const supabase = createServiceClient();
     const { data, error } = await supabase

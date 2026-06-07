@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { HOMEOWNER_SIGNUP_STORAGE_KEY } from "@/components/marketing/homeowner-signup-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,24 +15,6 @@ export function ProjectForm() {
     title: "",
     description: "",
   });
-
-  useEffect(() => {
-    const raw = sessionStorage.getItem(HOMEOWNER_SIGNUP_STORAGE_KEY);
-    if (!raw) return;
-
-    try {
-      const data = JSON.parse(raw) as {
-        projectDescription?: string;
-      };
-      setPrefill({
-        title: "",
-        description: data.projectDescription ?? "",
-      });
-      sessionStorage.removeItem(HOMEOWNER_SIGNUP_STORAGE_KEY);
-    } catch {
-      sessionStorage.removeItem(HOMEOWNER_SIGNUP_STORAGE_KEY);
-    }
-  }, []);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

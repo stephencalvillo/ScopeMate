@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
-import { getOwnedProject } from "@/lib/api/project-access";
+import { getAccessibleProject, getOwnedProject } from "@/lib/api/project-access";
 import { createServiceClient } from "@/lib/db/supabase";
-import { getProjectForUser } from "@/lib/db/projects";
-import { ensureUserRecord } from "@/lib/auth/clerk";
+import { getAccessibleProjectWithScope } from "@/lib/db/projects";
 import { updateProjectSchema } from "@/lib/validators/project";
 
 export async function GET(
@@ -12,8 +11,7 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    const user = await ensureUserRecord();
-    const project = await getProjectForUser(id, user.id);
+    const project = await getAccessibleProjectWithScope(id);
 
     if (!project) {
       return NextResponse.json({ error: "Project not found." }, { status: 404 });
@@ -31,7 +29,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await context.params;
-    await getOwnedProject(id);
+    await getAccessibleProject(id);
     const body = await request.json();
     const input = updateProjectSchema.parse(body);
     const supabase = createServiceClient();

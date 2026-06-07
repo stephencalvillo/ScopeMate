@@ -122,9 +122,9 @@ export const marketingCopy = {
   },
   signup: {
     homeowner: {
-      title: "Start your project",
+      title: "Describe your project",
       subtitle:
-        "Tell us a bit about yourself and your project. We'll help you build a clear scope next.",
+        "ScopeMate will organize your description into a list of to-dos to send to a contractor.",
     },
     contractor: {
       title: "Create your contractor profile",

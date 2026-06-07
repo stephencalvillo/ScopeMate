@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ContractorShareSection } from "@/components/contractor/contractor-share-and-activity";
-import { FollowUpQuestionsPanel } from "@/components/follow-up/follow-up-questions-panel";
 import { ProjectActivitySection } from "@/components/project/project-activity-section";
 import { ReviewedProjectScopesSection } from "@/components/review/reviewed-project-scopes-section";
 import { NeedsAttentionPanel } from "@/components/suggestions/needs-attention-panel";
@@ -114,10 +113,6 @@ export function ProjectDetailTabs({
       {activeTab === "overview" ? (
         <div className="space-y-8">
           <ScopeEditor project={project} autoGenerate={autoGenerate} />
-          <FollowUpQuestionsPanel
-            projectId={project.id}
-            projectType={project.project_type}
-          />
           <ContractorShareSection />
         </div>
       ) : null}

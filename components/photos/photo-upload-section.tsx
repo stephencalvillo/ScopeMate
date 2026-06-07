@@ -21,12 +21,14 @@ function PhotoDropZone({
   onFiles,
   uploading,
   compact = false,
+  short = false,
   label,
   hint,
 }: {
   onFiles: (files: FileList) => void;
   uploading: boolean;
   compact?: boolean;
+  short?: boolean;
   label: string;
   hint?: string;
 }) {
@@ -76,9 +78,13 @@ function PhotoDropZone({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          "flex w-full flex-col items-center justify-center rounded-[8px] border border-dashed text-center transition-colors",
-          compact ? "aspect-square px-3 py-4" : "px-6 py-10",
-          compact
+          "flex w-full items-center justify-center rounded-[8px] border border-dashed text-center transition-colors",
+          short
+            ? "h-16 gap-3 px-4"
+            : compact
+              ? "aspect-square flex-col px-3 py-4"
+              : "flex-col px-6 py-10",
+          short || compact
             ? isDragging
               ? "border-neutral-400 bg-neutral-100"
               : "border-[var(--border)] bg-neutral-50 hover:border-neutral-300 hover:bg-neutral-100/80"
@@ -91,10 +97,13 @@ function PhotoDropZone({
         {uploading ? (
           <Loader2
             className={cn(
-              "h-8 w-8 animate-spin text-neutral-400",
-              compact || hint ? "mb-3" : "mb-0"
+              "animate-spin text-neutral-400",
+              short ? "h-5 w-5" : "h-8 w-8",
+              compact && !short ? "mb-3" : undefined
             )}
           />
+        ) : short ? (
+          <ImagePlus className="h-5 w-5 shrink-0 text-neutral-400" />
         ) : compact || hint ? (
           <ImagePlus className="mb-3 h-8 w-8 text-neutral-400" />
         ) : null}
@@ -239,6 +248,7 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
           <PhotoDropZone
             onFiles={handleFiles}
             uploading={uploading}
+            short
             label="Add photos by dragging and dropping here"
           />
         ) : (

@@ -1,4 +1,5 @@
 import { SignIn } from "@clerk/nextjs";
+import { AuthClerkForm } from "@/components/auth/auth-clerk-form";
 import { AuthPageLayout } from "@/components/auth/auth-page-layout";
 import { getClerkAppearance } from "@/lib/clerk/appearance";
 
@@ -15,11 +16,13 @@ export default async function SignInPage({
 
   return (
     <AuthPageLayout>
-      <SignIn
-        appearance={getClerkAppearance()}
-        fallbackRedirectUrl={safeRedirect}
-        forceRedirectUrl={safeRedirect}
-      />
+      <AuthClerkForm>
+        <SignIn
+          appearance={getClerkAppearance()}
+          fallbackRedirectUrl={safeRedirect}
+          forceRedirectUrl={safeRedirect}
+        />
+      </AuthClerkForm>
     </AuthPageLayout>
   );
 }

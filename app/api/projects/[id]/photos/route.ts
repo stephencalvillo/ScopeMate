@@ -4,7 +4,7 @@ import {
   MAX_PHOTOS_PER_PROJECT,
 } from "@/lib/config/phase2";
 import { jsonError } from "@/lib/api/response";
-import { getOwnedProject } from "@/lib/api/project-access";
+import { getAccessibleProject } from "@/lib/api/project-access";
 import { isMissingTableError } from "@/lib/db/errors";
 import { createServiceClient } from "@/lib/db/supabase";
 import {
@@ -19,7 +19,7 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    await getOwnedProject(id);
+    await getAccessibleProject(id);
     const photos = await listProjectPhotosWithUrls(id);
     return NextResponse.json({ photos });
   } catch (error) {
@@ -36,7 +36,7 @@ export async function POST(
 ) {
   try {
     const { id } = await context.params;
-    const project = await getOwnedProject(id);
+    const project = await getAccessibleProject(id);
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -78,7 +78,7 @@ export async function POST(
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const photo = await uploadProjectPhoto({
-      homeownerId: project.homeowner_id,
+      homeownerId: project.homeowner_id ?? `guest-${id}`,
       projectId: id,
       file: buffer,
       fileName: file.name,

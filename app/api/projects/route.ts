@@ -6,18 +6,8 @@ import { isMissingColumnError } from "@/lib/db/errors";
 import { listProjectsForUser } from "@/lib/db/projects";
 import { parseLocation } from "@/lib/location/parse";
 import { lookupCityStateFromZip } from "@/lib/location/zip-lookup";
+import { resolveProjectTitle } from "@/lib/projects/title";
 import { createProjectSchema } from "@/lib/validators/project";
-
-function deriveTitle(description: string, provided?: string): string {
-  if (provided?.trim()) return provided.trim();
-
-  const firstSentence = description.split(/[.!?\n]/)[0]?.trim();
-  if (firstSentence && firstSentence.length <= 80) {
-    return firstSentence;
-  }
-
-  return description.trim().slice(0, 60).trim() + (description.length > 60 ? "..." : "");
-}
 
 export async function GET() {
   try {
@@ -45,10 +35,14 @@ export async function POST(request: Request) {
     }
 
     const supabase = createServiceClient();
+    const title = await resolveProjectTitle(
+      input.original_description,
+      input.title
+    );
 
     const baseRow = {
       homeowner_id: user.id,
-      title: deriveTitle(input.original_description, input.title),
+      title,
       project_type: "unspecified",
       city,
       zip: parsed.zip || "N/A",

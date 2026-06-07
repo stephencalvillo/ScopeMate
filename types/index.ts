@@ -70,7 +70,8 @@ export interface ContractorRateItem {
 
 export interface Project {
   id: string;
-  homeowner_id: string;
+  homeowner_id: string | null;
+  guest_access_token?: string | null;
   title: string;
   project_type: string;
   city: string;

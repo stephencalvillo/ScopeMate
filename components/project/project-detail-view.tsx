@@ -4,7 +4,9 @@ import { Suspense, useCallback, useState } from "react";
 import { MapPin } from "lucide-react";
 import { AcceptedProposalSummary } from "@/components/project/accepted-proposal-summary";
 import { ProjectActionsMenu } from "@/components/project/project-actions-menu";
+import { ProjectClaimHandler } from "@/components/project/project-claim-handler";
 import { ProjectDetailTabs } from "@/components/project/project-detail-tabs";
+import { ProjectTitleEditor } from "@/components/project/project-title-editor";
 import {
   ProjectShareHeaderActions,
   ProjectShareHeaderRow,
@@ -19,15 +21,23 @@ import { projectStatusBadgeProps } from "@/lib/project-status";
 import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision";
 import { formatProjectTypeLabel, type ProjectWithScope } from "@/types";
 
-function ProjectHeaderMeta({ project }: { project: ProjectWithScope }) {
+function ProjectHeaderMeta({
+  project,
+  canEditTitle,
+}: {
+  project: ProjectWithScope;
+  canEditTitle: boolean;
+}) {
   const statusBadge = projectStatusBadgeProps(project);
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="font-display text-4xl tracking-tight text-neutral-900">
-          {project.title}
-        </h1>
+        <ProjectTitleEditor
+          projectId={project.id}
+          title={project.title}
+          canEdit={canEditTitle}
+        />
         <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
       </div>
       <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
@@ -46,10 +56,12 @@ export function ProjectDetailView({
   project,
   autoGenerate,
   acceptedProposal = null,
+  isGuestProject = false,
 }: {
   project: ProjectWithScope;
   autoGenerate: boolean;
   acceptedProposal?: ProjectAcceptedProposalSummary | null;
+  isGuestProject?: boolean;
 }) {
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const handleActivityChange = useCallback(() => {
@@ -58,7 +70,7 @@ export function ProjectDetailView({
 
   const hasScope = project.scope_items.length > 0 || project.ai_summary;
 
-  const breadcrumb = <MyProjectsBreadcrumb href="/projects" />;
+  const breadcrumb = isGuestProject ? null : <MyProjectsBreadcrumb href="/projects" />;
 
   const acceptedProposalBanner =
     acceptedProposal != null ? (
@@ -71,9 +83,18 @@ export function ProjectDetailView({
   if (!hasScope) {
     return (
       <div className="space-y-8">
+        <Suspense fallback={null}>
+          <ProjectClaimHandler
+            projectId={project.id}
+            isGuestProject={isGuestProject}
+          />
+        </Suspense>
         <PageBreadcrumbHeader breadcrumb={breadcrumb}>
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <ProjectHeaderMeta project={project} />
+            <ProjectHeaderMeta
+              project={project}
+              canEditTitle={!isGuestProject}
+            />
             <ProjectActionsMenu projectId={project.id} />
           </div>
         </PageBreadcrumbHeader>
@@ -88,10 +109,19 @@ export function ProjectDetailView({
       project={project}
       onActivityChange={handleActivityChange}
     >
+      <Suspense fallback={null}>
+        <ProjectClaimHandler
+          projectId={project.id}
+          isGuestProject={isGuestProject}
+        />
+      </Suspense>
       <div className="space-y-8">
         <PageBreadcrumbHeader breadcrumb={breadcrumb}>
           <ProjectShareHeaderRow>
-            <ProjectHeaderMeta project={project} />
+            <ProjectHeaderMeta
+              project={project}
+              canEditTitle={!isGuestProject}
+            />
             <ProjectShareHeaderActions>
               <ProjectActionsMenu projectId={project.id} />
             </ProjectShareHeaderActions>

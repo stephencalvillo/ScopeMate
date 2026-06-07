@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
-import { getOwnedProject } from "@/lib/api/project-access";
+import { getAccessibleProject } from "@/lib/api/project-access";
 import { createServiceClient } from "@/lib/db/supabase";
 import { updateScopeItemSchema } from "@/lib/validators/scope";
 
@@ -10,7 +10,7 @@ export async function PATCH(
 ) {
   try {
     const { id, itemId } = await context.params;
-    await getOwnedProject(id);
+    await getAccessibleProject(id);
     const body = await request.json();
     const input = updateScopeItemSchema.parse(body);
     const supabase = createServiceClient();
@@ -40,7 +40,7 @@ export async function DELETE(
 ) {
   try {
     const { id, itemId } = await context.params;
-    await getOwnedProject(id);
+    await getAccessibleProject(id);
     const supabase = createServiceClient();
 
     const { data, error } = await supabase

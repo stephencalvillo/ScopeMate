@@ -1,8 +1,33 @@
 import { recordShareLinkView } from "@/lib/contractor/activity";
+import { getAccessibleProject } from "@/lib/api/project-access";
 import { createServiceClient } from "@/lib/db/supabase";
 import { enrichProjectLocation, enrichProjectsLocation } from "@/lib/location/resolve";
 import { enrichScopeItemsWithContractorAttribution } from "@/lib/scope/contractor-attribution";
 import type { Project, ProjectWithScope, ScopeItem } from "@/types";
+
+async function loadProjectWithScope(project: Project): Promise<ProjectWithScope> {
+  const supabase = createServiceClient();
+  const { data: scopeItemsData, error: scopeError } = await supabase
+    .from("scope_items")
+    .select("*")
+    .eq("project_id", project.id)
+    .eq("status", "active")
+    .order("sort_order", { ascending: true });
+
+  if (scopeError) throw scopeError;
+
+  const scopeItems = await enrichScopeItemsWithContractorAttribution(
+    (scopeItemsData ?? []) as ScopeItem[]
+  );
+
+  return enrichProjectLocation(
+    {
+      ...project,
+      scope_items: scopeItems,
+    },
+    { persist: true }
+  );
+}
 
 export async function listProjectsForUser(userId: string): Promise<Project[]> {
   const supabase = createServiceClient();
@@ -32,26 +57,27 @@ export async function getProjectForUser(
   if (error) throw error;
   if (!project) return null;
 
-  const { data: scopeItemsData, error: scopeError } = await supabase
-    .from("scope_items")
-    .select("*")
-    .eq("project_id", projectId)
-    .eq("status", "active")
-    .order("sort_order", { ascending: true });
+  return loadProjectWithScope(project as Project);
+}
 
-  if (scopeError) throw scopeError;
+export async function getAccessibleProjectWithScope(
+  projectId: string
+): Promise<ProjectWithScope | null> {
+  try {
+    const project = await getAccessibleProject(projectId);
+    return loadProjectWithScope(project);
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.name === "AuthError" ||
+        error.name === "ForbiddenError" ||
+        error.name === "NotFoundError")
+    ) {
+      return null;
+    }
 
-  const scopeItems = await enrichScopeItemsWithContractorAttribution(
-    (scopeItemsData ?? []) as ScopeItem[]
-  );
-
-  return enrichProjectLocation(
-    {
-      ...(project as Project),
-      scope_items: scopeItems,
-    },
-    { persist: true }
-  );
+    throw error;
+  }
 }
 
 export async function getProjectByShareToken(

@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProjectDetailView } from "@/components/project/project-detail-view";
-import { ensureUserRecord } from "@/lib/auth/clerk";
-import { getProjectForUser } from "@/lib/db/projects";
+import { getAccessibleProjectWithScope } from "@/lib/db/projects";
 import { getProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision";
 
 export default async function ProjectDetailPage({
@@ -13,8 +12,7 @@ export default async function ProjectDetailPage({
 }) {
   const { id } = await params;
   const { generate } = await searchParams;
-  const user = await ensureUserRecord();
-  const project = await getProjectForUser(id, user.id);
+  const project = await getAccessibleProjectWithScope(id);
 
   if (!project) {
     notFound();
@@ -30,6 +28,7 @@ export default async function ProjectDetailPage({
       project={project}
       autoGenerate={generate === "1"}
       acceptedProposal={acceptedProposal}
+      isGuestProject={project.homeowner_id === null}
     />
   );
 }

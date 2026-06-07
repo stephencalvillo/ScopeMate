@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
-import { getOwnedProject } from "@/lib/api/project-access";
+import { getAccessibleProject } from "@/lib/api/project-access";
 import { syncAllFollowUpAnswersToScope } from "@/lib/follow-up/to-scope-item";
 
 export async function POST(
@@ -9,7 +9,7 @@ export async function POST(
 ) {
   try {
     const { id } = await context.params;
-    const project = await getOwnedProject(id);
+    const project = await getAccessibleProject(id);
 
     const scopeItems = await syncAllFollowUpAnswersToScope(
       id,

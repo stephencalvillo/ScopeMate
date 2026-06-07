@@ -7,6 +7,7 @@ import {
 } from "@/lib/ai/build-user-prompt";
 import { getAnsweredFollowUps } from "@/lib/ai/generate-follow-up";
 import { normalizeAiScopeItems } from "@/lib/ai/normalize-scope-items";
+import { isGenericTitle } from "@/lib/projects/title";
 import { createServiceClient } from "@/lib/db/supabase";
 import type {
   AiRunOutputSnapshot,
@@ -56,16 +57,6 @@ function getOpenAIClient() {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
   return new OpenAI({ apiKey });
-}
-
-function isGenericTitle(title: string): boolean {
-  const normalized = title.trim().toLowerCase();
-  return (
-    normalized === "" ||
-    normalized === "new project" ||
-    normalized === "untitled project" ||
-    normalized === "my project"
-  );
 }
 
 export async function generateScopeForProject(

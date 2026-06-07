@@ -10,7 +10,10 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { Link2 } from "lucide-react";
+import { HomeownerAccountCreateDialog } from "@/components/project/homeowner-account-create-dialog";
 import { ShareLinkDialog } from "@/components/project/share-link-dialog-content";
 import { SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
@@ -66,11 +69,15 @@ export function ProjectShareProvider({
   onActivityChange?: () => void;
   children: ReactNode;
 }) {
+  const router = useRouter();
+  const { isSignedIn } = useAuth();
+  const isGuestProject = project.homeowner_id === null;
   const headerObserverRef = useRef<IntersectionObserver | null>(null);
   const [headerInView, setHeaderInView] = useState(true);
   const [headerObserved, setHeaderObserved] = useState(false);
   const [sectionInView, setSectionInView] = useState(false);
   const [sectionObserved, setSectionObserved] = useState(false);
+  const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [animation, setAnimation] = useState<DockAnimation>(null);
 
@@ -80,6 +87,63 @@ export function ProjectShareProvider({
     : hasObserved && !headerInView
       ? "float"
       : "header";
+
+  const claimProject = useCallback(async () => {
+    const response = await fetch(`/api/projects/${project.id}/claim`, {
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error ?? "Could not save this project to your account.");
+    }
+
+    router.refresh();
+  }, [project.id, router]);
+
+  const openShareLinkDialog = useCallback(() => {
+    setShareDialogOpen(true);
+  }, []);
+
+  const openShareDialog = useCallback(async () => {
+    if (isGuestProject) {
+      if (!isSignedIn) {
+        setAccountDialogOpen(true);
+        return;
+      }
+
+      try {
+        await claimProject();
+      } catch (error) {
+        console.error(error);
+        return;
+      }
+    }
+
+    openShareLinkDialog();
+  }, [
+    claimProject,
+    isGuestProject,
+    isSignedIn,
+    openShareLinkDialog,
+  ]);
+
+  const handleAccountReady = useCallback(async () => {
+    if (isGuestProject) {
+      try {
+        await claimProject();
+      } catch (error) {
+        console.error(error);
+        return;
+      }
+    }
+
+    openShareLinkDialog();
+  }, [claimProject, isGuestProject, openShareLinkDialog]);
+
+  const openShareDialogRef = useCallback(() => {
+    void openShareDialog();
+  }, [openShareDialog]);
 
   const headerSentinelRef = useCallback((node: HTMLDivElement | null) => {
     headerObserverRef.current?.disconnect();
@@ -122,10 +186,6 @@ export function ProjectShareProvider({
     };
   }, [hasObserved, mode]);
 
-  const openShareDialog = useCallback(() => {
-    setShareDialogOpen(true);
-  }, []);
-
   const markSectionObserved = useCallback(() => {
     setSectionObserved(true);
   }, []);
@@ -135,7 +195,7 @@ export function ProjectShareProvider({
       value={{
         mode,
         animation,
-        openShareDialog,
+        openShareDialog: openShareDialogRef,
         headerSentinelRef,
         setSectionInView,
         setSectionObserved: markSectionObserved,
@@ -157,7 +217,7 @@ export function ProjectShareProvider({
                   {SHARE_DOCK_DESCRIPTION}
                 </p>
                 <ShareLinkTriggerButton
-                  onClick={openShareDialog}
+                  onClick={openShareDialogRef}
                   className={mobileFullWidthCtaClassName}
                 />
               </div>
@@ -165,6 +225,15 @@ export function ProjectShareProvider({
           </div>
         </div>
       ) : null}
+
+      <HomeownerAccountCreateDialog
+        projectId={project.id}
+        open={accountDialogOpen}
+        onOpenChange={setAccountDialogOpen}
+        onAccountReady={() => {
+          void handleAccountReady();
+        }}
+      />
 
       <ShareLinkDialog
         project={project}
