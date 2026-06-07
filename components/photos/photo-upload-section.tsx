@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
+import { ImagePlus, Loader2, Plus, X } from "lucide-react";
 import { PhotoLightbox } from "@/components/share/shared-photo-gallery";
 import {
   PageSection,
@@ -28,7 +28,7 @@ function PhotoDropZone({
   uploading: boolean;
   compact?: boolean;
   label: string;
-  hint: string;
+  hint?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -78,19 +78,30 @@ function PhotoDropZone({
         className={cn(
           "flex w-full flex-col items-center justify-center rounded-[8px] border border-dashed text-center transition-colors",
           compact ? "aspect-square px-3 py-4" : "px-6 py-10",
-          isDragging
-            ? "border-neutral-400 bg-neutral-100"
-            : "border-[var(--border)] bg-neutral-50 hover:border-neutral-300 hover:bg-neutral-100/80",
+          compact
+            ? isDragging
+              ? "border-neutral-400 bg-neutral-100"
+              : "border-[var(--border)] bg-neutral-50 hover:border-neutral-300 hover:bg-neutral-100/80"
+            : isDragging
+              ? "border-neutral-400 bg-neutral-50"
+              : "border-neutral-300 bg-white hover:border-neutral-400 hover:bg-neutral-50/80",
           uploading ? "cursor-wait opacity-70" : "cursor-pointer"
         )}
       >
         {uploading ? (
-          <Loader2 className="mb-3 h-8 w-8 animate-spin text-neutral-400" />
-        ) : (
+          <Loader2
+            className={cn(
+              "h-8 w-8 animate-spin text-neutral-400",
+              compact || hint ? "mb-3" : "mb-0"
+            )}
+          />
+        ) : compact || hint ? (
           <ImagePlus className="mb-3 h-8 w-8 text-neutral-400" />
-        )}
-        <p className="text-sm font-medium text-neutral-800">{label}</p>
-        <p className="mt-1 text-sm text-[var(--muted)]">{hint}</p>
+        ) : null}
+        <p className="text-sm text-neutral-800">{label}</p>
+        {hint ? (
+          <p className="mt-1 text-sm text-[var(--muted)]">{hint}</p>
+        ) : null}
       </button>
     </>
   );
@@ -159,8 +170,18 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
 
     try {
       await deletePhoto(projectId, photoId);
-      setPhotos((current) => current.filter((p) => p.id !== photoId));
+      const deletedIndex = photos.findIndex((photo) => photo.id === photoId);
+      const nextPhotos = photos.filter((photo) => photo.id !== photoId);
+      setPhotos(nextPhotos);
       setPendingDeleteId(null);
+
+      if (lightboxOpen) {
+        if (nextPhotos.length === 0) {
+          setLightboxOpen(false);
+        } else {
+          setLightboxIndex(Math.min(deletedIndex, nextPhotos.length - 1));
+        }
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Could not delete photo."
@@ -215,9 +236,11 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
             Loading photos
           </div>
         ) : photos.length === 0 ? (
-          <SectionSurface>
-            <p className="text-sm text-[var(--muted)]">No photos yet.</p>
-          </SectionSurface>
+          <PhotoDropZone
+            onFiles={handleFiles}
+            uploading={uploading}
+            label="Add photos by dragging and dropping here"
+          />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {photos.map((photo, index) => (
@@ -271,11 +294,14 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setPendingDeleteId(photo.id)}
-                    className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-neutral-700 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-                    aria-label="Delete photo"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setPendingDeleteId(photo.id);
+                    }}
+                    className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-neutral-700 shadow-sm transition-colors hover:bg-white hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+                    aria-label="Remove photo"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <X className="h-4 w-4" aria-hidden />
                   </button>
                 )}
               </SectionSurface>
@@ -296,6 +322,8 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
         initialIndex={lightboxIndex}
         open={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
+        onRemovePhoto={(photo) => void handleDelete(photo.id)}
+        removingPhotoId={deletingId}
       />
     </>
   );

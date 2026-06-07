@@ -61,17 +61,16 @@ export default async function HomePage() {
         </div>
       </MarketingSection>
 
-      <MarketingSection centered>
-        <p className="mx-auto max-w-2xl text-center font-display text-2xl tracking-tight text-neutral-900 text-balance md:text-3xl">
-          {homepage.problemStatement}
-        </p>
-      </MarketingSection>
-
       <MarketingSection bottomGlow className="bg-[var(--accent)]/30">
         <div className="mx-auto max-w-2xl space-y-6 text-center">
-          <h2 className="font-display text-3xl tracking-tight text-neutral-900 text-balance">
-            {homepage.finalCta.headline}
-          </h2>
+          <div className="space-y-3">
+            <h2 className="font-display text-3xl tracking-tight text-neutral-900 text-balance">
+              {homepage.finalCta.headline}
+            </h2>
+            <p className="text-base text-[var(--muted)] md:text-lg">
+              {homepage.finalCta.subheadline}
+            </p>
+          </div>
           <CTAButton href="/homeowners/signup" size="lg">
             {homepage.finalCta.cta}
           </CTAButton>

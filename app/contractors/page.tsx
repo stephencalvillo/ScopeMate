@@ -20,7 +20,7 @@ export default function ContractorsPage() {
         }}
       />
 
-      <MarketingSection title="Built for Contractors Who Value Clarity">
+      <MarketingSection title="Built for contractors who value clarity">
         <div className="grid gap-6 sm:grid-cols-2">
           {contractors.benefits.map((benefit) => (
             <FeatureCard
@@ -48,7 +48,7 @@ export default function ContractorsPage() {
       <MarketingSection bottomGlow className="bg-[var(--accent)]/30">
         <div className="mx-auto max-w-xl space-y-6 text-center">
           <h2 className="font-display text-3xl tracking-tight text-neutral-900 text-balance">
-            Start Receiving Clearer Project Scopes Today
+            Start receiving clearer project scopes today
           </h2>
           <CTAButton href="/contractors/signup" size="lg">
             {contractors.hero.cta}

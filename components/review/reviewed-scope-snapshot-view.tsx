@@ -5,9 +5,8 @@ import { Check, Loader2, MessageSquare, X } from "lucide-react";
 import { IconActionButton } from "@/components/review/icon-action-button";
 import { EstimateRangeHeader } from "@/components/estimate/estimate-range-inputs";
 import { SubmittedScopeEstimateRange } from "@/components/estimate/submitted-scope-estimate-range";
+import { ScopeItemWithEstimateRange } from "@/components/scope/scope-item-with-estimate-range";
 import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
-import { ScopeItemContent } from "@/components/scope/scope-item-content";
-import { ScopeItemShell } from "@/components/scope/scope-item-shell";
 import { ScopeSummary } from "@/components/scope/scope-summary";
 import { SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,6 @@ import {
 import { snapshotItemToScopeItem } from "@/lib/contractor/review-scope-snapshot";
 import { buildSubmittedEstimateDisplay } from "@/lib/estimates/submitted-estimate-display";
 import type { SubmittedEstimateDisplay } from "@/lib/estimates/submitted-estimate-display";
-import { cn } from "@/lib/utils";
 import type {
   ContractorEstimate,
   ReviewScopeSnapshot,
@@ -395,7 +393,7 @@ function CurrentScopeList({
   return (
     <div className="space-y-3">
       {estimateDisplay && usesItemPricing ? (
-        <EstimateRangeHeader className="hidden md:flex" />
+        <EstimateRangeHeader />
       ) : null}
       {groups.map((group) => {
         const sectionRange = estimateDisplay?.sectionRanges.get(group.category);
@@ -419,30 +417,11 @@ function CurrentScopeList({
               const itemRange = estimateDisplay?.scopeItemRanges.get(item.id);
 
               return (
-                <div
+                <ScopeItemWithEstimateRange
                   key={item.id}
-                  className={cn(
-                    "flex items-center justify-between gap-3",
-                    usesItemPricing &&
-                      "md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,15rem)] md:items-center"
-                  )}
-                >
-                  <ScopeItemShell
-                    className={
-                      usesItemPricing
-                        ? "min-w-0 flex-1 md:flex md:min-h-11 md:w-full md:items-center"
-                        : "w-full"
-                    }
-                  >
-                    <ScopeItemContent item={item} />
-                  </ScopeItemShell>
-                  {usesItemPricing && itemRange ? (
-                    <SubmittedScopeEstimateRange
-                      laborCost={itemRange.labor_cost}
-                      materialCost={itemRange.material_cost}
-                    />
-                  ) : null}
-                </div>
+                  item={item}
+                  range={usesItemPricing ? itemRange : null}
+                />
               );
             })}
           </ScopeCategoryGroup>
@@ -507,7 +486,7 @@ function SubmittedScopeList({
   return (
     <div className="space-y-3">
       {estimateDisplay && usesItemPricing ? (
-        <EstimateRangeHeader className="hidden md:flex" />
+        <EstimateRangeHeader />
       ) : null}
       {groups.map((group) => {
         const addSuggestions = addSuggestionsForCategory(
@@ -540,29 +519,11 @@ function SubmittedScopeList({
 
               return (
                 <div key={item.id} className="space-y-2">
-                  <div
-                    className={cn(
-                      "flex items-center justify-between gap-3",
-                      usesItemPricing &&
-                        "md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,15rem)] md:items-center"
-                    )}
-                  >
-                    <ScopeItemShell
-                      className={
-                        usesItemPricing
-                          ? "min-w-0 flex-1 md:flex md:min-h-11 md:w-full md:items-center"
-                          : "w-full"
-                      }
-                    >
-                      <ScopeItemContent item={item} showAttribution={false} />
-                    </ScopeItemShell>
-                    {usesItemPricing && itemRange ? (
-                      <SubmittedScopeEstimateRange
-                        laborCost={itemRange.labor_cost}
-                        materialCost={itemRange.material_cost}
-                      />
-                    ) : null}
-                  </div>
+                  <ScopeItemWithEstimateRange
+                    item={item}
+                    showAttribution={false}
+                    range={usesItemPricing ? itemRange : null}
+                  />
                   {editSuggestion ? (
                     <InlineSnapshotSuggestion
                       projectId={projectId}

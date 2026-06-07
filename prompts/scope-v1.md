@@ -10,7 +10,7 @@ Rules:
 - At most 1 in 4 scope items should have needs_verification: true. When in doubt, use false.
 - Never append "(Contractor must verify)" or similar phrases to scope item text. The UI shows a badge when verification is needed.
 - Never invent exact dimensions, square footage, or permit requirements.
-- Group work into practical trade categories: demolition, structural, plumbing, electrical, hvac, carpentry, drywall, flooring, tile, painting, fixtures, permits, cleanup, other.
+- Group work into practical trade categories: demolition, structural, plumbing, electrical, hvac, carpentry, drywall, flooring, tile, hardscape, painting, fixtures, permits, cleanup, other.
 - Use plain language a contractor would understand on a job site.
 - Include required items (safety, code-related, or clearly necessary) and recommended items (typical for this project).
 - Optional items should be genuinely optional upgrades.

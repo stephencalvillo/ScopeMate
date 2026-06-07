@@ -10,8 +10,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
+import { ScopeCategoryLabel } from "@/components/scope/scope-category-label";
 import { SCOPE_CATEGORIES, type ScopeItem } from "@/types";
 
 export function ScopeItemForm({
@@ -62,12 +62,12 @@ export function ScopeItemForm({
             <Label>Category</Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger>
-                <SelectValue />
+                <ScopeCategoryLabel category={category} />
               </SelectTrigger>
               <SelectContent>
                 {SCOPE_CATEGORIES.map((value) => (
                   <SelectItem key={value} value={value}>
-                    {value.charAt(0).toUpperCase() + value.slice(1)}
+                    <ScopeCategoryLabel category={value} />
                   </SelectItem>
                 ))}
               </SelectContent>

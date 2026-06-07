@@ -14,10 +14,10 @@ export function PageSection({
   className?: string;
 }) {
   return (
-    <section className={cn("space-y-6", className)}>
+    <section className={cn("space-y-4", className)}>
       <div className="flex min-w-0 items-start justify-between gap-4">
         <div className="min-w-0 flex-1 space-y-1">
-          <h2 className="font-display text-2xl text-neutral-900">{title}</h2>
+          <h2 className="font-display text-lg text-neutral-900">{title}</h2>
           {description ? (
             <p className="text-sm text-[var(--muted)]">{description}</p>
           ) : null}

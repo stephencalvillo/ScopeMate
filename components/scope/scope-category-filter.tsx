@@ -5,9 +5,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
-import { formatCategoryLabel } from "@/lib/utils";
+import { ScopeCategoryLabel } from "@/components/scope/scope-category-label";
 
 export function ScopeCategoryFilter({
   categories,
@@ -25,13 +24,17 @@ export function ScopeCategoryFilter({
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="h-9 w-44 bg-white text-sm">
-        <SelectValue placeholder="All categories" />
+        {value === "all" ? (
+          <span>All categories</span>
+        ) : (
+          <ScopeCategoryLabel category={value} />
+        )}
       </SelectTrigger>
       <SelectContent align="end">
         <SelectItem value="all">All categories</SelectItem>
         {categories.map((category) => (
           <SelectItem key={category} value={category}>
-            {formatCategoryLabel(category)}
+            <ScopeCategoryLabel category={category} />
           </SelectItem>
         ))}
       </SelectContent>

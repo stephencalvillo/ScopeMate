@@ -30,8 +30,8 @@ export function PathCard({
     >
       <CardContent className="flex flex-1 flex-col gap-6 p-6 md:p-8">
         <div className="space-y-3">
-          <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
-            {audience === "homeowners" ? "For Homeowners" : "For Contractors"}
+          <p className="text-xs font-medium tracking-wider text-[var(--muted)]">
+            {audience === "homeowners" ? "For homeowners" : "For contractors"}
           </p>
           <h3 className="font-display text-2xl tracking-tight text-neutral-900 text-balance">
             {headline}

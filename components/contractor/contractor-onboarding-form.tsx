@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,15 +19,18 @@ export function ContractorOnboardingForm({
   defaultContactName?: string;
 }) {
   const router = useRouter();
-  const prefill = readContractorSignupPrefill();
-  const [companyName, setCompanyName] = useState(
-    defaultCompanyName || prefill?.companyName || ""
-  );
-  const [contactName, setContactName] = useState(
-    defaultContactName || prefill?.contactName || ""
-  );
+  const [companyName, setCompanyName] = useState(defaultCompanyName);
+  const [contactName, setContactName] = useState(defaultContactName);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const prefill = readContractorSignupPrefill();
+    if (!prefill) return;
+
+    setCompanyName((current) => current || prefill.companyName || "");
+    setContactName((current) => current || prefill.contactName || "");
+  }, []);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { SectionSurface } from "@/components/layout/page-section";
-import { getScopeCategoryIcon } from "@/lib/scope/category-icons";
+import { ScopeCategoryLabel } from "@/components/scope/scope-category-label";
 import { cn, formatCategoryLabel } from "@/lib/utils";
 
 export function ScopeCategoryGroup({
@@ -23,7 +23,6 @@ export function ScopeCategoryGroup({
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const label = formatCategoryLabel(category);
-  const CategoryIcon = getScopeCategoryIcon(category);
 
   const chevron = (
     <ChevronDown
@@ -49,11 +48,10 @@ export function ScopeCategoryGroup({
           aria-label={`${expanded ? "Collapse" : "Expand"} ${label}`}
         >
           <div className="flex min-w-0 items-center gap-2">
-            <CategoryIcon
-              className="h-4 w-4 shrink-0 text-neutral-500"
-              aria-hidden
+            <ScopeCategoryLabel
+              category={category}
+              labelClassName="font-display text-base text-neutral-900"
             />
-            <h3 className="font-display text-base text-neutral-900">{label}</h3>
             <span className="text-base tabular-nums text-[var(--muted)]">
               {itemCount}
             </span>

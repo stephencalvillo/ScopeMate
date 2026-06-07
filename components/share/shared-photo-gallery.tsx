@@ -6,6 +6,7 @@ import {
   PageSection,
   SectionSurface,
 } from "@/components/layout/page-section";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { SharedPhoto } from "@/lib/phase2/client";
 
@@ -14,11 +15,15 @@ export function PhotoLightbox({
   initialIndex,
   open,
   onClose,
+  onRemovePhoto,
+  removingPhotoId = null,
 }: {
   photos: SharedPhoto[];
   initialIndex: number;
   open: boolean;
   onClose: () => void;
+  onRemovePhoto?: (photo: SharedPhoto) => void;
+  removingPhotoId?: string | null;
 }) {
   const [index, setIndex] = useState(initialIndex);
 
@@ -50,6 +55,7 @@ export function PhotoLightbox({
   if (!open || photos.length === 0) return null;
 
   const photo = photos[index];
+  const isRemoving = removingPhotoId === photo.id;
 
   return (
     <div
@@ -99,6 +105,17 @@ export function PhotoLightbox({
           <p className="text-sm text-white/70">
             {index + 1} of {photos.length}
           </p>
+        ) : null}
+        {onRemovePhoto ? (
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            disabled={Boolean(removingPhotoId)}
+            onClick={() => onRemovePhoto(photo)}
+          >
+            {isRemoving ? "Removing..." : "Remove photo"}
+          </Button>
         ) : null}
       </div>
 

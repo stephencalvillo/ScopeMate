@@ -114,14 +114,9 @@ export function EstimateRangeInputs({
 
 export function EstimateRangeHeader({ className }: { className?: string }) {
   return (
-    <div
-      className={cn(
-        "grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,15rem)]",
-        className
-      )}
-    >
-      <span aria-hidden />
-      <span className="text-right text-xs font-medium text-[var(--muted)]">
+    <div className={cn("hidden items-center gap-4 md:flex", className)}>
+      <span className="min-w-0 flex-1" aria-hidden />
+      <span className="w-full shrink-0 text-xs font-medium text-[var(--muted)] md:w-[15rem]">
         Range
       </span>
     </div>

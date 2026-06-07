@@ -6,13 +6,12 @@ import { MyProjectsBreadcrumb } from "@/components/layout/my-projects-breadcrumb
 import { PageBreadcrumbHeader } from "@/components/layout/page-breadcrumb-header";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ScopeCategoryLabel } from "@/components/scope/scope-category-label";
 import { formatCategoryLabel } from "@/lib/utils";
 import { SCOPE_CATEGORIES, type ContractorRateItem } from "@/types";
 
 type RateDraft = {
   category: (typeof SCOPE_CATEGORIES)[number];
-  label: string;
   labor_cost: string;
   material_cost: string;
 };
@@ -22,7 +21,6 @@ function emptyDraft(
 ): RateDraft {
   return {
     category,
-    label: formatCategoryLabel(category),
     labor_cost: "",
     material_cost: "",
   };
@@ -31,7 +29,6 @@ function emptyDraft(
 function draftFromRate(rate: ContractorRateItem): RateDraft {
   return {
     category: rate.category as RateDraft["category"],
-    label: rate.label,
     labor_cost: String(rate.labor_cost),
     material_cost: String(rate.material_cost),
   };
@@ -107,7 +104,7 @@ export function ContractorRatesPage() {
       const rates = drafts
         .map((draft) => ({
           category: draft.category,
-          label: draft.label.trim() || formatCategoryLabel(draft.category),
+          label: formatCategoryLabel(draft.category),
           labor_cost: parseDraftValue(draft.labor_cost),
           material_cost: parseDraftValue(draft.material_cost),
         }))
@@ -137,7 +134,7 @@ export function ContractorRatesPage() {
 
   function updateDraft(
     category: RateDraft["category"],
-    patch: Partial<Pick<RateDraft, "label" | "labor_cost" | "material_cost">>
+    patch: Partial<Pick<RateDraft, "labor_cost" | "material_cost">>
   ) {
     setDrafts((current) =>
       current.map((draft) =>
@@ -174,25 +171,12 @@ export function ContractorRatesPage() {
             {drafts.map((draft) => (
               <SectionSurface
                 key={draft.category}
-                className="grid gap-4 md:grid-cols-[minmax(0,12rem)_minmax(0,1fr)_minmax(0,15rem)] md:items-end"
+                className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-neutral-900">
-                    {formatCategoryLabel(draft.category)}
-                  </p>
-                  <Input
-                    value={draft.label}
-                    onChange={(event) =>
-                      updateDraft(draft.category, { label: event.target.value })
-                    }
-                    placeholder="Optional label"
-                    className="text-sm"
-                  />
-                </div>
-                <p className="hidden text-sm text-[var(--muted)] md:block">
-                  Applies to scope items in this category when you apply saved
-                  rates on a review.
-                </p>
+                <ScopeCategoryLabel
+                  category={draft.category}
+                  labelClassName="text-sm font-medium text-neutral-900"
+                />
                 <EstimateRangeInputs
                   minValue={draft.labor_cost}
                   maxValue={draft.material_cost}

@@ -3,12 +3,10 @@
 import { useMemo } from "react";
 import { SubmittedScopeEstimateRange } from "@/components/estimate/submitted-scope-estimate-range";
 import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
-import { ScopeItemContent } from "@/components/scope/scope-item-content";
-import { ScopeItemShell } from "@/components/scope/scope-item-shell";
+import { ScopeItemWithEstimateRange } from "@/components/scope/scope-item-with-estimate-range";
 import { PageSection } from "@/components/layout/page-section";
 import { buildSubmittedEstimateDisplay } from "@/lib/estimates/submitted-estimate-display";
 import { groupScopeItemsByCategory } from "@/lib/scope/group-by-category";
-import { cn } from "@/lib/utils";
 import type { ContractorEstimate, ScopeItem } from "@/types";
 
 export function ReadOnlyProposalEstimate({
@@ -67,30 +65,11 @@ export function ReadOnlyProposalEstimate({
                 const itemRange = estimateDisplay?.scopeItemRanges.get(item.id);
 
                 return (
-                  <div
+                  <ScopeItemWithEstimateRange
                     key={item.id}
-                    className={cn(
-                      "flex items-center justify-between gap-3",
-                      usesItemPricing &&
-                        "md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,15rem)] md:items-center"
-                    )}
-                  >
-                    <ScopeItemShell
-                      className={
-                        usesItemPricing
-                          ? "min-w-0 flex-1 md:flex md:min-h-11 md:w-full md:items-center"
-                          : "w-full"
-                      }
-                    >
-                      <ScopeItemContent item={item} />
-                    </ScopeItemShell>
-                    {usesItemPricing && itemRange ? (
-                      <SubmittedScopeEstimateRange
-                        laborCost={itemRange.labor_cost}
-                        materialCost={itemRange.material_cost}
-                      />
-                    ) : null}
-                  </div>
+                    item={item}
+                    range={usesItemPricing ? itemRange : null}
+                  />
                 );
               })}
             </ScopeCategoryGroup>

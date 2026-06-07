@@ -20,7 +20,7 @@ export default async function ContractorDashboardPage() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pt-6">
       <div className="space-y-2">
         <h1 className="font-display text-4xl tracking-tight text-neutral-900">
           Your projects

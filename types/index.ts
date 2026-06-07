@@ -363,6 +363,7 @@ export const SCOPE_CATEGORIES = [
   "drywall",
   "flooring",
   "tile",
+  "hardscape",
   "painting",
   "fixtures",
   "permits",
