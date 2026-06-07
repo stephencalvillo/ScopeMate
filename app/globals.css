@@ -67,6 +67,10 @@ body {
   contain: layout paint style;
 }
 
+.marketing-hero-grid--paused .marketing-hero-grid-layer {
+  animation-play-state: paused;
+}
+
 .marketing-hero-grid-layer {
   position: absolute;
   inset: -24px;
@@ -81,9 +85,7 @@ body {
     transparent 1px,
     transparent 24px
   );
-  animation:
-    marketing-grid-drift-x 14s linear infinite,
-    marketing-grid-line-fade 9s ease-in-out infinite;
+  animation: marketing-grid-drift-x 14s linear infinite;
 }
 
 .marketing-hero-grid-h-rev {
@@ -96,10 +98,8 @@ body {
     transparent 13px,
     transparent 24px
   );
-  animation:
-    marketing-grid-drift-x-rev 18s linear infinite,
-    marketing-grid-line-fade 11s ease-in-out infinite reverse;
-  animation-delay: -4s, -2s;
+  animation: marketing-grid-drift-x-rev 18s linear infinite;
+  animation-delay: -4s;
 }
 
 .marketing-hero-grid-v-fwd {
@@ -110,10 +110,8 @@ body {
     transparent 1px,
     transparent 24px
   );
-  animation:
-    marketing-grid-drift-y 16s linear infinite,
-    marketing-grid-line-fade 10s ease-in-out infinite;
-  animation-delay: -3s, -5s;
+  animation: marketing-grid-drift-y 16s linear infinite;
+  animation-delay: -3s;
 }
 
 .marketing-hero-grid-v-rev {
@@ -126,10 +124,8 @@ body {
     transparent 13px,
     transparent 24px
   );
-  animation:
-    marketing-grid-drift-y-rev 20s linear infinite,
-    marketing-grid-line-fade 12s ease-in-out infinite reverse;
-  animation-delay: -7s, -1s;
+  animation: marketing-grid-drift-y-rev 20s linear infinite;
+  animation-delay: -7s;
 }
 
 .marketing-hero-grid-fade {
@@ -221,6 +217,17 @@ body {
   }
   50% {
     opacity: 0.55;
+  }
+}
+
+@keyframes how-it-works-preview-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

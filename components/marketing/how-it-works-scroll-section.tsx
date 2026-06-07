@@ -16,10 +16,22 @@ type HowItWorksScrollSectionProps = {
   steps: readonly HowItWorksStep[];
 };
 
-const STEP_SCROLL_VH = 45;
+const STEP_SCROLL_VH = 55;
 
 function getScrollSectionHeight(stepCount: number) {
   return 100 + Math.max(stepCount - 1, 0) * STEP_SCROLL_VH;
+}
+
+function getStepFromProgress(progress: number, stepCount: number) {
+  if (stepCount <= 1) {
+    return 0;
+  }
+
+  const slice = 1 / stepCount;
+  return Math.min(
+    stepCount - 1,
+    Math.floor((progress + slice / 2) / slice)
+  );
 }
 
 export function HowItWorksScrollSection({
@@ -58,10 +70,7 @@ export function HowItWorksScrollSection({
 
       const scrolled = Math.min(Math.max(-rect.top, 0), scrollableDistance);
       const progress = scrolled / scrollableDistance;
-      const nextStep = Math.min(
-        steps.length - 1,
-        Math.floor(progress * steps.length)
-      );
+      const nextStep = getStepFromProgress(progress, steps.length);
 
       if (nextStep !== activeStepRef.current) {
         activeStepRef.current = nextStep;
@@ -111,10 +120,7 @@ export function HowItWorksScrollSection({
         </div>
       </section>
 
-      <section
-        aria-label={title}
-        className="relative hidden md:block"
-      >
+      <section aria-label={title} className="relative hidden md:block">
         <div
           ref={containerRef}
           style={{ height: `${getScrollSectionHeight(steps.length)}vh` }}
@@ -145,7 +151,7 @@ export function HowItWorksScrollSection({
                         <div
                           key={step.title}
                           className={cn(
-                            "relative transition-opacity duration-500 ease-in-out",
+                            "relative transition-opacity duration-300 ease-out",
                             isActive
                               ? "opacity-100"
                               : isComplete
@@ -156,31 +162,26 @@ export function HowItWorksScrollSection({
                           <div className="flex items-start gap-3 pl-10">
                             <span
                               className={cn(
-                                "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--accent-foreground)] transition-transform duration-500 ease-in-out",
-                                isActive && "scale-110"
+                                "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--accent-foreground)] transition-transform duration-300 ease-out",
+                                isActive && "scale-105"
                               )}
                             >
                               {howItWorksIcons[index]}
                             </span>
-                            <div className="space-y-2 text-left">
+                            <div className="space-y-1.5 text-left">
                               <h3
                                 className={cn(
-                                  "font-display tracking-tight text-neutral-900 transition-[font-size] duration-500 ease-in-out",
+                                  "font-display tracking-tight text-neutral-900",
                                   isActive ? "text-xl" : "text-base"
                                 )}
                               >
                                 {step.title}
                               </h3>
-                              <p
-                                className={cn(
-                                  "text-sm leading-relaxed text-[var(--muted)] transition-[max-height,opacity] duration-500 ease-in-out",
-                                  isActive
-                                    ? "max-h-24 opacity-100"
-                                    : "max-h-0 overflow-hidden opacity-0"
-                                )}
-                              >
-                                {step.description}
-                              </p>
+                              {isActive ? (
+                                <p className="text-sm leading-relaxed text-[var(--muted)]">
+                                  {step.description}
+                                </p>
+                              ) : null}
                             </div>
                           </div>
                         </div>
@@ -189,7 +190,12 @@ export function HowItWorksScrollSection({
                   </div>
 
                   <div className="relative min-h-[260px] w-full md:min-h-[280px]">
-                    <HowItWorksStepPreview step={activeStep} />
+                    <div
+                      key={activeStep}
+                      className="motion-safe:animate-[how-it-works-preview-in_220ms_ease-out]"
+                    >
+                      <HowItWorksStepPreview step={activeStep} />
+                    </div>
                   </div>
                 </div>
 
@@ -201,7 +207,7 @@ export function HowItWorksScrollSection({
                     <div
                       key={step.title}
                       className={cn(
-                        "h-1 flex-1 rounded-full transition-colors duration-500 ease-in-out",
+                        "h-1 flex-1 rounded-full transition-colors duration-300 ease-out",
                         index <= activeStep
                           ? "bg-neutral-900"
                           : "bg-[var(--border)]"
