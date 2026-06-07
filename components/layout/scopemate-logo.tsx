@@ -3,19 +3,21 @@ import { cn } from "@/lib/utils";
 
 export function ScopeMateLogo({
   className,
+  fullWidth = false,
   ...props
-}: SVGProps<SVGSVGElement>) {
+}: SVGProps<SVGSVGElement> & { fullWidth?: boolean }) {
   const clipId = useId();
 
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="91"
-      height="24"
       viewBox="0 0 91 24"
       fill="none"
-      aria-hidden
-      className={cn("h-6 w-auto", className)}
+      {...(!fullWidth ? { width: 91, height: 24 } : {})}
+      aria-hidden={fullWidth ? undefined : true}
+      aria-label={fullWidth ? "ScopeMate" : undefined}
+      role={fullWidth ? "img" : undefined}
+      className={cn(fullWidth ? "h-auto w-full max-w-none" : "h-6 w-auto", className)}
       {...props}
     >
       <g clipPath={`url(#${clipId})`}>
