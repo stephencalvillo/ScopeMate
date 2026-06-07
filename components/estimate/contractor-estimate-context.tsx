@@ -21,6 +21,7 @@ import {
   type CategoryPricingMode,
   type DraftEstimateEntry,
 } from "@/lib/estimates/inline-estimate";
+import { applySavedRatesToEntries } from "@/lib/contractor/apply-rates";
 import {
   formatCurrency,
   estimateRangeBounds,
@@ -66,6 +67,7 @@ type ContractorEstimateContextValue = {
   ) => void;
   setPricingMode: (mode: CategoryPricingMode) => void;
   generateDraft: () => Promise<void>;
+  applySavedRates: () => Promise<void>;
   saveDraft: () => Promise<void>;
   submitProposal: () => Promise<void>;
   persistDraftForReview: () => Promise<void>;
@@ -326,6 +328,48 @@ export function ContractorEstimateProvider({
       "Draft prices prefilled from local market averages. Review and adjust before submitting."
     );
   }, [applyEstimateToState, token]);
+
+  const applySavedRates = useCallback(async () => {
+    setError(null);
+    setMessage(null);
+
+    try {
+      const response = await fetch("/api/contractor/rates");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Could not load saved rates.");
+      }
+
+      const rates = (data.rates ?? []) as Array<{
+        category: string;
+        labor_cost: number;
+        material_cost: number;
+      }>;
+
+      if (rates.length === 0) {
+        throw new Error(
+          "Add saved rates in your contractor portal before applying them."
+        );
+      }
+
+      setEntries((current) =>
+        applySavedRatesToEntries({
+          entries: current,
+          rates,
+          pricingMode,
+        })
+      );
+      setDirty(true);
+      setMessage("Applied your saved rates. Review and adjust before submitting.");
+    } catch (applyError) {
+      setError(
+        applyError instanceof Error
+          ? applyError.message
+          : "Could not apply saved rates."
+      );
+    }
+  }, [pricingMode, scopeItems]);
 
   useEffect(() => {
     if (
@@ -592,6 +636,7 @@ export function ContractorEstimateProvider({
         updateSectionEstimate,
         setPricingMode,
         generateDraft,
+        applySavedRates,
         saveDraft,
         submitProposal,
         persistDraftForReview: async () => {

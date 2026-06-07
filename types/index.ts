@@ -56,6 +56,18 @@ export interface ContractorProfile {
   updated_at: string;
 }
 
+export interface ContractorRateItem {
+  id: string;
+  contractor_user_id: string;
+  category: string;
+  label: string;
+  labor_cost: number;
+  material_cost: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Project {
   id: string;
   homeowner_id: string;

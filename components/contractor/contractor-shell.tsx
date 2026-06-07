@@ -7,13 +7,21 @@ export function ContractorShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-[var(--background)]">
       <header className="border-b border-[var(--border)] bg-white/80 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-[var(--page-padding-x)]">
-          <Link
-            href="/contractor"
-            className="text-neutral-900 transition-opacity hover:opacity-80"
-            aria-label="ScopeMate contractor home"
-          >
-            <ScopeMateLogo />
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link
+              href="/contractor"
+              className="text-neutral-900 transition-opacity hover:opacity-80"
+              aria-label="ScopeMate contractor home"
+            >
+              <ScopeMateLogo />
+            </Link>
+            <Link
+              href="/contractor/rates"
+              className="text-sm text-[var(--muted)] transition-colors hover:text-neutral-900"
+            >
+              Saved rates
+            </Link>
+          </div>
           <div className="flex items-center">
             <AccountMenu />
           </div>
