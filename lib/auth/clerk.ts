@@ -37,20 +37,42 @@ export class NotFoundError extends Error {
   }
 }
 
+function isUniqueViolation(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: string }).code === "23505"
+  );
+}
+
+function resolveClerkEmail(
+  clerkUser: NonNullable<Awaited<ReturnType<typeof currentUser>>>
+) {
+  return (
+    clerkUser.emailAddresses.find(
+      (entry) => entry.id === clerkUser.primaryEmailAddressId
+    )?.emailAddress ??
+    clerkUser.emailAddresses.find(
+      (entry) => entry.verification?.status === "verified"
+    )?.emailAddress ??
+    clerkUser.emailAddresses[0]?.emailAddress ??
+    null
+  );
+}
+
 export async function ensureUserRecord(): Promise<User> {
   const clerkUser = await currentUser();
   if (!clerkUser) {
     throw new AuthError("You need to sign in to continue.");
   }
 
-  const email =
-    clerkUser.emailAddresses.find(
-      (entry) => entry.id === clerkUser.primaryEmailAddressId
-    )?.emailAddress ??
-    clerkUser.emailAddresses[0]?.emailAddress;
+  const email = resolveClerkEmail(clerkUser);
 
   if (!email) {
-    throw new AuthError("Your account needs an email address.");
+    throw new AuthError(
+      "Verify your email address to continue. Check your inbox for a verification code or link."
+    );
   }
 
   const supabase = createServiceClient();
@@ -91,6 +113,14 @@ export async function ensureUserRecord(): Promise<User> {
     .select("*")
     .single();
 
-  if (error) throw error;
+  if (error) {
+    if (isUniqueViolation(error)) {
+      throw new AuthError(
+        "An account with this email already exists. Sign in with that email instead."
+      );
+    }
+
+    throw error;
+  }
   return created as User;
 }

@@ -19,7 +19,7 @@ export function ContractorShell({ children }: { children: React.ReactNode }) {
             <ContractorNavTabs />
           </div>
           <div className="flex shrink-0 items-center self-center">
-            <AccountMenu />
+            <AccountMenu variant="contractor" />
           </div>
         </div>
       </header>

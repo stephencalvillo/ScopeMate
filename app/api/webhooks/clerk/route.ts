@@ -19,6 +19,23 @@ type ClerkWebhookEvent = {
   };
 };
 
+function resolveWebhookEmail(event: ClerkWebhookEvent) {
+  return (
+    event.data.email_addresses?.find(
+      (entry) => entry.id === event.data.primary_email_address_id
+    )?.email_address ?? event.data.email_addresses?.[0]?.email_address
+  );
+}
+
+function isUniqueViolation(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: string }).code === "23505"
+  );
+}
+
 export async function POST(request: Request) {
   const secret = process.env.CLERK_WEBHOOK_SECRET;
   if (!secret) {
@@ -46,11 +63,8 @@ export async function POST(request: Request) {
 
   const supabase = createServiceClient();
 
-  if (event.type === "user.created") {
-    const email =
-      event.data.email_addresses?.find(
-        (entry) => entry.id === event.data.primary_email_address_id
-      )?.email_address ?? event.data.email_addresses?.[0]?.email_address;
+  if (event.type === "user.created" || event.type === "user.updated") {
+    const email = resolveWebhookEmail(event);
 
     if (!email) {
       return NextResponse.json({ received: true });
@@ -67,36 +81,25 @@ export async function POST(request: Request) {
         name,
         role: "homeowner",
       },
-      { onConflict: "id", ignoreDuplicates: true }
+      { onConflict: "id" }
     );
 
     if (error) {
-      console.error(error);
-      return NextResponse.json({ error: "Failed to sync user." }, { status: 500 });
-    }
-  }
+      if (isUniqueViolation(error)) {
+        console.error("Clerk webhook email conflict:", {
+          clerkUserId: event.data.id,
+          email,
+          error,
+        });
+        return NextResponse.json({ received: true });
+      }
 
-  if (event.type === "user.updated") {
-    const email =
-      event.data.email_addresses?.find(
-        (entry) => entry.id === event.data.primary_email_address_id
-      )?.email_address ?? event.data.email_addresses?.[0]?.email_address;
-
-    if (!email) {
-      return NextResponse.json({ received: true });
-    }
-
-    const name =
-      [event.data.first_name, event.data.last_name].filter(Boolean).join(" ") ||
-      null;
-
-    const { error } = await supabase
-      .from("users")
-      .update({ email, name })
-      .eq("id", event.data.id);
-
-    if (error) {
-      console.error(error);
+      console.error("Clerk webhook sync failed:", {
+        eventType: event.type,
+        clerkUserId: event.data.id,
+        email,
+        error,
+      });
       return NextResponse.json({ error: "Failed to sync user." }, { status: 500 });
     }
   }
