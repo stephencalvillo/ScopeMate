@@ -25,7 +25,11 @@ export function ScopeItemWithEstimateRange({
   return (
     <ScopeItemShell
       interactive={interactive}
-      className={cn("w-full", hasRange && "flex min-h-11 items-center gap-4")}
+      className={cn(
+        "w-full",
+        hasRange &&
+          "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:grid-cols-[minmax(0,1fr)_15rem] md:gap-4"
+      )}
     >
       <ScopeItemContent item={item} showAttribution={showAttribution} />
       {hasRange && range ? (

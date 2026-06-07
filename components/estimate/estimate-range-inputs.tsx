@@ -116,7 +116,7 @@ export function EstimateRangeHeader({ className }: { className?: string }) {
   return (
     <div className={cn("hidden items-center gap-4 md:flex", className)}>
       <span className="min-w-0 flex-1" aria-hidden />
-      <span className="w-full shrink-0 text-xs font-medium text-[var(--muted)] md:w-[15rem]">
+      <span className="shrink-0 text-xs font-medium text-[var(--muted)] md:w-[15rem]">
         Range
       </span>
     </div>

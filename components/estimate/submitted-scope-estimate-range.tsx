@@ -12,7 +12,7 @@ export function SubmittedScopeEstimateRange({
 }) {
   return (
     <EstimateRangeInputs
-      className={cn("w-full shrink-0 md:w-[15rem]", className)}
+      className={cn("shrink-0 justify-self-end md:w-[15rem]", className)}
       minValue={String(laborCost)}
       maxValue={String(materialCost)}
       readOnly
