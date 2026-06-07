@@ -1,5 +1,5 @@
 import { SignUp } from "@clerk/nextjs";
-import { clerkAppearance } from "@/lib/clerk/appearance";
+import { getClerkAppearance } from "@/lib/clerk/appearance";
 
 export default function SignUpPage() {
   return (
@@ -9,7 +9,7 @@ export default function SignUpPage() {
           Helping homeowners and contractors start on the same page.
         </p>
       </div>
-      <SignUp appearance={clerkAppearance} />
+      <SignUp appearance={getClerkAppearance()} />
     </div>
   );
 }

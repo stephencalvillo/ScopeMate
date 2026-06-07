@@ -1,3 +1,5 @@
+import { isGoogleAuthEnabled } from "@/lib/clerk/google-auth-enabled";
+
 export const clerkAppearance = {
   variables: {
     colorPrimary: "#171717",
@@ -17,3 +19,18 @@ export const clerkAppearance = {
     footerActionLink: "text-neutral-900 hover:text-neutral-700",
   },
 };
+
+export function getClerkAppearance() {
+  if (isGoogleAuthEnabled()) {
+    return clerkAppearance;
+  }
+
+  return {
+    ...clerkAppearance,
+    elements: {
+      ...clerkAppearance.elements,
+      socialButtonsRoot: "hidden",
+      dividerRow: "hidden",
+    },
+  };
+}

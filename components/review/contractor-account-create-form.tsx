@@ -6,6 +6,7 @@ import { useSignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { isGoogleAuthEnabled } from "@/lib/clerk/google-auth-enabled";
 import { persistContractorSignupPrefill } from "@/lib/contractor/signup-prefill";
 
 type SignupPrefill = {
@@ -252,25 +253,29 @@ export function ContractorAccountCreateForm({
         />
       </div>
 
-      <div className="relative py-1">
-        <div className="absolute inset-0 flex items-center" aria-hidden>
-          <span className="w-full border-t border-[var(--border)]" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase tracking-wide">
-          <span className="bg-white px-2 text-[var(--muted)]">or</span>
-        </div>
-      </div>
+      {isGoogleAuthEnabled() ? (
+        <>
+          <div className="relative py-1">
+            <div className="absolute inset-0 flex items-center" aria-hidden>
+              <span className="w-full border-t border-[var(--border)]" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase tracking-wide">
+              <span className="bg-white px-2 text-[var(--muted)]">or</span>
+            </div>
+          </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        disabled={loading}
-        onClick={() => void handleGoogleSignIn()}
-      >
-        <GoogleIcon />
-        Sign in with Google
-      </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={loading}
+            onClick={() => void handleGoogleSignIn()}
+          >
+            <GoogleIcon />
+            Sign in with Google
+          </Button>
+        </>
+      ) : null}
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 

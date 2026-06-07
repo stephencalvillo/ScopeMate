@@ -1,5 +1,5 @@
 import { SignIn } from "@clerk/nextjs";
-import { clerkAppearance } from "@/lib/clerk/appearance";
+import { getClerkAppearance } from "@/lib/clerk/appearance";
 
 export default async function SignInPage({
   searchParams,
@@ -20,7 +20,7 @@ export default async function SignInPage({
         </p>
       </div>
       <SignIn
-        appearance={clerkAppearance}
+        appearance={getClerkAppearance()}
         fallbackRedirectUrl={safeRedirect}
         forceRedirectUrl={safeRedirect}
       />
