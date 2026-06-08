@@ -59,7 +59,7 @@ export function ReviewSubmitActions({
         throw new Error(data.error ?? "Could not submit review.");
       }
 
-      onSubmitted();
+      await onSubmitted();
     } catch (submitError) {
       setError(
         submitError instanceof Error

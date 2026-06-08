@@ -15,7 +15,7 @@ export function PageSection({
 }) {
   return (
     <section className={cn("space-y-4", className)}>
-      <div className="flex min-w-0 items-start justify-between gap-4">
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1 space-y-1">
           <h2 className="font-display text-lg text-neutral-900">{title}</h2>
           {description ? (
@@ -23,7 +23,7 @@ export function PageSection({
           ) : null}
         </div>
         {action ? (
-          <div className="flex max-w-full shrink-0 items-center overflow-x-auto">
+          <div className="flex max-w-full shrink-0 items-center overflow-x-auto sm:justify-end">
             {action}
           </div>
         ) : null}

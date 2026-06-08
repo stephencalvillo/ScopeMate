@@ -103,9 +103,11 @@ export function EstimatePriceInputModeControl({
 export function CategorySectionEstimateInputs({
   category,
   className,
+  displayOnly = false,
 }: {
   category: string;
   className?: string;
+  displayOnly?: boolean;
 }) {
   const {
     showEstimate,
@@ -131,7 +133,7 @@ export function CategorySectionEstimateInputs({
       minValue={sectionEntry?.labor_cost ?? "0"}
       maxValue={sectionEntry?.material_cost ?? "0"}
       disabled={disabled}
-      readOnly={submitted || reviewSubmitted}
+      readOnly={displayOnly || submitted || reviewSubmitted}
       inputMode={priceInputMode}
       onMinChange={(value) =>
         updateSectionEstimate(category, { labor_cost: value })

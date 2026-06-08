@@ -73,9 +73,10 @@ export function ContractorReviewPage({ token }: { token: string }) {
     loadReview();
   }, [loadReview]);
 
-  const handleReviewSubmitted = useCallback(() => {
+  const handleReviewSubmitted = useCallback(async () => {
+    await loadReview({ silent: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
     setShowSubmittedDialog(true);
-    void loadReview({ silent: true });
   }, [loadReview]);
 
   if (loading) {

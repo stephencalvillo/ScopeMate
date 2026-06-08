@@ -239,9 +239,20 @@ export function ReviewScopeList({
             itemCount={group.items.length + draftAdds.length}
             chevronAfterAside={usesSectionPricing}
             headerAside={
-              showEstimate ? (
-                <CategorySectionEstimateInputs category={group.category} />
-              ) : null
+              showEstimate
+                ? ({ layout }) => (
+                    <CategorySectionEstimateInputs
+                      category={group.category}
+                      displayOnly={layout === "summary"}
+                      className={cn(
+                        layout === "stacked" && "w-full justify-start",
+                        layout === "summary" &&
+                          "h-auto text-sm tabular-nums text-neutral-800",
+                        layout === "inline" && "w-[15rem]"
+                      )}
+                    />
+                  )
+                : undefined
             }
           >
             {group.items.map((item) => {
