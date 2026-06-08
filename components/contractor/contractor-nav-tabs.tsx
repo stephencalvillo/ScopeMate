@@ -11,7 +11,9 @@ const TABS = [
     label: "My projects",
     icon: Files,
     isActive: (pathname: string) =>
-      pathname === "/contractor" || pathname.startsWith("/contractor/bids/"),
+      pathname === "/contractor" ||
+      pathname.startsWith("/contractor/bids/") ||
+      pathname.startsWith("/contractor/projects/"),
   },
   {
     href: "/contractor/rates",

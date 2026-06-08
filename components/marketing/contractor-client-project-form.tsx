@@ -9,11 +9,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { persistContractorProjectReturn } from "@/lib/contractor/contractor-project-onboarding";
 
-export function ContractorClientProjectForm() {
+export function ContractorClientProjectForm({
+  mode = "marketing",
+}: {
+  mode?: "marketing" | "portal";
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [targetStart, setTargetStart] = useState<string | null>(null);
+  const isPortal = mode === "portal";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,16 +31,19 @@ export function ContractorClientProjectForm() {
     ).trim();
     const zip = String(formData.get("zip") ?? "").trim();
 
-    const response = await fetch("/api/projects/guest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        original_description,
-        zip,
-        creator_role: "contractor",
-        ...(targetStart ? { target_start: targetStart } : {}),
-      }),
-    });
+    const response = await fetch(
+      isPortal ? "/api/projects/contractor-client" : "/api/projects/guest",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          original_description,
+          zip,
+          ...(isPortal ? {} : { creator_role: "contractor" }),
+          ...(targetStart ? { target_start: targetStart } : {}),
+        }),
+      }
+    );
 
     const data = await response.json();
     setLoading(false);
@@ -51,8 +59,15 @@ export function ContractorClientProjectForm() {
       return;
     }
 
-    persistContractorProjectReturn(data.id);
-    router.push(`/projects/${data.id}?generate=1&intent=contractor`);
+    if (!isPortal) {
+      persistContractorProjectReturn(data.id);
+    }
+
+    router.push(
+      isPortal
+        ? `/contractor/projects/${data.id}?generate=1`
+        : `/projects/${data.id}?generate=1&intent=contractor`
+    );
   }
 
   return (

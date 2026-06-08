@@ -104,11 +104,15 @@ export async function getOwnedProject(projectId: string): Promise<Project> {
     throw new NotFoundError("Project not found.");
   }
 
-  if (project.homeowner_id !== user.id) {
-    throw new ForbiddenError("You do not have access to this project.");
+  if (project.homeowner_id === user.id) {
+    return project;
   }
 
-  return project;
+  if (project.created_by_user_id === user.id) {
+    return project;
+  }
+
+  throw new ForbiddenError("You do not have access to this project.");
 }
 
 export async function claimGuestProject(projectId: string): Promise<Project> {

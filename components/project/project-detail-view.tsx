@@ -57,11 +57,13 @@ export function ProjectDetailView({
   autoGenerate,
   acceptedProposal = null,
   isGuestProject = false,
+  projectsBreadcrumbHref,
 }: {
   project: ProjectWithScope;
   autoGenerate: boolean;
   acceptedProposal?: ProjectAcceptedProposalSummary | null;
   isGuestProject?: boolean;
+  projectsBreadcrumbHref?: "/projects" | "/contractor" | null;
 }) {
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const handleActivityChange = useCallback(() => {
@@ -70,7 +72,16 @@ export function ProjectDetailView({
 
   const hasScope = project.scope_items.length > 0 || project.ai_summary;
 
-  const breadcrumb = isGuestProject ? null : <MyProjectsBreadcrumb href="/projects" />;
+  const breadcrumb =
+    projectsBreadcrumbHref === null
+      ? null
+      : projectsBreadcrumbHref
+        ? (
+            <MyProjectsBreadcrumb href={projectsBreadcrumbHref} />
+          )
+        : isGuestProject
+          ? null
+          : <MyProjectsBreadcrumb href="/projects" />;
 
   const acceptedProposalBanner =
     acceptedProposal != null ? (

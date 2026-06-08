@@ -35,12 +35,14 @@ export function ShareLinkDialogContent({
   const [loading, setLoading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [messageIsError, setMessageIsError] = useState(false);
   const autoCreateStarted = useRef(false);
   const shareCopy = getProjectShareCopy(project.creator_role === "contractor");
 
   async function enableShare() {
     setLoading(true);
     setMessage(null);
+    setMessageIsError(false);
 
     const response = await fetch(`/api/projects/${project.id}/share`, {
       method: "POST",
@@ -54,10 +56,12 @@ export function ShareLinkDialogContent({
     if (response.ok) {
       setShareEnabled(true);
       setShareUrl(data.share_url);
+      setMessageIsError(false);
       setMessage("Share link is ready. Copy it or send it by email.");
       return true;
     }
 
+    setMessageIsError(true);
     setMessage(data.error ?? "Could not create share link.");
     return false;
   }
@@ -151,83 +155,87 @@ export function ShareLinkDialogContent({
   const isCreating = loading && !shareUrl;
 
   return (
-    <div className="space-y-4">
+    <div>
       <DialogHeader className="mb-0">
         <DialogTitle>Share link</DialogTitle>
         <DialogDescription className="text-[var(--muted)]">
-          {shareCopy.dialogDescription}
+          {shareCopy.description}
         </DialogDescription>
       </DialogHeader>
 
-      {isCreating ? (
-        <div className="space-y-3">
-          <div className="h-10 animate-pulse rounded-[8px] bg-neutral-100" />
-          <p className="text-sm text-[var(--muted)]">Creating link...</p>
-        </div>
-      ) : shareEnabled && shareUrl ? (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="share-link-url">Review link</Label>
+      <div className="mt-4 space-y-4">
+        {isCreating ? (
+          <div className="space-y-3">
+            <div className="h-10 animate-pulse rounded-[8px] bg-neutral-100" />
+            <p className="text-sm text-[var(--muted)]">Creating link...</p>
+          </div>
+        ) : shareEnabled && shareUrl ? (
+          <div className="space-y-4">
             <Input
               id="share-link-url"
               readOnly
               value={shareUrl}
+              aria-label="Share link"
               className="text-sm"
             />
-          </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={copyLink} disabled={loading || sendingEmail}>
-              Copy link
-            </Button>
-            <Button
-              variant="outline"
-              onClick={regenerateShare}
-              disabled={loading || sendingEmail}
-            >
-              Regenerate link
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={disableShare}
-              disabled={loading || sendingEmail}
-            >
-              Turn off sharing
-            </Button>
-          </div>
-
-          <form onSubmit={sendEmail} className="space-y-2 border-t pt-4">
-            <Label htmlFor="share-link-email">{shareCopy.emailLabel}</Label>
-            <p className="text-xs text-[var(--muted)]">{shareCopy.emailHelper}</p>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Input
-                id="share-link-email"
-                type="email"
-                placeholder={shareCopy.emailPlaceholder}
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-                disabled={sendingEmail}
-              />
-              <Button type="submit" disabled={sendingEmail || !email.trim()}>
-                {sendingEmail ? "Sending..." : "Send link"}
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={copyLink} disabled={loading || sendingEmail}>
+                Copy link
+              </Button>
+              <Button
+                variant="outline"
+                onClick={regenerateShare}
+                disabled={loading || sendingEmail}
+              >
+                Regenerate link
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={disableShare}
+                disabled={loading || sendingEmail}
+              >
+                Turn off sharing
               </Button>
             </div>
-          </form>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <p className="text-sm text-neutral-800">{shareCopy.description}</p>
+
+            <form onSubmit={sendEmail} className="space-y-2 border-t pt-4">
+              <Label htmlFor="share-link-email">{shareCopy.emailLabel}</Label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  id="share-link-email"
+                  type="email"
+                  placeholder={shareCopy.emailPlaceholder}
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                  disabled={sendingEmail}
+                />
+                <Button type="submit" disabled={sendingEmail || !email.trim()}>
+                  {sendingEmail ? "Sending..." : "Send link"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        ) : (
           <Button onClick={enableShare} disabled={loading}>
             <Link2 className="h-4 w-4" aria-hidden />
             {loading ? "Creating link..." : "Create share link"}
           </Button>
-        </div>
-      )}
+        )}
 
-      {message ? (
-        <p className="text-sm text-[var(--muted)]">{message}</p>
-      ) : null}
+        {message ? (
+          <p
+            className={
+              messageIsError
+                ? "text-sm text-red-600"
+                : "text-sm text-[var(--muted)]"
+            }
+          >
+            {message}
+          </p>
+        ) : null}
+      </div>
 
       {onClose ? (
         <div className="flex justify-end pt-2">

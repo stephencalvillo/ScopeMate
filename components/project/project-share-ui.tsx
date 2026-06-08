@@ -262,9 +262,14 @@ export function ProjectShareProvider({
           <div className="mx-auto max-w-5xl drop-shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
             <SectionSurface className="bg-white/95 backdrop-blur-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-[var(--muted)]">
-                  {shareCopy.description}
-                </p>
+                <div className="min-w-0 space-y-1">
+                  <p className="font-display text-lg text-neutral-900">
+                    {shareCopy.sectionTitle}
+                  </p>
+                  <p className="text-sm text-[var(--muted)]">
+                    {shareCopy.description}
+                  </p>
+                </div>
                 <ShareLinkTriggerButton
                   onClick={openShareDialogRef}
                   className={mobileFullWidthCtaClassName}

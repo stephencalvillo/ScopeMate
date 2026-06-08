@@ -8,7 +8,7 @@ import {
 } from "@/components/project/project-share-ui";
 import { PageSection } from "@/components/layout/page-section";
 
-export function ContractorShareSection() {
+export function ProjectShareSection() {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { shareSectionTitle, shareDescription } = useProjectShareCopy();
   useProjectShareSectionVisibility(sentinelRef);

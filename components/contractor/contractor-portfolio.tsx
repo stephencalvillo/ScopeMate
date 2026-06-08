@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/project/project-card";
 import { ContractorReviewsList } from "@/components/contractor/contractor-reviews-list";
 import { ContractorBidHistorySection } from "@/components/contractor/contractor-bid-history-section";
@@ -44,15 +45,12 @@ function ClientProjectsGrid({ projects }: { projects: Project[] }) {
       <SectionSurface className="space-y-2">
         <p className="text-sm font-medium text-neutral-900">No client projects yet</p>
         <p className="text-sm text-[var(--muted)]">
-          Start a scope from Get Started to build a project you can estimate and
-          share with your client.
+          Start a client project to build a scope you can estimate and share
+          with your client.
         </p>
-        <Link
-          href="/homeowners/signup"
-          className="inline-block text-sm font-medium text-neutral-900 hover:underline"
-        >
-          Start a client project
-        </Link>
+        <Button asChild>
+          <Link href="/contractor/projects/new">Start a client project</Link>
+        </Button>
       </SectionSurface>
     );
   }
@@ -63,7 +61,7 @@ function ClientProjectsGrid({ projects }: { projects: Project[] }) {
         <ProjectCard
           key={project.id}
           project={project}
-          href={`/projects/${project.id}`}
+          href={`/contractor/projects/${project.id}`}
           showProjectType={false}
           aiSummaryOnly
         />
@@ -95,15 +93,12 @@ export function ContractorPortfolio({
         <p className="text-sm font-medium text-neutral-900">No projects yet</p>
         <p className="text-sm text-[var(--muted)]">
           When a homeowner invites you to review a project, it will show up
-          here. You can also start a client project from Get Started.
+          here. You can also start a client project from your contractor portal.
         </p>
-        <div className="flex flex-wrap gap-4 pt-1">
-          <Link
-            href="/homeowners/signup"
-            className="text-sm font-medium text-neutral-900 hover:underline"
-          >
-            Start a client project
-          </Link>
+        <div className="flex flex-wrap items-center gap-4 pt-1">
+          <Button asChild>
+            <Link href="/contractor/projects/new">Start a client project</Link>
+          </Button>
           <Link
             href="/contractors"
             className="text-sm font-medium text-neutral-900 hover:underline"

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ContractorShareSection } from "@/components/contractor/contractor-share-and-activity";
+import { ProjectShareSection } from "@/components/project/project-share-section";
 import { ProjectActivitySection } from "@/components/project/project-activity-section";
 import { ReviewedProjectScopesSection } from "@/components/review/reviewed-project-scopes-section";
 import { NeedsAttentionPanel } from "@/components/suggestions/needs-attention-panel";
@@ -120,7 +120,7 @@ export function ProjectDetailTabs({
       {showOverview ? (
         <div className="space-y-8">
           <ScopeEditor project={project} autoGenerate={autoGenerate} />
-          <ContractorShareSection />
+          <ProjectShareSection />
         </div>
       ) : null}
 
