@@ -2,9 +2,9 @@ export const marketingCopy = {
   homepage: {
     hero: {
       headline:
-        "ScopeMate turns messy project ideas into contractor-ready scopes.",
+        "Turn messy project ideas into contractor-ready scopes.",
       subheadline:
-        "Start with a rough idea. ScopeMate helps you define the details, uncover what's missing, and create a scope contractors can confidently bid on.",
+        "Start with a rough idea. ScopeBuddy helps you define the details, uncover what's missing, and create a scope contractors can confidently bid on.",
       primaryCta: "Get Started",
       secondaryCta: "I'm a Contractor",
     },
@@ -19,7 +19,7 @@ export const marketingCopy = {
         {
           title: "AI builds your scope",
           description:
-            "ScopeMate asks smart follow-up questions and organizes everything into a clear scope of work.",
+            "ScopeBuddy asks smart follow-up questions and organizes everything into a clear scope of work.",
         },
         {
           title: "Share with contractors",
@@ -51,7 +51,7 @@ export const marketingCopy = {
     finalCta: {
       headline: "Every successful project starts with a clear scope.",
       subheadline:
-        "Homeowners don't know what to ask. Contractors don't know what's missing. ScopeMate bridges the gap.",
+        "Homeowners don't know what to ask. Contractors don't know what's missing. ScopeBuddy bridges the gap.",
       cta: "Get Started",
     },
   },
@@ -60,7 +60,7 @@ export const marketingCopy = {
       headline:
         "Planning a renovation shouldn't require becoming a construction expert.",
       subheadline:
-        "ScopeMate helps you turn a rough project idea into a clear, contractor-ready scope of work.",
+        "ScopeBuddy helps you turn a rough project idea into a clear, contractor-ready scope of work.",
       cta: "Start your project",
     },
     benefits: [
@@ -94,7 +94,7 @@ export const marketingCopy = {
       headline:
         "Spend less time clarifying projects and more time winning them.",
       subheadline:
-        "ScopeMate helps contractors receive cleaner project scopes, identify missing details, and respond with more accurate proposals.",
+        "ScopeBuddy helps contractors receive cleaner project scopes, identify missing details, and respond with more accurate proposals.",
       cta: "Create contractor profile",
     },
     benefits: [
@@ -124,12 +124,12 @@ export const marketingCopy = {
     homeowner: {
       title: "Describe your project",
       subtitle:
-        "ScopeMate will organize your description into a list of to-dos to send to a contractor.",
+        "ScopeBuddy will organize your description into a list of to-dos to send to a contractor.",
     },
     getStartedContractor: {
       title: "Describe your client's project",
       subtitle:
-        "ScopeMate will turn your notes into a clear scope you can estimate and share with your client.",
+        "ScopeBuddy will turn your notes into a clear scope you can estimate and share with your client.",
     },
     contractor: {
       title: "Create your contractor profile",

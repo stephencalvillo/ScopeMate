@@ -64,7 +64,7 @@ export function Hero({
         >
         <h1
           className={cn(
-            "font-display text-4xl tracking-tight text-neutral-900 text-balance md:text-5xl md:leading-tight",
+            "font-display text-4xl tracking-tight text-neutral-900 text-balance md:text-[64px] md:leading-[1.1]",
             isCentered && "mx-auto max-w-[60rem]"
           )}
         >
