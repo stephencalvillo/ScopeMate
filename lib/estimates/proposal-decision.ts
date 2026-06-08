@@ -230,28 +230,36 @@ export async function acceptProposalForProject({
     for (const invite of otherInvitations ?? []) {
       if (!invite.contractor_email || !invite.invitation_token) continue;
 
-      await sendProposalNotSelectedEmail({
-        to: invite.contractor_email,
-        contractorName: invite.contractor_name ?? "Contractor",
-        homeownerName: homeowner.name ?? homeowner.email,
-        projectTitle: project.title,
-        selectedContractorName: invitation.contractor_name,
-        reviewToken: invite.invitation_token,
-        request,
-      });
+      try {
+        await sendProposalNotSelectedEmail({
+          to: invite.contractor_email,
+          contractorName: invite.contractor_name ?? "Contractor",
+          homeownerName: homeowner.name ?? homeowner.email,
+          projectTitle: project.title,
+          selectedContractorName: invitation.contractor_name,
+          reviewToken: invite.invitation_token,
+          request,
+        });
+      } catch (error) {
+        console.error("Failed to send proposal not selected email:", error);
+      }
     }
   }
 
-  await sendProposalAcceptedEmail({
-    to: invitation.contractor_email,
-    contractorName: invitation.contractor_name,
-    homeownerName: homeowner.name ?? homeowner.email,
-    projectTitle: project.title,
-    proposalMinTotal: range.minTotal,
-    proposalMaxTotal: range.maxTotal,
-    reviewToken: invitation.invitation_token,
-    request,
-  });
+  try {
+    await sendProposalAcceptedEmail({
+      to: invitation.contractor_email,
+      contractorName: invitation.contractor_name,
+      homeownerName: homeowner.name ?? homeowner.email,
+      projectTitle: project.title,
+      proposalMinTotal: range.minTotal,
+      proposalMaxTotal: range.maxTotal,
+      reviewToken: invitation.invitation_token,
+      request,
+    });
+  } catch (error) {
+    console.error("Failed to send proposal accepted email:", error);
+  }
 
   return getProposalEstimateForInvitation({ projectId, invitationId });
 }
