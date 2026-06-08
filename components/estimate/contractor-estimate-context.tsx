@@ -174,6 +174,7 @@ export function ContractorEstimateProvider({
   reviewSubmitted = false,
   initialEstimate,
   draftAddSuggestions = [],
+  autoLoad = true,
   children,
 }: {
   token: string;
@@ -182,6 +183,7 @@ export function ContractorEstimateProvider({
   reviewSubmitted?: boolean;
   initialEstimate: ContractorEstimate | null;
   draftAddSuggestions?: ScopeSuggestion[];
+  autoLoad?: boolean;
   children: ReactNode;
 }) {
   const [estimate, setEstimate] = useState<ContractorEstimate | null>(
@@ -207,7 +209,7 @@ export function ContractorEstimateProvider({
       ),
     })
   );
-  const [loading, setLoading] = useState(!initialEstimate);
+  const [loading, setLoading] = useState(autoLoad && !initialEstimate);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -292,9 +294,9 @@ export function ContractorEstimateProvider({
   }, [applyEstimateToState, token]);
 
   useEffect(() => {
-    if (initialEstimate) return;
+    if (!autoLoad || initialEstimate) return;
     loadEstimate();
-  }, [initialEstimate, loadEstimate]);
+  }, [autoLoad, initialEstimate, loadEstimate]);
 
   useEffect(() => {
     if (!initialEstimate) return;

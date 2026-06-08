@@ -10,17 +10,24 @@ import {
   clearContractorSignupPrefill,
   readContractorSignupPrefill,
 } from "@/lib/contractor/signup-prefill";
+import {
+  clearShareLinkReturn,
+  readShareLinkReturn,
+} from "@/lib/contractor/share-link-onboarding";
 
 export function ContractorOnboardingForm({
   defaultCompanyName = "",
   defaultContactName = "",
+  defaultServiceArea = "",
 }: {
   defaultCompanyName?: string;
   defaultContactName?: string;
+  defaultServiceArea?: string;
 }) {
   const router = useRouter();
   const [companyName, setCompanyName] = useState(defaultCompanyName);
   const [contactName, setContactName] = useState(defaultContactName);
+  const [serviceArea, setServiceArea] = useState(defaultServiceArea);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,10 +48,20 @@ export function ContractorOnboardingForm({
       await completeContractorSignup({
         company_name: companyName,
         contact_name: contactName,
+        service_area: serviceArea,
         complete_onboarding: true,
       });
       clearContractorSignupPrefill();
-      router.push("/contractor");
+
+      const returnUrl = readShareLinkReturn();
+      if (returnUrl?.startsWith("/review/")) {
+        const token = returnUrl.replace("/review/", "");
+        await fetch(`/api/review/${token}/claim`, { method: "POST" });
+        clearShareLinkReturn();
+        router.push(returnUrl);
+      } else {
+        router.push("/contractor");
+      }
       router.refresh();
     } catch (submitError) {
       setError(
@@ -81,12 +98,28 @@ export function ContractorOnboardingForm({
         />
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="service_area">Service area</Label>
+        <Input
+          id="service_area"
+          value={serviceArea}
+          onChange={(event) => setServiceArea(event.target.value)}
+          placeholder="e.g. Los Angeles area"
+          required
+        />
+      </div>
+
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <Button
         type="submit"
         className="w-full"
-        disabled={loading || !companyName.trim() || !contactName.trim()}
+        disabled={
+          loading ||
+          !companyName.trim() ||
+          !contactName.trim() ||
+          !serviceArea.trim()
+        }
       >
         {loading ? "Saving..." : "Continue to dashboard"}
       </Button>

@@ -23,11 +23,14 @@ export async function POST(request: Request) {
     const contactName =
       typeof body.contact_name === "string" ? body.contact_name : "";
     const phone = typeof body.phone === "string" ? body.phone : null;
+    const serviceArea =
+      typeof body.service_area === "string" ? body.service_area : null;
     const completeOnboarding = body.complete_onboarding !== false;
 
     const { profile, user } = await ensureContractorProfile({
       company_name: companyName,
       contact_name: contactName,
+      service_area: serviceArea,
       phone,
       complete_onboarding: completeOnboarding,
     });

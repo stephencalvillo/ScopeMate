@@ -50,6 +50,7 @@ export interface ContractorProfile {
   user_id: string;
   company_name: string;
   contact_name: string;
+  service_area: string | null;
   phone: string | null;
   onboarding_completed_at: string | null;
   created_at: string;

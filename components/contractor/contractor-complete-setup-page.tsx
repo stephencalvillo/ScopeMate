@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { finishContractorAccountSetup } from "@/lib/contractor/complete-signup";
+import { readShareLinkReturn } from "@/lib/contractor/share-link-onboarding";
 
 export function ContractorCompleteSetupPage() {
   const router = useRouter();
@@ -17,7 +18,12 @@ export function ContractorCompleteSetupPage() {
         const result = await finishContractorAccountSetup();
         if (cancelled) return;
 
-        router.replace(result.ready ? "/contractor" : "/contractor/onboarding");
+        const returnUrl = readShareLinkReturn();
+        router.replace(
+          result.ready
+            ? returnUrl ?? "/contractor"
+            : "/contractor/onboarding"
+        );
         router.refresh();
       } catch (setupError) {
         if (cancelled) return;

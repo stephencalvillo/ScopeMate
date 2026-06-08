@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
+import { createServiceClient } from "@/lib/db/supabase";
 import { canEditReview } from "@/lib/contractor/review-access";
 import { getReviewProjectByInvitationToken } from "@/lib/contractor/invitations";
 import { isShareLinkInvitation } from "@/lib/contractor/project-share";
@@ -40,6 +41,16 @@ export async function GET(
     const can_edit = await canEditReview(token, invitation);
     const is_share_link = isShareLinkInvitation(invitation, project);
 
+    const supabase = createServiceClient();
+    const { data: homeowner } = await supabase
+      .from("users")
+      .select("name, email")
+      .eq("id", invitation.invited_by)
+      .maybeSingle();
+
+    const homeowner_name =
+      homeowner?.name?.trim() || homeowner?.email?.trim() || "A homeowner";
+
     return NextResponse.json({
       invitation,
       review,
@@ -50,6 +61,7 @@ export async function GET(
       estimate,
       can_edit,
       is_share_link,
+      homeowner_name,
     });
   } catch (error) {
     return jsonError(error);

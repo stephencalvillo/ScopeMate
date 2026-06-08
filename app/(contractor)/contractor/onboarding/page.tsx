@@ -20,7 +20,7 @@ export default async function ContractorOnboardingPage() {
   return (
     <div className="mx-auto max-w-lg space-y-8">
       <div className="space-y-2 text-center">
-        <h1 className="font-display text-4xl tracking-tight text-neutral-900">
+        <h1 className="font-display text-3xl tracking-tight text-balance text-neutral-900 sm:text-4xl">
           Set up your contractor profile
         </h1>
         <p className="text-sm text-[var(--muted)]">
@@ -35,6 +35,7 @@ export default async function ContractorOnboardingPage() {
           <ContractorOnboardingForm
             defaultCompanyName={existingProfile?.company_name ?? ""}
             defaultContactName={existingProfile?.contact_name ?? user.name ?? ""}
+            defaultServiceArea={existingProfile?.service_area ?? ""}
           />
         </CardContent>
       </Card>

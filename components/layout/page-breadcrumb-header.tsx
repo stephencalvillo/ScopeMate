@@ -4,12 +4,12 @@ export function PageBreadcrumbHeader({
   breadcrumb,
   children,
 }: {
-  breadcrumb: ReactNode;
+  breadcrumb?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <div className="space-y-4">
-      {breadcrumb}
+      {breadcrumb ?? null}
       {children}
     </div>
   );

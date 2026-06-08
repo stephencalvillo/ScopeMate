@@ -1,4 +1,5 @@
 import { ForbiddenError } from "@/lib/auth/clerk";
+import { isMissingColumnError } from "@/lib/db/errors";
 import { buildReviewUrl } from "@/lib/contractor/urls";
 import {
   isShareLinkPlaceholder,
@@ -31,9 +32,19 @@ export {
 export type UpsertContractorProfileInput = {
   company_name: string;
   contact_name: string;
+  service_area?: string | null;
   phone?: string | null;
   complete_onboarding?: boolean;
 };
+
+export function isContractorProfileReady(profile: ContractorProfile | null) {
+  return Boolean(
+    profile?.onboarding_completed_at &&
+      profile.company_name.trim() &&
+      profile.contact_name.trim() &&
+      profile.service_area?.trim()
+  );
+}
 
 function normalizeReview(
   review: ContractorReview | ContractorReview[] | null | undefined
@@ -80,6 +91,7 @@ export async function upsertContractorProfile(
   const now = new Date().toISOString();
   const companyName = input.company_name.trim();
   const contactName = input.contact_name.trim() || user.name || "";
+  const serviceArea = input.service_area?.trim() || null;
 
   if (!companyName) {
     throw new ForbiddenError("Company name is required.");
@@ -89,25 +101,38 @@ export async function upsertContractorProfile(
     throw new ForbiddenError("Contact name is required.");
   }
 
+  if (input.complete_onboarding && !serviceArea) {
+    throw new ForbiddenError("Service area is required.");
+  }
+
   const existing = await getContractorProfile(user.id);
 
-  const { data: profile, error: profileError } = await supabase
+  const profilePayload = {
+    user_id: user.id,
+    company_name: companyName,
+    contact_name: contactName,
+    service_area: serviceArea ?? existing?.service_area ?? null,
+    phone: input.phone?.trim() || null,
+    onboarding_completed_at: input.complete_onboarding
+      ? existing?.onboarding_completed_at ?? now
+      : existing?.onboarding_completed_at ?? null,
+    updated_at: now,
+  };
+
+  let { data: profile, error: profileError } = await supabase
     .from("contractor_profiles")
-    .upsert(
-      {
-        user_id: user.id,
-        company_name: companyName,
-        contact_name: contactName,
-        phone: input.phone?.trim() || null,
-        onboarding_completed_at: input.complete_onboarding
-          ? existing?.onboarding_completed_at ?? now
-          : existing?.onboarding_completed_at ?? null,
-        updated_at: now,
-      },
-      { onConflict: "user_id" }
-    )
+    .upsert(profilePayload, { onConflict: "user_id" })
     .select("*")
     .single();
+
+  if (profileError && isMissingColumnError(profileError)) {
+    const { service_area: _serviceArea, ...legacyPayload } = profilePayload;
+    ({ data: profile, error: profileError } = await supabase
+      .from("contractor_profiles")
+      .upsert(legacyPayload, { onConflict: "user_id" })
+      .select("*")
+      .single());
+  }
 
   if (profileError) throw profileError;
 
@@ -226,7 +251,7 @@ export async function listContractorReviews(
 }
 
 export function contractorNeedsOnboarding(profile: ContractorProfile | null) {
-  return !profile?.onboarding_completed_at;
+  return !isContractorProfileReady(profile);
 }
 
 function isRealContractorName(name: string | null | undefined) {
@@ -317,7 +342,7 @@ export async function completeContractorSetupIfReady(
   }
 ): Promise<{ profile: ContractorProfile | null; ready: boolean }> {
   const existing = await getContractorProfile(user.id);
-  if (existing?.onboarding_completed_at) {
+  if (isContractorProfileReady(existing)) {
     return { profile: existing, ready: true };
   }
 
@@ -336,16 +361,19 @@ export async function completeContractorSetupIfReady(
     const profile = await upsertContractorProfile(user, {
       company_name: invitation.contractor_company!.trim(),
       contact_name: invitation.contractor_name.trim(),
-      complete_onboarding: true,
+      complete_onboarding: false,
     });
 
-    return { profile, ready: true };
+    return { profile, ready: isContractorProfileReady(profile) };
   }
 
   const prefillInput = profileInputFromPrefill(options?.prefill);
   if (prefillInput) {
-    const profile = await upsertContractorProfile(user, prefillInput);
-    return { profile, ready: true };
+    const profile = await upsertContractorProfile(user, {
+      ...prefillInput,
+      complete_onboarding: false,
+    });
+    return { profile, ready: isContractorProfileReady(profile) };
   }
 
   return { profile: existing, ready: false };

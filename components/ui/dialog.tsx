@@ -20,7 +20,8 @@ export function DialogContent({
       <DialogPrimitive.Content
         className={cn(
           "fixed left-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 rounded-2xl border border-stone-200 bg-white p-6 shadow-xl",
-          "top-[max(1rem,env(safe-area-inset-top))] max-h-[min(90dvh,calc(100%-2rem))] translate-y-0 overflow-y-auto overscroll-contain",
+          "top-[max(1rem,env(safe-area-inset-top))] max-h-[min(90dvh,calc(100%-2rem))] translate-y-0 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]",
+          "pb-[max(1.5rem,env(safe-area-inset-bottom))]",
           "sm:top-1/2 sm:max-h-[min(90dvh,calc(100%-4rem))] sm:-translate-y-1/2",
           className
         )}

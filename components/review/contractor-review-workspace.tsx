@@ -7,6 +7,7 @@ import {
   ContractorProjectDetailView,
 } from "@/components/review/accepted-proposal-project-view";
 import { ContractorReviewEstimateBody } from "@/components/review/contractor-review-estimate-body";
+import { isShareLinkPlaceholder } from "@/lib/contractor/project-share";
 import { ProjectReadinessSummary } from "@/components/review/project-readiness-summary";
 import { SharedPhotoGallery } from "@/components/share/shared-photo-gallery";
 import { ScopeSummary } from "@/components/scope/scope-summary";
@@ -42,11 +43,15 @@ export function ContractorReviewWorkspace({
   payload,
   onRefresh,
   onReviewSubmitted,
+  requireAccountForEstimate = false,
+  onRequestAccount,
 }: {
   token: string;
   payload: ReviewPayload;
   onRefresh: () => void;
   onReviewSubmitted: () => void | Promise<void>;
+  requireAccountForEstimate?: boolean;
+  onRequestAccount?: () => void;
 }) {
   const { invitation, review, project, photos, readiness, estimate = null } = payload;
   const [suggestions, setSuggestions] = useState(payload.suggestions);
@@ -54,7 +59,8 @@ export function ContractorReviewWorkspace({
   const [error, setError] = useState<string | null>(null);
 
   const reviewSubmitted = review.status === "submitted";
-  const editable = payload.can_edit && !reviewSubmitted;
+  const editable =
+    payload.can_edit && !reviewSubmitted && !requireAccountForEstimate;
   const proposalAccepted = estimate?.status === "accepted";
   const projectClosed =
     invitation.status === "closed_out" || estimate?.status === "declined";
@@ -68,7 +74,9 @@ export function ContractorReviewWorkspace({
     [suggestions]
   );
 
-  const breadcrumb = <MyProjectsBreadcrumb href="/contractor" />;
+  const breadcrumb = requireAccountForEstimate ? null : (
+    <MyProjectsBreadcrumb href="/contractor" />
+  );
 
   if (proposalAccepted && estimate) {
     return (
@@ -109,12 +117,15 @@ export function ContractorReviewWorkspace({
       <PageBreadcrumbHeader breadcrumb={breadcrumb}>
         <div className="space-y-3">
           <p className="text-sm text-[var(--muted)]">
-            Reviewing as {invitation.contractor_name}
-            {invitation.contractor_company
-              ? ` · ${invitation.contractor_company}`
-              : ""}
+            {requireAccountForEstimate && isShareLinkPlaceholder(invitation)
+              ? "Shared project review"
+              : `Reviewing as ${invitation.contractor_name}${
+                  invitation.contractor_company
+                    ? ` · ${invitation.contractor_company}`
+                    : ""
+                }`}
           </p>
-          <h1 className="font-display text-4xl tracking-tight text-neutral-900">
+          <h1 className="font-display text-3xl tracking-tight text-balance text-neutral-900 sm:text-4xl">
             {project.title}
           </h1>
           <p className="text-sm text-[var(--muted)]">
@@ -136,6 +147,7 @@ export function ContractorReviewWorkspace({
         reviewSubmitted={reviewSubmitted}
         initialEstimate={estimate}
         draftAddSuggestions={draftAddSuggestions}
+        autoLoad={!requireAccountForEstimate}
       >
         <ContractorReviewEstimateBody
           token={token}
@@ -148,6 +160,8 @@ export function ContractorReviewWorkspace({
           onRefresh={onRefresh}
           onError={setError}
           onReviewSubmitted={onReviewSubmitted}
+          requireAccountForEstimate={requireAccountForEstimate}
+          onRequestAccount={onRequestAccount}
         />
       </ContractorEstimateProvider>
 

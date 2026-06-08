@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useSignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
@@ -90,7 +90,7 @@ export function ContractorAccountCreateForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isReady = fetchStatus === "idle" && signUp;
+  const isReady = Boolean(signUp);
 
   function persistPrefill() {
     persistContractorSignupPrefill({
@@ -197,8 +197,23 @@ export function ContractorAccountCreateForm({
     }
   }
 
-  if (pendingVerification) {
-    return (
+  const isInitializing = fetchStatus === "fetching" && !signUp;
+
+  let content: ReactNode;
+
+  if (isInitializing) {
+    content = (
+      <p className="text-sm text-[var(--muted)]">Preparing sign up...</p>
+    );
+  } else if (fetchStatus === "idle" && !signUp) {
+    content = (
+      <p className="text-sm text-red-600">
+        Sign up is unavailable right now. Please try again or use sign in with
+        Google.
+      </p>
+    );
+  } else if (pendingVerification) {
+    content = (
       <form onSubmit={handleVerifyCode} className="space-y-4">
         <p className="text-sm text-[var(--muted)]">
           Enter the verification code sent to {email.trim()}.
@@ -216,76 +231,92 @@ export function ContractorAccountCreateForm({
           />
         </div>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        <Button type="submit" className="w-full" disabled={loading || !verificationCode.trim()}>
-          {loading ? "Verifying..." : "Verify and create account"}
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={
+            loading || fetchStatus === "fetching" || !verificationCode.trim()
+          }
+        >
+          {loading || fetchStatus === "fetching"
+            ? "Verifying..."
+            : "Verify and create account"}
+        </Button>
+      </form>
+    );
+  } else {
+    content = (
+      <form onSubmit={handleCreateAccount} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="contractor_email">Email</Label>
+          <Input
+            id="contractor_email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="you@company.com"
+            disabled={!emailEditable}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="contractor_password">Password</Label>
+          <Input
+            id="contractor_password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Create a password"
+            required
+            minLength={8}
+          />
+        </div>
+
+        {isGoogleAuthEnabled() ? (
+          <>
+            <div className="relative py-1">
+              <div className="absolute inset-0 flex items-center" aria-hidden>
+                <span className="w-full border-t border-[var(--border)]" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase tracking-wide">
+                <span className="bg-white px-2 text-[var(--muted)]">or</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={loading}
+              onClick={() => void handleGoogleSignIn()}
+            >
+              <GoogleIcon />
+              Sign in with Google
+            </Button>
+          </>
+        ) : null}
+
+        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+        <div id="clerk-captcha" />
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={
+            loading || fetchStatus === "fetching" || !email.trim() || password.length < 8
+          }
+        >
+          {loading || fetchStatus === "fetching"
+            ? "Creating account..."
+            : "Create account"}
         </Button>
       </form>
     );
   }
 
-  return (
-    <form onSubmit={handleCreateAccount} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="contractor_email">Email</Label>
-        <Input
-          id="contractor_email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="you@company.com"
-          disabled={!emailEditable}
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="contractor_password">Password</Label>
-        <Input
-          id="contractor_password"
-          type="password"
-          autoComplete="new-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          placeholder="Create a password"
-          required
-          minLength={8}
-        />
-      </div>
-
-      {isGoogleAuthEnabled() ? (
-        <>
-          <div className="relative py-1">
-            <div className="absolute inset-0 flex items-center" aria-hidden>
-              <span className="w-full border-t border-[var(--border)]" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase tracking-wide">
-              <span className="bg-white px-2 text-[var(--muted)]">or</span>
-            </div>
-          </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            disabled={loading}
-            onClick={() => void handleGoogleSignIn()}
-          >
-            <GoogleIcon />
-            Sign in with Google
-          </Button>
-        </>
-      ) : null}
-
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={loading || !email.trim() || password.length < 8}
-      >
-        {loading ? "Creating account..." : "Create account"}
-      </Button>
-    </form>
-  );
+  return content;
 }
