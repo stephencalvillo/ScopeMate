@@ -48,29 +48,42 @@ const LABELS_BY_PROJECT: Record<string, DimensionLabelSet> = {
   },
 };
 
-function resolveProjectKey(projectType?: string): string | null {
-  if (!projectType) return null;
+function resolveProjectKey(...sources: Array<string | undefined>): string | null {
+  for (const source of sources) {
+    if (!source) continue;
 
-  const normalized = projectType.trim().toLowerCase();
-  if (LABELS_BY_PROJECT[normalized]) return normalized;
+    const normalized = source.trim().toLowerCase();
+    if (LABELS_BY_PROJECT[normalized]) return normalized;
 
-  for (const key of Object.keys(LABELS_BY_PROJECT)) {
-    if (normalized.includes(key)) return key;
+    for (const key of Object.keys(LABELS_BY_PROJECT)) {
+      if (normalized.includes(key)) return key;
+    }
   }
 
   return null;
 }
 
-export function getDimensionLabels(projectType?: string): DimensionLabelSet {
-  const key = resolveProjectKey(projectType);
+export function resolveDimensionContext(
+  projectType?: string,
+  questionText?: string
+): string | null {
+  return resolveProjectKey(projectType, questionText);
+}
+
+export function getDimensionLabels(
+  projectType?: string,
+  questionText?: string
+): DimensionLabelSet {
+  const key = resolveDimensionContext(projectType, questionText);
   return key ? LABELS_BY_PROJECT[key] : DEFAULT_LABELS;
 }
 
 export function formatDimensionAnswer(
   answer: string,
-  projectType?: string
+  projectType?: string,
+  questionText?: string
 ): string {
-  const labels = getDimensionLabels(projectType);
+  const labels = getDimensionLabels(projectType, questionText);
   return labels[answer as DimensionOption] ?? answer;
 }
 

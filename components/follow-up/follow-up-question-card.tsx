@@ -196,6 +196,7 @@ export function FollowUpQuestionCard({
                   value={textAnswer}
                   disabled={saving}
                   projectType={projectType}
+                  questionText={question.question}
                   onChange={(value) => {
                     setTextAnswer(value);
                     void saveAnswer(value);

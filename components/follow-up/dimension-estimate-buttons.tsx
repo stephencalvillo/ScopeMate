@@ -13,14 +13,16 @@ export function DimensionEstimateButtons({
   onCustomDimensions,
   disabled,
   projectType,
+  questionText,
 }: {
   value?: string | null;
   onChange: (value: string) => void;
   onCustomDimensions?: () => void;
   disabled?: boolean;
   projectType?: string;
+  questionText?: string;
 }) {
-  const labels = getDimensionLabels(projectType);
+  const labels = getDimensionLabels(projectType, questionText);
 
   return (
     <>

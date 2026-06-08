@@ -19,7 +19,7 @@ export const FOLLOW_UP_PROMPT_VERSION =
   process.env.FOLLOW_UP_PROMPT_VERSION ?? "follow-up-v1";
 
 export const MAX_FOLLOW_UP_QUESTIONS = Number(
-  process.env.MAX_FOLLOW_UP_QUESTIONS ?? 3
+  process.env.MAX_FOLLOW_UP_QUESTIONS ?? 5
 );
 
 export const SIGNED_URL_EXPIRY_SECONDS = 3600;

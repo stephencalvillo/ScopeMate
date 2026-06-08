@@ -70,6 +70,20 @@ export async function fetchFollowUpQuestions(
   return data.questions as FollowUpQuestion[];
 }
 
+export async function generateFollowUpQuestions(
+  projectId: string
+): Promise<FollowUpQuestion[]> {
+  const response = await fetch(
+    `/api/projects/${projectId}/follow-up-questions/generate`,
+    { method: "POST" }
+  );
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error ?? "Could not generate questions.");
+  }
+  return data.questions as FollowUpQuestion[];
+}
+
 export async function answerFollowUpQuestion(
   projectId: string,
   questionId: string,

@@ -43,6 +43,7 @@ export function FollowUpQuestionsPanel({
     async function load() {
       try {
         const result = await fetchFollowUpQuestions(projectId);
+
         if (!cancelled) {
           setQuestions(dedupeFollowUpQuestionsForDisplay(result));
         }

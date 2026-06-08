@@ -26,9 +26,12 @@ export function buildFinishLevelMaterialsQuestion(): AiFollowUpQuestion {
 export function isFinishLevelMaterialsQuestion(
   question: Pick<FollowUpQuestion, "category" | "question">
 ): boolean {
+  return question.question.trim() === FINISH_LEVEL_QUESTION;
+}
+
+export function hasPartialFollowUpSet(questions: FollowUpQuestion[]): boolean {
   return (
-    question.category === "materials" &&
-    question.question.trim() === FINISH_LEVEL_QUESTION
+    questions.length === 1 && isFinishLevelMaterialsQuestion(questions[0]!)
   );
 }
 
@@ -37,10 +40,6 @@ export async function ensureFinishLevelMaterialsQuestion(
   existingQuestions: FollowUpQuestion[]
 ): Promise<FollowUpQuestion[]> {
   if (existingQuestions.some(isFinishLevelMaterialsQuestion)) {
-    return existingQuestions;
-  }
-
-  if (existingQuestions.some((question) => question.category === "materials")) {
     return existingQuestions;
   }
 

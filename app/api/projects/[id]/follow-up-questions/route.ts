@@ -2,11 +2,9 @@ import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
 import { getAccessibleProject } from "@/lib/api/project-access";
 import { isMissingTableError } from "@/lib/db/errors";
+import { generateFollowUpQuestionsForProject } from "@/lib/ai/generate-follow-up";
 import { dedupeFollowUpQuestionsForDisplay } from "@/lib/follow-up/dedupe-questions";
-import { ensureFinishLevelMaterialsQuestion } from "@/lib/follow-up/finish-level";
 import { normalizeFollowUpQuestion } from "@/lib/follow-up/normalize";
-import { createServiceClient } from "@/lib/db/supabase";
-import type { FollowUpQuestion } from "@/types";
 
 export async function GET(
   _request: Request,
@@ -14,24 +12,13 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    await getAccessibleProject(id);
-
-    const supabase = createServiceClient();
-    const { data, error } = await supabase
-      .from("follow_up_questions")
-      .select("*")
-      .eq("project_id", id)
-      .order("sort_order", { ascending: true });
-
-    if (error) throw error;
-
-    const normalized = ((data ?? []) as FollowUpQuestion[]).map(
-      normalizeFollowUpQuestion
-    );
-    const questions = await ensureFinishLevelMaterialsQuestion(id, normalized);
+    const project = await getAccessibleProject(id);
+    const questions = await generateFollowUpQuestionsForProject(project);
 
     return NextResponse.json({
-      questions: dedupeFollowUpQuestionsForDisplay(questions),
+      questions: dedupeFollowUpQuestionsForDisplay(
+        questions.map(normalizeFollowUpQuestion)
+      ),
     });
   } catch (error) {
     if (isMissingTableError(error)) {

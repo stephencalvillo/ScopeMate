@@ -9,15 +9,25 @@ import {
   FOLLOW_UP_PROMPT_VERSION,
   MAX_FOLLOW_UP_QUESTIONS,
 } from "@/lib/config/phase2";
+import {
+  buildInjectedContextQuestions,
+  describeInjectedTopics,
+} from "@/lib/follow-up/context-signals";
 import { dedupeFollowUpQuestions } from "@/lib/follow-up/dedupe-questions";
 import {
   buildFinishLevelMaterialsQuestion,
   ensureFinishLevelMaterialsQuestion,
 } from "@/lib/follow-up/finish-level";
+import {
+  getMissingInjectedQuestions,
+  hasAiGapFollowUps,
+  needsFollowUpBackfill,
+} from "@/lib/follow-up/missing-questions";
 import { createServiceClient } from "@/lib/db/supabase";
 import { isMissingTableError } from "@/lib/db/errors";
 import type {
   AiFollowUpOutput,
+  AiFollowUpQuestion,
   FollowUpQuestion,
   FollowUpQuestionCategory,
   Project,
@@ -82,7 +92,11 @@ function getOpenAIClient() {
 function buildFollowUpUserPrompt(
   project: Project,
   scopeItems: ScopeItem[],
-  existingQuestions: FollowUpQuestion[]
+  existingQuestions: FollowUpQuestion[],
+  options?: {
+    aiQuestionLimit: number;
+    injectedTopics: string[];
+  }
 ): string {
   const scopeLines = scopeItems
     .map((item) => `- [${item.category}] ${item.text}`)
@@ -93,6 +107,9 @@ function buildFollowUpUserPrompt(
     .map((q) => `- Q: ${q.question}\n  A: ${q.answer}`)
     .join("\n");
 
+  const injectedLines =
+    options?.injectedTopics.map((topic) => `- ${topic}`) ?? [];
+
   return [
     buildUserPrompt(project),
     "",
@@ -100,8 +117,11 @@ function buildFollowUpUserPrompt(
     scopeLines || "(none)",
     "",
     answeredLines ? `Already answered follow-ups:\n${answeredLines}` : "",
+    injectedLines.length > 0
+      ? `Already planned follow-up topics (do not duplicate):\n${injectedLines.join("\n")}`
+      : "",
     "",
-    `Suggest up to ${MAX_FOLLOW_UP_QUESTIONS} short follow-up questions for gaps only.`,
+    `Suggest up to ${options?.aiQuestionLimit ?? MAX_FOLLOW_UP_QUESTIONS} short follow-up questions for gaps only.`,
     "Return fewer questions if the scope is already detailed.",
   ]
     .filter(Boolean)
@@ -120,6 +140,41 @@ function normalizeCategory(category: string): FollowUpQuestionCategory {
   return valid.includes(category as FollowUpQuestionCategory)
     ? (category as FollowUpQuestionCategory)
     : "other";
+}
+
+function buildFollowUpContext(project: Project, scopeItems: ScopeItem[]) {
+  return {
+    description: project.original_description,
+    scopeItems,
+    projectType: project.project_type,
+  };
+}
+
+async function insertFollowUpQuestions(
+  projectId: string,
+  questions: AiFollowUpQuestion[],
+  startSortOrder: number
+): Promise<FollowUpQuestion[]> {
+  if (questions.length === 0) return [];
+
+  const supabase = createServiceClient();
+  const rows = questions.map((question, index) => ({
+    project_id: projectId,
+    question: question.question,
+    question_type: question.question_type,
+    category: normalizeCategory(question.category),
+    choices: question.choices,
+    sort_order: startSortOrder + index,
+    source: "ai" as const,
+  }));
+
+  const { data, error } = await supabase
+    .from("follow_up_questions")
+    .insert(rows)
+    .select("*");
+
+  if (error) throw error;
+  return (data ?? []) as FollowUpQuestion[];
 }
 
 export async function generateFollowUpQuestionsForProject(
@@ -147,113 +202,128 @@ export async function generateFollowUpQuestionsForProject(
     throw existingError;
   }
 
-  const normalizedExisting = (existingQuestions ?? []) as FollowUpQuestion[];
-  const questions = await ensureFinishLevelMaterialsQuestion(
+  const activeScopeItems = (scopeItems ?? []) as ScopeItem[];
+  const followUpContext = buildFollowUpContext(project, activeScopeItems);
+  let questions = await ensureFinishLevelMaterialsQuestion(
     project.id,
-    normalizedExisting
+    (existingQuestions ?? []) as FollowUpQuestion[]
   );
 
-  if (questions.length !== normalizedExisting.length) {
+  if (!needsFollowUpBackfill(questions, followUpContext)) {
     return questions;
   }
 
-  const unanswered = questions.filter(
-    (q) => !q.skipped && (q.answer === null || q.answer === "")
+  const missingInjected = getMissingInjectedQuestions(questions, followUpContext);
+  const injectedTopics = describeInjectedTopics(
+    buildInjectedContextQuestions(followUpContext)
   );
 
-  if (unanswered.length > 0) {
+  let insertedInjected: FollowUpQuestion[] = [];
+  if (missingInjected.length > 0) {
+    try {
+      insertedInjected = await insertFollowUpQuestions(
+        project.id,
+        missingInjected,
+        questions.length
+      );
+      questions = [...questions, ...insertedInjected];
+    } catch (error) {
+      if (!isMissingTableError(error)) throw error;
+    }
+  }
+
+  const remainingSlots = Math.max(MAX_FOLLOW_UP_QUESTIONS - questions.length, 0);
+  const shouldGenerateAi =
+    remainingSlots > 0 && !hasAiGapFollowUps(questions);
+
+  if (!shouldGenerateAi) {
     return questions;
   }
 
-  if (questions.length > 0) {
-    return questions;
-  }
+  try {
+    const openai = getOpenAIClient();
+    const systemPrompt = await loadSystemPrompt();
+    const userPrompt = buildFollowUpUserPrompt(
+      project,
+      activeScopeItems,
+      questions,
+      {
+        aiQuestionLimit: remainingSlots,
+        injectedTopics,
+      }
+    );
 
-  const openai = getOpenAIClient();
-  const systemPrompt = await loadSystemPrompt();
-  const userPrompt = buildFollowUpUserPrompt(
-    project,
-    (scopeItems ?? []) as ScopeItem[],
-    questions
-  );
+    const inputSnapshot = buildInputSnapshot({
+      project,
+      promptVersion: FOLLOW_UP_PROMPT_VERSION,
+      model: MODEL,
+      systemPrompt,
+      userPrompt,
+    });
 
-  const inputSnapshot = buildInputSnapshot({
-    project,
-    promptVersion: FOLLOW_UP_PROMPT_VERSION,
-    model: MODEL,
-    systemPrompt,
-    userPrompt,
-  });
-
-  const response = await openai.chat.completions.create({
-    model: MODEL,
-    temperature: 0.4,
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "follow_up_output",
-        strict: true,
-        schema: followUpJsonSchema,
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      temperature: 0.4,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "follow_up_output",
+          strict: true,
+          schema: followUpJsonSchema,
+        },
       },
-    },
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
-  });
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    });
 
-  const content = response.choices[0]?.message?.content;
-  if (!content) {
-    throw new Error("AI did not return follow-up questions.");
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      return questions;
+    }
+
+    const parsed = JSON.parse(content) as AiFollowUpOutput;
+    const existingCategories = new Set(
+      questions.map((question) => question.category)
+    );
+    const aiQuestions = dedupeFollowUpQuestions(
+      parsed.questions.filter(
+        (question) =>
+          question.category !== "materials" &&
+          !existingCategories.has(question.category)
+      ),
+      remainingSlots
+    );
+
+    if (aiQuestions.length === 0) {
+      return questions;
+    }
+
+    const insertedAi = await insertFollowUpQuestions(
+      project.id,
+      aiQuestions,
+      questions.length
+    );
+
+    await supabase.from("ai_runs").insert({
+      project_id: project.id,
+      prompt_version: FOLLOW_UP_PROMPT_VERSION,
+      model: MODEL,
+      input_snapshot: inputSnapshot,
+      output_snapshot: {
+        parsed,
+        raw_content: content,
+        finish_reason: response.choices[0]?.finish_reason ?? null,
+        injected_questions: missingInjected,
+      },
+    });
+
+    return [...questions, ...insertedAi];
+  } catch (error) {
+    console.error("Follow-up AI generation failed:", error);
+    return questions;
   }
-
-  const parsed = JSON.parse(content) as AiFollowUpOutput;
-  const aiQuestions = dedupeFollowUpQuestions(
-    parsed.questions.filter((question) => question.category !== "materials"),
-    Math.max(MAX_FOLLOW_UP_QUESTIONS - 1, 1)
-  );
-  const generatedQuestions = dedupeFollowUpQuestions(
-    [buildFinishLevelMaterialsQuestion(), ...aiQuestions],
-    MAX_FOLLOW_UP_QUESTIONS
-  );
-
-  if (generatedQuestions.length === 0) {
-    return [];
-  }
-
-  const rows = generatedQuestions.map((q, index) => ({
-    project_id: project.id,
-    question: q.question,
-    question_type: q.question_type,
-    category: normalizeCategory(q.category),
-    choices: q.choices,
-    sort_order: index,
-    source: "ai" as const,
-  }));
-
-  const { data: inserted, error: insertError } = await supabase
-    .from("follow_up_questions")
-    .insert(rows)
-    .select("*");
-
-  if (insertError) {
-    if (isMissingTableError(insertError)) return [];
-    throw insertError;
-  }
-
-  await supabase.from("ai_runs").insert({
-    project_id: project.id,
-    prompt_version: FOLLOW_UP_PROMPT_VERSION,
-    model: MODEL,
-    input_snapshot: inputSnapshot,
-    output_snapshot: {
-      parsed,
-      raw_content: content,
-      finish_reason: response.choices[0]?.finish_reason ?? null,
-    },
-  });
-
-  return (inserted ?? []) as FollowUpQuestion[];
 }
 
 export async function getAnsweredFollowUps(
