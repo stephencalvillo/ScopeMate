@@ -8,6 +8,7 @@ import { ContractorIdentityGate } from "@/components/review/contractor-identity-
 import { ContractorReviewUnlock } from "@/components/review/contractor-review-unlock";
 import { ContractorReviewWorkspace } from "@/components/review/contractor-review-workspace";
 import { ContractorShareLinkOnboardingDialog } from "@/components/review/contractor-share-link-onboarding-dialog";
+import { HomeownerContractorSharedReviewView } from "@/components/review/homeowner-contractor-shared-review-view";
 import { HomeownerReviewEntryPrompt } from "@/components/review/homeowner-review-entry-prompt";
 import { ReviewExpiredNotice } from "@/components/review/review-expired-notice";
 import { ReviewSubmittedDialog } from "@/components/review/review-submitted-dialog";
@@ -38,6 +39,7 @@ type ReviewPayload = {
   estimate?: ContractorEstimate | null;
   can_edit: boolean;
   is_share_link: boolean;
+  is_contractor_client_project: boolean;
   homeowner_name: string;
 };
 
@@ -80,9 +82,13 @@ export function ContractorReviewPage({ token }: { token: string }) {
     loadReview();
   }, [loadReview]);
 
+  const isHomeownerShareRecipient =
+    payload?.is_share_link && payload?.is_contractor_client_project;
+
   useEffect(() => {
     if (!payload?.is_share_link || payload.can_edit) return;
     if (payload.review.status === "submitted") return;
+    if (isHomeownerShareRecipient) return;
     if (!isLoaded) return;
 
     persistShareLinkReturn(token);
@@ -90,7 +96,7 @@ export function ContractorReviewPage({ token }: { token: string }) {
     if (!isShareLinkOnboardingDeferred(token)) {
       setShowShareLinkDialog(true);
     }
-  }, [isLoaded, payload, token]);
+  }, [isHomeownerShareRecipient, isLoaded, payload, token]);
 
   useEffect(() => {
     if (!isSignedIn || !payload?.is_share_link || payload.can_edit) return;
@@ -98,6 +104,24 @@ export function ContractorReviewPage({ token }: { token: string }) {
     let cancelled = false;
 
     void (async () => {
+      if (isHomeownerShareRecipient) {
+        const claimResponse = await fetch(`/api/review/${token}/homeowner-claim`, {
+          method: "POST",
+        });
+
+        if (!claimResponse.ok || cancelled) return;
+
+        const redirectResponse = await fetch(
+          `/api/review/${token}/homeowner-redirect`
+        );
+        const redirectData = await redirectResponse.json();
+
+        if (!cancelled && redirectData.redirect) {
+          window.location.assign(redirectData.redirect);
+        }
+        return;
+      }
+
       const response = await fetch(`/api/review/${token}/claim`, {
         method: "POST",
       });
@@ -109,7 +133,14 @@ export function ContractorReviewPage({ token }: { token: string }) {
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn, loadReview, payload?.can_edit, payload?.is_share_link, token]);
+  }, [
+    isHomeownerShareRecipient,
+    isSignedIn,
+    loadReview,
+    payload?.can_edit,
+    payload?.is_share_link,
+    token,
+  ]);
 
   const handleReviewSubmitted = useCallback(async () => {
     await loadReview({ silent: true });
@@ -132,6 +163,7 @@ export function ContractorReviewPage({ token }: { token: string }) {
 
   const requiresShareLinkAccount =
     payload.is_share_link &&
+    !payload.is_contractor_client_project &&
     !payload.can_edit &&
     payload.review.status !== "submitted";
 
@@ -152,11 +184,31 @@ export function ContractorReviewPage({ token }: { token: string }) {
     payload.review.status !== "submitted";
 
   const showHomeownerEntryPrompt =
-    searchParams.get("as") !== "contractor" &&
     payload.is_share_link &&
     !payload.can_edit &&
     isLoaded &&
-    !isSignedIn;
+    !isSignedIn &&
+    (isHomeownerShareRecipient || searchParams.get("as") !== "contractor");
+
+  if (isHomeownerShareRecipient && payload.review.status !== "submitted") {
+    return (
+      <>
+        {showHomeownerEntryPrompt ? (
+          <HomeownerReviewEntryPrompt
+            token={token}
+            variant="contractor-shared"
+          />
+        ) : null}
+
+        <HomeownerContractorSharedReviewView
+          project={payload.project}
+          photos={payload.photos}
+          readiness={payload.readiness}
+          contractorLabel={payload.homeowner_name}
+        />
+      </>
+    );
+  }
 
   return (
     <>

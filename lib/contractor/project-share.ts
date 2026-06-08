@@ -139,7 +139,7 @@ export async function ensureShareInvitationForToken(token: string) {
 
   return ensureProjectShareInvitation({
     project: project as Project,
-    invitedBy: project.homeowner_id,
+    invitedBy: project.homeowner_id ?? project.created_by_user_id ?? "",
     token,
   });
 }

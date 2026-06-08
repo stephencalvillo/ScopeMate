@@ -115,6 +115,47 @@ export async function getOwnedProject(projectId: string): Promise<Project> {
   throw new ForbiddenError("You do not have access to this project.");
 }
 
+export async function claimContractorClientProjectForHomeowner(
+  projectId: string,
+  user?: Awaited<ReturnType<typeof ensureUserRecord>>
+): Promise<Project> {
+  const resolvedUser = user ?? (await ensureUserRecord());
+  const project = await fetchProject(projectId);
+
+  if (!project) {
+    throw new NotFoundError("Project not found.");
+  }
+
+  if (!isContractorCreatedProject(project)) {
+    throw new ForbiddenError(
+      "Only contractor client projects can be claimed as a homeowner."
+    );
+  }
+
+  if (project.homeowner_id === resolvedUser.id) {
+    return project;
+  }
+
+  if (project.homeowner_id !== null) {
+    throw new ForbiddenError("This project already belongs to another account.");
+  }
+
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .update({
+      homeowner_id: resolvedUser.id,
+      guest_access_token: null,
+    })
+    .eq("id", projectId)
+    .is("homeowner_id", null)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data as Project;
+}
+
 export async function claimGuestProject(projectId: string): Promise<Project> {
   const user = await ensureUserRecord();
   const project = await getAccessibleProject(projectId);
@@ -127,40 +168,72 @@ export async function claimGuestProject(projectId: string): Promise<Project> {
     throw new ForbiddenError("This project already belongs to another account.");
   }
 
+  if (isContractorCreatedProject(project)) {
+    throw new ForbiddenError(
+      "Use the contractor or homeowner claim flow for this project."
+    );
+  }
+
   if (project.created_by_user_id && project.created_by_user_id !== user.id) {
     throw new ForbiddenError("This project already belongs to another account.");
   }
 
   const supabase = createServiceClient();
-  const contractorCreated = isContractorCreatedProject(project);
-
-  if (contractorCreated) {
-    const profile = await getContractorProfile(user.id);
-    if (!profile) {
-      throw new ForbiddenError(
-        "Create a contractor account to save this project."
-      );
-    }
-  }
-  const updatePayload = contractorCreated
-    ? {
-        created_by_user_id: user.id,
-        guest_access_token: null,
-      }
-    : {
-        homeowner_id: user.id,
-        guest_access_token: null,
-      };
-
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from("projects")
-    .update(updatePayload)
+    .update({
+      homeowner_id: user.id,
+      guest_access_token: null,
+    })
     .eq("id", projectId)
     .is("homeowner_id", null)
     .select("*")
     .single();
 
-  if (error && isMissingColumnError(error) && contractorCreated) {
+  if (error) throw error;
+  return data as Project;
+}
+
+export async function claimContractorGuestProject(projectId: string): Promise<Project> {
+  const user = await ensureUserRecord();
+  const project = await getAccessibleProject(projectId);
+
+  if (!isContractorCreatedProject(project)) {
+    throw new ForbiddenError("This project is not a contractor client project.");
+  }
+
+  if (project.created_by_user_id === user.id) {
+    return project;
+  }
+
+  if (project.homeowner_id !== null) {
+    throw new ForbiddenError("This project already belongs to another account.");
+  }
+
+  if (project.created_by_user_id && project.created_by_user_id !== user.id) {
+    throw new ForbiddenError("This project already belongs to another account.");
+  }
+
+  const profile = await getContractorProfile(user.id);
+  if (!profile) {
+    throw new ForbiddenError(
+      "Create a contractor account to save this project."
+    );
+  }
+
+  const supabase = createServiceClient();
+  let { data, error } = await supabase
+    .from("projects")
+    .update({
+      created_by_user_id: user.id,
+      guest_access_token: null,
+    })
+    .eq("id", projectId)
+    .is("homeowner_id", null)
+    .select("*")
+    .single();
+
+  if (error && isMissingColumnError(error)) {
     throw new ForbiddenError(
       "Contractor projects require migration 017_contractor_created_projects.sql."
     );

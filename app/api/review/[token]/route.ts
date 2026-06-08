@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isContractorCreatedProject } from "@/lib/api/project-access";
 import { jsonError } from "@/lib/api/response";
 import { createServiceClient } from "@/lib/db/supabase";
 import { canEditReview } from "@/lib/contractor/review-access";
@@ -40,6 +41,7 @@ export async function GET(
     const estimate = await getEstimateForReview(review.id);
     const can_edit = await canEditReview(token, invitation);
     const is_share_link = isShareLinkInvitation(invitation, project);
+    const is_contractor_client_project = isContractorCreatedProject(project);
 
     const supabase = createServiceClient();
     const { data: homeowner } = await supabase
@@ -61,6 +63,7 @@ export async function GET(
       estimate,
       can_edit,
       is_share_link,
+      is_contractor_client_project,
       homeowner_name,
     });
   } catch (error) {
