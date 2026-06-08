@@ -68,7 +68,7 @@ export function MarketingFooter() {
       ref={footerRef}
       className="relative overflow-hidden bg-white text-neutral-900"
     >
-      <GridBackground fade="footer" layers="minimal" />
+      <GridBackground fade="footer" layers="full" />
 
       <div className="relative z-10 mx-auto max-w-6xl px-[var(--page-padding-x)] pb-5 pt-8 md:pt-12">
         <Link href="/" aria-label="ScopeMate home" className="block w-full">
