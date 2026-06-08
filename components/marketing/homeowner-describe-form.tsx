@@ -8,11 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-export function HomeownerDescribeForm() {
+export function HomeownerDescribeForm({
+  mode = "marketing",
+}: {
+  mode?: "marketing" | "dashboard";
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [targetStart, setTargetStart] = useState<string | null>(null);
+  const isDashboard = mode === "dashboard";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,15 +30,18 @@ export function HomeownerDescribeForm() {
     ).trim();
     const zip = String(formData.get("zip") ?? "").trim();
 
-    const response = await fetch("/api/projects/guest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        original_description,
-        zip,
-        ...(targetStart ? { target_start: targetStart } : {}),
-      }),
-    });
+    const response = await fetch(
+      isDashboard ? "/api/projects" : "/api/projects/guest",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          original_description,
+          zip,
+          ...(targetStart ? { target_start: targetStart } : {}),
+        }),
+      }
+    );
 
     const data = await response.json();
     setLoading(false);

@@ -5,16 +5,16 @@ export const timelineStartSchema = z.enum(TIMELINE_CHOICES);
 
 export const createProjectSchema = z.object({
   title: z.string().trim().max(120).optional(),
-  location: z
-    .string()
-    .trim()
-    .min(2, "Add a city or ZIP code so contractors know the general area")
-    .max(120),
   original_description: z
     .string()
     .trim()
     .min(20, "Describe your project in at least a few sentences")
     .max(8000),
+  zip: z
+    .string()
+    .trim()
+    .regex(/^\d{5}(?:-\d{4})?$/, "Enter a valid 5-digit ZIP code"),
+  target_start: timelineStartSchema.optional(),
 });
 
 export const projectCreatorRoleSchema = z.enum(["homeowner", "contractor"]);

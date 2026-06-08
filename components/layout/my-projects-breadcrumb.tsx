@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BreadcrumbLink, BreadcrumbNav } from "@/components/layout/breadcrumb-link";
 
 export function MyProjectsBreadcrumb({
   href,
@@ -6,17 +6,8 @@ export function MyProjectsBreadcrumb({
   href: "/projects" | "/contractor";
 }) {
   return (
-    <nav aria-label="Breadcrumb" className="text-sm">
-      <ol className="flex flex-wrap items-center gap-1.5">
-        <li>
-          <Link
-            href={href}
-            className="text-[var(--muted)] transition-colors hover:text-neutral-900"
-          >
-            My projects
-          </Link>
-        </li>
-      </ol>
-    </nav>
+    <BreadcrumbNav>
+      <BreadcrumbLink href={href}>Your projects</BreadcrumbLink>
+    </BreadcrumbNav>
   );
 }

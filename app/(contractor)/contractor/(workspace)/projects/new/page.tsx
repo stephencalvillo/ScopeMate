@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { ContractorClientProjectForm } from "@/components/marketing/contractor-client-project-form";
+import { MyProjectsBreadcrumb } from "@/components/layout/my-projects-breadcrumb";
+import { PageBreadcrumbHeader } from "@/components/layout/page-breadcrumb-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { ensureUserRecord } from "@/lib/auth/clerk";
 import {
@@ -19,14 +21,16 @@ export default async function ContractorNewClientProjectPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
-      <div className="space-y-2">
-        <h1 className="font-display text-3xl tracking-tight text-balance text-neutral-900 sm:text-4xl">
-          {getStartedContractor.title}
-        </h1>
-        <p className="text-sm text-[var(--muted)] sm:text-base">
-          {getStartedContractor.subtitle}
-        </p>
-      </div>
+      <PageBreadcrumbHeader breadcrumb={<MyProjectsBreadcrumb href="/contractor" />}>
+        <div className="space-y-2">
+          <h1 className="font-display text-3xl tracking-tight text-balance text-neutral-900 sm:text-4xl">
+            {getStartedContractor.title}
+          </h1>
+          <p className="text-sm text-[var(--muted)] sm:text-base">
+            {getStartedContractor.subtitle}
+          </p>
+        </div>
+      </PageBreadcrumbHeader>
 
       <Card>
         <CardContent className="p-6 md:p-8">

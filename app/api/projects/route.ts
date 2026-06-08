@@ -6,6 +6,7 @@ import { isMissingColumnError } from "@/lib/db/errors";
 import { listProjectsForUser } from "@/lib/db/projects";
 import { parseLocation } from "@/lib/location/parse";
 import { lookupCityStateFromZip } from "@/lib/location/zip-lookup";
+import { saveProjectTimelineAnswer } from "@/lib/follow-up/timeline";
 import { resolveProjectTitle } from "@/lib/projects/title";
 import { createProjectSchema } from "@/lib/validators/project";
 
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
     const user = await ensureUserRecord();
     const body = await request.json();
     const input = createProjectSchema.parse(body);
-    const parsed = parseLocation(input.location);
+    const parsed = parseLocation(input.zip);
     let city = parsed.city || parsed.location;
 
     if (!parsed.city && parsed.zip) {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
       title,
       project_type: "unspecified",
       city,
-      zip: parsed.zip || "N/A",
+      zip: parsed.zip || input.zip,
       original_description: input.original_description,
       status: "draft" as const,
     };
@@ -65,6 +66,18 @@ export async function POST(request: Request) {
     }
 
     if (error) throw error;
+    if (!data) {
+      throw new Error("Could not create project.");
+    }
+
+    if (input.target_start) {
+      try {
+        await saveProjectTimelineAnswer(data.id, input.target_start);
+      } catch (timelineError) {
+        console.error("Failed to save timeline answer:", timelineError);
+      }
+    }
+
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     return jsonError(error);

@@ -1,19 +1,25 @@
-import { ProjectForm } from "@/components/project/project-form";
+import { HomeownerDescribeForm } from "@/components/marketing/homeowner-describe-form";
+import { MyProjectsBreadcrumb } from "@/components/layout/my-projects-breadcrumb";
+import { PageBreadcrumbHeader } from "@/components/layout/page-breadcrumb-header";
+import { marketingCopy } from "@/lib/marketing/copy";
 
 export default function NewProjectPage() {
-  return (
-    <div className="mx-auto max-w-2xl space-y-10">
-      <div className="space-y-3">
-        <h1 className="font-display text-4xl tracking-tight text-neutral-900 text-balance">
-          Tell us about your project
-        </h1>
-        <p className="text-base text-[var(--muted)]">
-          Describe your project in your own words and ScopeMate will organize
-          the details on the next screen.
-        </p>
-      </div>
+  const { homeowner } = marketingCopy.signup;
 
-      <ProjectForm />
+  return (
+    <div className="mx-auto max-w-2xl space-y-8">
+      <PageBreadcrumbHeader breadcrumb={<MyProjectsBreadcrumb href="/projects" />}>
+        <div className="space-y-2">
+          <h1 className="font-display text-3xl tracking-tight text-neutral-900 text-balance sm:text-4xl">
+            {homeowner.title}
+          </h1>
+          <p className="text-sm text-[var(--muted)] sm:text-base">
+            {homeowner.subtitle}
+          </p>
+        </div>
+      </PageBreadcrumbHeader>
+
+      <HomeownerDescribeForm mode="dashboard" />
     </div>
   );
 }

@@ -49,13 +49,11 @@ export default async function ProjectsPage() {
             clear scope you can share with contractors.
           </p>
         </div>
-        <Button
-          asChild
-          size="lg"
-          className={hasProjects ? "hidden md:inline-flex" : undefined}
-        >
-          <Link href="/projects/new">New project</Link>
-        </Button>
+        {hasProjects ? (
+          <Button asChild size="lg" className="hidden md:inline-flex">
+            <Link href="/projects/new">New project</Link>
+          </Button>
+        ) : null}
       </div>
 
       <ProjectList projects={projects} />
