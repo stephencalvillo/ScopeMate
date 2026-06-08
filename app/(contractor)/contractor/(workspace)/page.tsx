@@ -6,6 +6,7 @@ import {
   listContractorReviews,
   partitionContractorReviews,
 } from "@/lib/contractor/profile";
+import { listContractorClientProjects } from "@/lib/db/projects";
 
 export default async function ContractorDashboardPage() {
   const user = await ensureUserRecord();
@@ -15,9 +16,11 @@ export default async function ContractorDashboardPage() {
     redirect("/contractor/onboarding");
   }
 
-  const { accepted, inReview, history } = partitionContractorReviews(
-    await listContractorReviews(user.id)
-  );
+  const [clientProjects, reviews] = await Promise.all([
+    listContractorClientProjects(user.id),
+    listContractorReviews(user.id),
+  ]);
+  const { accepted, inReview, history } = partitionContractorReviews(reviews);
 
   return (
     <div className="space-y-8 pt-6">
@@ -34,6 +37,7 @@ export default async function ContractorDashboardPage() {
       </div>
 
       <ContractorPortfolio
+        clientProjects={clientProjects}
         accepted={accepted}
         inReview={inReview}
         history={history}

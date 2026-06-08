@@ -1,5 +1,6 @@
 import { recordShareLinkView } from "@/lib/contractor/activity";
 import { getAccessibleProject } from "@/lib/api/project-access";
+import { isMissingColumnError } from "@/lib/db/errors";
 import { createServiceClient } from "@/lib/db/supabase";
 import { enrichProjectLocation, enrichProjectsLocation } from "@/lib/location/resolve";
 import { enrichScopeItemsWithContractorAttribution } from "@/lib/scope/contractor-attribution";
@@ -37,6 +38,26 @@ export async function listProjectsForUser(userId: string): Promise<Project[]> {
     .eq("homeowner_id", userId)
     .neq("status", "archived")
     .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+  return enrichProjectsLocation((data ?? []) as Project[]);
+}
+
+export async function listContractorClientProjects(
+  userId: string
+): Promise<Project[]> {
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("created_by_user_id", userId)
+    .eq("creator_role", "contractor")
+    .neq("status", "archived")
+    .order("updated_at", { ascending: false });
+
+  if (error && isMissingColumnError(error)) {
+    return [];
+  }
 
   if (error) throw error;
   return enrichProjectsLocation((data ?? []) as Project[]);
