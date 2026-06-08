@@ -17,6 +17,8 @@ export const createProjectSchema = z.object({
     .max(8000),
 });
 
+export const projectCreatorRoleSchema = z.enum(["homeowner", "contractor"]);
+
 export const createGuestProjectSchema = z.object({
   original_description: z
     .string()
@@ -31,6 +33,7 @@ export const createGuestProjectSchema = z.object({
       "Enter a valid 5-digit ZIP code"
     ),
   target_start: timelineStartSchema.optional(),
+  creator_role: projectCreatorRoleSchema.optional(),
 });
 
 export const updateProjectSchema = z.object({

@@ -10,17 +10,19 @@ import {
 export function TimelineStartChoices({
   value,
   onChange,
+  label = TIMELINE_QUESTION,
+  helperText = "Optional — helps contractors understand your timeline.",
 }: {
   value: string | null;
   onChange: (value: string | null) => void;
+  label?: string;
+  helperText?: string;
 }) {
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <Label>{TIMELINE_QUESTION}</Label>
-        <p className="text-sm text-[var(--muted)]">
-          Optional — helps contractors understand your timeline.
-        </p>
+        <Label>{label}</Label>
+        <p className="text-sm text-[var(--muted)]">{helperText}</p>
       </div>
       <div className="flex flex-wrap gap-2">
         {TIMELINE_CHOICES.map((choice) => (

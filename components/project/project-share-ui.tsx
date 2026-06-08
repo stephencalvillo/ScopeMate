@@ -14,6 +14,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { Link2 } from "lucide-react";
+import { ContractorProjectAccountDialog } from "@/components/project/contractor-project-account-dialog";
 import { HomeownerAccountCreateDialog } from "@/components/project/homeowner-account-create-dialog";
 import { ShareLinkDialog } from "@/components/project/share-link-dialog-content";
 import { SectionSurface } from "@/components/layout/page-section";
@@ -21,8 +22,11 @@ import { Button } from "@/components/ui/button";
 import { cn, mobileFullWidthCtaClassName } from "@/lib/utils";
 import type { Project } from "@/types";
 
-const SHARE_DOCK_DESCRIPTION =
+const HOMEOWNER_SHARE_DOCK_DESCRIPTION =
   "Create a review link to copy or email. Contractors can review your scope and suggest changes without signing in.";
+
+const CONTRACTOR_SHARE_DOCK_DESCRIPTION =
+  "Create a share link for your client. They can review the scope and you can keep estimating from your contractor account.";
 
 type DockMode = "header" | "float" | "inline";
 type DockAnimation = "float" | "inline" | null;
@@ -30,6 +34,7 @@ type DockAnimation = "float" | "inline" | null;
 type ProjectShareContextValue = {
   mode: DockMode;
   animation: DockAnimation;
+  shareDockDescription: string;
   openShareDialog: () => void;
   headerSentinelRef: (node: HTMLDivElement | null) => void;
   setSectionInView: (inView: boolean) => void;
@@ -107,6 +112,10 @@ export function ProjectShareProvider({
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const isGuestProject = project.homeowner_id === null;
+  const isContractorProject = project.creator_role === "contractor";
+  const shareDockDescription = isContractorProject
+    ? CONTRACTOR_SHARE_DOCK_DESCRIPTION
+    : HOMEOWNER_SHARE_DOCK_DESCRIPTION;
   const headerObserverRef = useRef<IntersectionObserver | null>(null);
   const [headerInView, setHeaderInView] = useState(true);
   const [headerObserved, setHeaderObserved] = useState(false);
@@ -231,6 +240,7 @@ export function ProjectShareProvider({
       value={{
         mode,
         animation,
+        shareDockDescription,
         openShareDialog: openShareDialogRef,
         headerSentinelRef,
         setSectionInView,
@@ -258,7 +268,7 @@ export function ProjectShareProvider({
             <SectionSurface className="bg-white/95 backdrop-blur-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-[var(--muted)]">
-                  {SHARE_DOCK_DESCRIPTION}
+                  {shareDockDescription}
                 </p>
                 <ShareLinkTriggerButton
                   onClick={openShareDialogRef}
@@ -270,14 +280,25 @@ export function ProjectShareProvider({
         </div>
       ) : null}
 
-      <HomeownerAccountCreateDialog
-        projectId={project.id}
-        open={accountDialogOpen}
-        onOpenChange={setAccountDialogOpen}
-        onAccountReady={() => {
-          void handleAccountReady();
-        }}
-      />
+      {isContractorProject ? (
+        <ContractorProjectAccountDialog
+          projectId={project.id}
+          open={accountDialogOpen}
+          onOpenChange={setAccountDialogOpen}
+          onAccountReady={() => {
+            void handleAccountReady();
+          }}
+        />
+      ) : (
+        <HomeownerAccountCreateDialog
+          projectId={project.id}
+          open={accountDialogOpen}
+          onOpenChange={setAccountDialogOpen}
+          onAccountReady={() => {
+            void handleAccountReady();
+          }}
+        />
+      )}
 
       <ShareLinkDialog
         project={project}
@@ -323,7 +344,8 @@ export function ProjectShareHeaderActions({
 }
 
 export function ProjectShareInlineDock() {
-  const { mode, animation, openShareDialog } = useProjectShare();
+  const { mode, animation, openShareDialog, shareDockDescription } =
+    useProjectShare();
 
   if (mode !== "inline") return null;
 
@@ -336,7 +358,7 @@ export function ProjectShareInlineDock() {
     >
       <SectionSurface>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-[var(--muted)]">{SHARE_DOCK_DESCRIPTION}</p>
+          <p className="text-sm text-[var(--muted)]">{shareDockDescription}</p>
           <ShareLinkTriggerButton
             onClick={openShareDialog}
             className={mobileFullWidthCtaClassName}

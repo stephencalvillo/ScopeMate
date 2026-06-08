@@ -69,10 +69,14 @@ export interface ContractorRateItem {
   updated_at: string;
 }
 
+export type ProjectCreatorRole = "homeowner" | "contractor";
+
 export interface Project {
   id: string;
   homeowner_id: string | null;
   guest_access_token?: string | null;
+  creator_role?: ProjectCreatorRole;
+  created_by_user_id?: string | null;
   title: string;
   project_type: string;
   city: string;

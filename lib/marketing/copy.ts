@@ -126,6 +126,11 @@ export const marketingCopy = {
       subtitle:
         "ScopeMate will organize your description into a list of to-dos to send to a contractor.",
     },
+    getStartedContractor: {
+      title: "Describe your client's project",
+      subtitle:
+        "ScopeMate will turn your notes into a clear scope you can estimate and share with your client.",
+    },
     contractor: {
       title: "Create your contractor profile",
       subtitle:

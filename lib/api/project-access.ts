@@ -7,7 +7,21 @@ import {
 } from "@/lib/auth/clerk";
 import { getGuestProjectCookie } from "@/lib/auth/guest-project";
 import { createServiceClient } from "@/lib/db/supabase";
-import type { Project } from "@/types";
+import { isMissingColumnError } from "@/lib/db/errors";
+import { getContractorProfile } from "@/lib/contractor/profile";
+import type { Project, ProjectCreatorRole } from "@/types";
+
+export function projectCreatorRole(
+  project: Pick<Project, "creator_role">
+): ProjectCreatorRole {
+  return project.creator_role ?? "homeowner";
+}
+
+export function isContractorCreatedProject(
+  project: Pick<Project, "creator_role">
+) {
+  return projectCreatorRole(project) === "contractor";
+}
 
 async function fetchProject(projectId: string): Promise<Project | null> {
   const supabase = createServiceClient();
@@ -54,6 +68,10 @@ export async function getAccessibleProject(projectId: string): Promise<Project> 
     }
 
     if (project.homeowner_id === user.id) {
+      return project;
+    }
+
+    if (project.created_by_user_id === user.id) {
       return project;
     }
 
@@ -105,17 +123,44 @@ export async function claimGuestProject(projectId: string): Promise<Project> {
     throw new ForbiddenError("This project already belongs to another account.");
   }
 
+  if (project.created_by_user_id && project.created_by_user_id !== user.id) {
+    throw new ForbiddenError("This project already belongs to another account.");
+  }
+
   const supabase = createServiceClient();
-  const { data, error } = await supabase
+  const contractorCreated = isContractorCreatedProject(project);
+
+  if (contractorCreated) {
+    const profile = await getContractorProfile(user.id);
+    if (!profile) {
+      throw new ForbiddenError(
+        "Create a contractor account to save this project."
+      );
+    }
+  }
+  const updatePayload = contractorCreated
+    ? {
+        created_by_user_id: user.id,
+        guest_access_token: null,
+      }
+    : {
+        homeowner_id: user.id,
+        guest_access_token: null,
+      };
+
+  let { data, error } = await supabase
     .from("projects")
-    .update({
-      homeowner_id: user.id,
-      guest_access_token: null,
-    })
+    .update(updatePayload)
     .eq("id", projectId)
     .is("homeowner_id", null)
     .select("*")
     .single();
+
+  if (error && isMissingColumnError(error) && contractorCreated) {
+    throw new ForbiddenError(
+      "Contractor projects require migration 017_contractor_created_projects.sql."
+    );
+  }
 
   if (error) throw error;
   return data as Project;

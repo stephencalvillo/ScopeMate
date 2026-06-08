@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { finishContractorAccountSetup } from "@/lib/contractor/complete-signup";
+import { readContractorProjectReturn } from "@/lib/contractor/contractor-project-onboarding";
 import { readShareLinkReturn } from "@/lib/contractor/share-link-onboarding";
 
 export function ContractorCompleteSetupPage() {
@@ -18,7 +19,7 @@ export function ContractorCompleteSetupPage() {
         const result = await finishContractorAccountSetup();
         if (cancelled) return;
 
-        const returnUrl = readShareLinkReturn();
+        const returnUrl = readShareLinkReturn() ?? readContractorProjectReturn();
         router.replace(
           result.ready
             ? returnUrl ?? "/contractor"

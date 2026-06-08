@@ -43,9 +43,12 @@ export async function POST(request: Request) {
 
     const supabase = createServiceClient();
 
+    const creatorRole = input.creator_role ?? "homeowner";
+
     const baseRow = {
       homeowner_id: null,
       guest_access_token: guestAccessToken,
+      creator_role: creatorRole,
       title,
       project_type: "unspecified",
       city,
@@ -60,6 +63,15 @@ export async function POST(request: Request) {
       .insert(baseRow)
       .select("id, status, created_at")
       .single();
+
+    if (error && isMissingColumnError(error)) {
+      const { creator_role: _creatorRole, ...legacyRow } = baseRow;
+      ({ data, error } = await supabase
+        .from("projects")
+        .insert(legacyRow)
+        .select("id, status, created_at")
+        .single());
+    }
 
     if (error && isMissingColumnError(error)) {
       throw new Error(

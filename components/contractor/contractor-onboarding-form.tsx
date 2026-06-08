@@ -11,6 +11,10 @@ import {
   readContractorSignupPrefill,
 } from "@/lib/contractor/signup-prefill";
 import {
+  clearContractorProjectReturn,
+  readContractorProjectReturn,
+} from "@/lib/contractor/contractor-project-onboarding";
+import {
   clearShareLinkReturn,
   readShareLinkReturn,
 } from "@/lib/contractor/share-link-onboarding";
@@ -53,16 +57,27 @@ export function ContractorOnboardingForm({
       });
       clearContractorSignupPrefill();
 
-      const returnUrl = readShareLinkReturn();
-      if (returnUrl?.startsWith("/review/")) {
-        const token = returnUrl.replace("/review/", "");
+      const shareLinkReturn = readShareLinkReturn();
+      if (shareLinkReturn?.startsWith("/review/")) {
+        const token = shareLinkReturn.replace("/review/", "");
         await fetch(`/api/review/${token}/claim`, { method: "POST" });
         clearShareLinkReturn();
-        router.push(returnUrl);
-      } else {
-        router.push("/contractor");
+        router.push(shareLinkReturn);
+        router.refresh();
+        return;
       }
-      router.refresh();
+
+      const projectReturn = readContractorProjectReturn();
+      if (projectReturn?.startsWith("/projects/")) {
+        const projectId = projectReturn.replace("/projects/", "").split("?")[0];
+        await fetch(`/api/projects/${projectId}/claim`, { method: "POST" });
+        clearContractorProjectReturn();
+        router.push(projectReturn);
+        router.refresh();
+        return;
+      }
+
+      router.push("/contractor");
     } catch (submitError) {
       setError(
         submitError instanceof Error
