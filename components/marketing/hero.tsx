@@ -10,6 +10,7 @@ type HeroProps = {
   align?: "center" | "left";
   gridBackground?: boolean;
   compact?: boolean;
+  viewport?: boolean;
   children?: React.ReactNode;
   className?: string;
 };
@@ -22,6 +23,7 @@ export function Hero({
   align = "center",
   gridBackground = false,
   compact = false,
+  viewport = false,
   children,
   className,
 }: HeroProps) {
@@ -31,13 +33,15 @@ export function Hero({
     <section
       className={cn(
         "relative overflow-hidden",
-        gridBackground
-          ? compact
-            ? "pb-6 pt-[3.45rem] md:pb-[1.15rem] md:pt-[4.6rem]"
-            : "pb-[5.75rem] pt-[4.6rem] md:pb-[8.05rem] md:pt-[6.9rem]"
-          : compact
-            ? "py-[2.875rem] md:py-[4.025rem]"
-            : "py-[4.6rem] md:py-[6.9rem]",
+        viewport
+          ? "flex min-h-[85vh] w-full flex-col items-center justify-center"
+          : gridBackground
+            ? compact
+              ? "pb-6 pt-[3.45rem] md:pb-[1.15rem] md:pt-[4.6rem]"
+              : "pb-[5.75rem] pt-[4.6rem] md:pb-[8.05rem] md:pt-[6.9rem]"
+            : compact
+              ? "py-[2.875rem] md:py-[4.025rem]"
+              : "py-[4.6rem] md:py-[6.9rem]",
         isCentered && "text-center",
         className
       )}
@@ -45,7 +49,7 @@ export function Hero({
       {gridBackground ? <GridBackground /> : null}
       <div
         className={cn(
-          "relative z-10 mx-auto space-y-6",
+          "relative z-10 mx-auto w-full space-y-6",
           gridBackground
             ? "max-w-6xl px-[var(--page-padding-x)]"
             : "max-w-[60rem]",
@@ -79,7 +83,8 @@ export function Hero({
         {(primaryCta || secondaryCta) && (
           <div
             className={cn(
-              "flex flex-col gap-3 pb-12 pt-2 sm:flex-row sm:items-center",
+              "flex flex-col gap-3 pt-2 sm:flex-row sm:items-center",
+              !viewport && "pb-12",
               isCentered && "sm:justify-center"
             )}
           >

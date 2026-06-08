@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildShareUrl } from "@/lib/contractor/urls";
+import { getProjectShareCopy } from "@/lib/project/share-copy";
 import type { Project } from "@/types";
 
 export function ShareLinkDialogContent({
@@ -35,6 +36,7 @@ export function ShareLinkDialogContent({
   const [sendingEmail, setSendingEmail] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const autoCreateStarted = useRef(false);
+  const shareCopy = getProjectShareCopy(project.creator_role === "contractor");
 
   async function enableShare() {
     setLoading(true);
@@ -153,8 +155,7 @@ export function ShareLinkDialogContent({
       <DialogHeader className="mb-0">
         <DialogTitle>Share link</DialogTitle>
         <DialogDescription className="text-[var(--muted)]">
-          Share one link so a contractor can review your scope, leave comments,
-          and suggest changes. No sign-in required.
+          {shareCopy.dialogDescription}
         </DialogDescription>
       </DialogHeader>
 
@@ -196,16 +197,13 @@ export function ShareLinkDialogContent({
           </div>
 
           <form onSubmit={sendEmail} className="space-y-2 border-t pt-4">
-            <Label htmlFor="share-link-email">Or send a personal review link</Label>
-            <p className="text-xs text-[var(--muted)]">
-              Sends a dedicated link to one contractor. They still confirm their
-              name before reviewing.
-            </p>
+            <Label htmlFor="share-link-email">{shareCopy.emailLabel}</Label>
+            <p className="text-xs text-[var(--muted)]">{shareCopy.emailHelper}</p>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 id="share-link-email"
                 type="email"
-                placeholder="contractor@example.com"
+                placeholder={shareCopy.emailPlaceholder}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 required
@@ -219,10 +217,7 @@ export function ShareLinkDialogContent({
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm text-neutral-800">
-            Create a link to share your project scope with a contractor for
-            review.
-          </p>
+          <p className="text-sm text-neutral-800">{shareCopy.description}</p>
           <Button onClick={enableShare} disabled={loading}>
             <Link2 className="h-4 w-4" aria-hidden />
             {loading ? "Creating link..." : "Create share link"}

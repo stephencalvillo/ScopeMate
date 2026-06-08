@@ -19,14 +19,9 @@ import { HomeownerAccountCreateDialog } from "@/components/project/homeowner-acc
 import { ShareLinkDialog } from "@/components/project/share-link-dialog-content";
 import { SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
+import { getProjectShareCopy } from "@/lib/project/share-copy";
 import { cn, mobileFullWidthCtaClassName } from "@/lib/utils";
 import type { Project } from "@/types";
-
-const HOMEOWNER_SHARE_DOCK_DESCRIPTION =
-  "Create a review link to copy or email. Contractors can review your scope and suggest changes without signing in.";
-
-const CONTRACTOR_SHARE_DOCK_DESCRIPTION =
-  "Create a share link for your client. They can review the scope and you can keep estimating from your contractor account.";
 
 type DockMode = "header" | "float" | "inline";
 type DockAnimation = "float" | "inline" | null;
@@ -34,7 +29,8 @@ type DockAnimation = "float" | "inline" | null;
 type ProjectShareContextValue = {
   mode: DockMode;
   animation: DockAnimation;
-  shareDockDescription: string;
+  shareSectionTitle: string;
+  shareDescription: string;
   openShareDialog: () => void;
   headerSentinelRef: (node: HTMLDivElement | null) => void;
   setSectionInView: (inView: boolean) => void;
@@ -113,9 +109,7 @@ export function ProjectShareProvider({
   const { isSignedIn } = useAuth();
   const isGuestProject = project.homeowner_id === null;
   const isContractorProject = project.creator_role === "contractor";
-  const shareDockDescription = isContractorProject
-    ? CONTRACTOR_SHARE_DOCK_DESCRIPTION
-    : HOMEOWNER_SHARE_DOCK_DESCRIPTION;
+  const shareCopy = getProjectShareCopy(isContractorProject);
   const headerObserverRef = useRef<IntersectionObserver | null>(null);
   const [headerInView, setHeaderInView] = useState(true);
   const [headerObserved, setHeaderObserved] = useState(false);
@@ -240,7 +234,8 @@ export function ProjectShareProvider({
       value={{
         mode,
         animation,
-        shareDockDescription,
+        shareSectionTitle: shareCopy.sectionTitle,
+        shareDescription: shareCopy.description,
         openShareDialog: openShareDialogRef,
         headerSentinelRef,
         setSectionInView,
@@ -268,7 +263,7 @@ export function ProjectShareProvider({
             <SectionSurface className="bg-white/95 backdrop-blur-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-[var(--muted)]">
-                  {shareDockDescription}
+                  {shareCopy.description}
                 </p>
                 <ShareLinkTriggerButton
                   onClick={openShareDialogRef}
@@ -344,29 +339,23 @@ export function ProjectShareHeaderActions({
 }
 
 export function ProjectShareInlineDock() {
-  const { mode, animation, openShareDialog, shareDockDescription } =
-    useProjectShare();
+  const { mode, animation, openShareDialog } = useProjectShare();
 
   if (mode !== "inline") return null;
 
   return (
-    <div
-      className={cn(
-        "space-y-3",
-        animation === "inline" && "share-dock-inline-enter"
-      )}
-    >
-      <SectionSurface>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-[var(--muted)]">{shareDockDescription}</p>
-          <ShareLinkTriggerButton
-            onClick={openShareDialog}
-            className={mobileFullWidthCtaClassName}
-          />
-        </div>
-      </SectionSurface>
+    <div className={cn(animation === "inline" && "share-dock-inline-enter")}>
+      <ShareLinkTriggerButton
+        onClick={openShareDialog}
+        className={mobileFullWidthCtaClassName}
+      />
     </div>
   );
+}
+
+export function useProjectShareCopy() {
+  const { shareSectionTitle, shareDescription } = useProjectShare();
+  return { shareSectionTitle, shareDescription };
 }
 
 export function useProjectShareSectionVisibility(

@@ -7,6 +7,7 @@
   --muted: #6b6b6b;
   --muted-foreground: #8a8a8a;
   --border: #e8e8e4;
+  --marketing-grid-line: color-mix(in srgb, var(--border) 80%, transparent);
   --card: #ffffff;
   --accent: #e8d4a8;
   --accent-foreground: #3d3428;
@@ -80,8 +81,8 @@ body {
 .marketing-hero-grid-h-fwd {
   background-image: repeating-linear-gradient(
     0deg,
-    var(--border) 0,
-    var(--border) 1px,
+    var(--marketing-grid-line) 0,
+    var(--marketing-grid-line) 1px,
     transparent 1px,
     transparent 24px
   );
@@ -93,8 +94,8 @@ body {
     0deg,
     transparent 0,
     transparent 12px,
-    var(--border) 12px,
-    var(--border) 13px,
+    var(--marketing-grid-line) 12px,
+    var(--marketing-grid-line) 13px,
     transparent 13px,
     transparent 24px
   );
@@ -105,8 +106,8 @@ body {
 .marketing-hero-grid-v-fwd {
   background-image: repeating-linear-gradient(
     90deg,
-    var(--border) 0,
-    var(--border) 1px,
+    var(--marketing-grid-line) 0,
+    var(--marketing-grid-line) 1px,
     transparent 1px,
     transparent 24px
   );
@@ -119,8 +120,8 @@ body {
     90deg,
     transparent 0,
     transparent 12px,
-    var(--border) 12px,
-    var(--border) 13px,
+    var(--marketing-grid-line) 12px,
+    var(--marketing-grid-line) 13px,
     transparent 13px,
     transparent 24px
   );
@@ -220,6 +221,72 @@ body {
   }
 }
 
+.scopemate-logo-draw-stroke path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.scopemate-logo-draw-stroke--active path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 450ms ease-in-out;
+}
+
+.scopemate-logo-draw-stroke--active path:nth-child(1) {
+  transition-delay: 0ms;
+}
+
+.scopemate-logo-draw-stroke--active path:nth-child(2) {
+  transition-delay: 100ms;
+}
+
+.scopemate-logo-draw-stroke--active path:nth-child(3) {
+  transition-delay: 200ms;
+}
+
+.scopemate-logo-draw-stroke--active path:nth-child(4) {
+  transition-delay: 300ms;
+}
+
+.scopemate-logo-draw-stroke--active path:nth-child(5) {
+  transition-delay: 400ms;
+}
+
+.scopemate-logo-draw-stroke--active path:nth-child(6) {
+  transition-delay: 500ms;
+}
+
+.scopemate-logo-draw-stroke--active path:nth-child(7) {
+  transition-delay: 600ms;
+}
+
+.scopemate-logo-draw-stroke--active path:nth-child(8) {
+  transition-delay: 700ms;
+}
+
+.scopemate-logo-draw-stroke--active path:nth-child(9) {
+  transition-delay: 800ms;
+}
+
+.scopemate-logo-draw-stroke--complete {
+  opacity: 0;
+  transition: opacity 500ms ease-out;
+}
+
+.scopemate-logo-draw-fill {
+  opacity: 0;
+}
+
+.scopemate-logo-draw-fill--visible {
+  opacity: 1;
+  transition: opacity 500ms ease-out;
+}
+
 @keyframes how-it-works-preview-in {
   from {
     opacity: 0;
@@ -292,6 +359,23 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .share-dock-float-enter,
+  .share-dock-inline-enter,
+  .scope-added-enter,
+  .scope-added-exit,
+  .scopemate-logo-draw-stroke,
+  .scopemate-logo-draw-fill {
+    transition: none;
+  }
+
+  .scopemate-logo-draw-stroke {
+    opacity: 0;
+  }
+
+  .scopemate-logo-draw-fill--visible {
+    opacity: 1;
+  }
+
   .share-dock-float-enter,
   .share-dock-inline-enter,
   .scope-added-enter,

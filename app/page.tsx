@@ -21,7 +21,7 @@ export default async function HomePage() {
     <MarketingShell>
       <Hero
         gridBackground
-        compact
+        viewport
         headline={homepage.hero.headline}
         subheadline={homepage.hero.subheadline}
         primaryCta={{

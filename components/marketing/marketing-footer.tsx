@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
 import { GridBackground } from "@/components/marketing/grid-background";
-import { cn } from "@/lib/utils";
+import {
+  getFooterLogoStrokeTotalMs,
+  ScopeMateLogoDraw,
+} from "@/components/marketing/scopemate-logo-draw";
 
 const footerNavLinks = [
   { label: "Homeowners", href: "/homeowners" },
@@ -16,7 +18,8 @@ const footerNavLinks = [
 export function MarketingFooter() {
   const year = new Date().getFullYear();
   const footerRef = useRef<HTMLElement>(null);
-  const [logoVisible, setLogoVisible] = useState(false);
+  const [strokeActive, setStrokeActive] = useState(false);
+  const [fillVisible, setFillVisible] = useState(false);
 
   useEffect(() => {
     const footer = footerRef.current;
@@ -29,14 +32,14 @@ export function MarketingFooter() {
     ).matches;
 
     if (prefersReducedMotion) {
-      setLogoVisible(true);
+      setFillVisible(true);
       return;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {
-          setLogoVisible(true);
+          setStrokeActive(true);
           observer.disconnect();
         }
       },
@@ -48,6 +51,18 @@ export function MarketingFooter() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!strokeActive) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setFillVisible(true);
+    }, getFooterLogoStrokeTotalMs());
+
+    return () => window.clearTimeout(timeoutId);
+  }, [strokeActive]);
+
   return (
     <footer
       ref={footerRef}
@@ -56,17 +71,13 @@ export function MarketingFooter() {
       <GridBackground fade="footer" layers="minimal" />
 
       <div className="relative z-10 mx-auto max-w-6xl px-[var(--page-padding-x)] pb-5 pt-8 md:pt-12">
-        <Link
-          href="/"
-          aria-label="ScopeMate home"
-          className={cn(
-            "block w-full transition-[opacity,transform] duration-300 ease-in-out",
-            logoVisible
-              ? "translate-y-0 opacity-100"
-              : "translate-y-8 opacity-0"
-          )}
-        >
-          <ScopeMateLogo fullWidth className="text-neutral-900" />
+        <Link href="/" aria-label="ScopeMate home" className="block w-full">
+          <ScopeMateLogoDraw
+            fullWidth
+            strokeActive={strokeActive}
+            fillVisible={fillVisible}
+            className="text-neutral-900"
+          />
         </Link>
 
         <div className="mt-3 flex flex-col gap-4 font-display text-xs text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">

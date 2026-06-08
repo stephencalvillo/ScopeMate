@@ -3,12 +3,14 @@
 import { useRef } from "react";
 import {
   ProjectShareInlineDock,
+  useProjectShareCopy,
   useProjectShareSectionVisibility,
 } from "@/components/project/project-share-ui";
 import { PageSection } from "@/components/layout/page-section";
 
 export function ContractorShareSection() {
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const { shareSectionTitle, shareDescription } = useProjectShareCopy();
   useProjectShareSectionVisibility(sentinelRef);
 
   return (
@@ -19,10 +21,7 @@ export function ContractorShareSection() {
         aria-hidden
       />
 
-      <PageSection
-        title="Share with a contractor"
-        description="Create a review link to copy or email. Contractors can review your scope and suggest changes without signing in."
-      >
+      <PageSection title={shareSectionTitle} description={shareDescription}>
         <ProjectShareInlineDock />
       </PageSection>
     </div>
