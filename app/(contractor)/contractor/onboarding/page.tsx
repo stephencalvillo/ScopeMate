@@ -24,7 +24,7 @@ export default async function ContractorOnboardingPage() {
           Set up your contractor profile
         </h1>
         <p className="text-sm text-[var(--muted)]">
-          Confirm your business details so ScopeMate can link your past and
+          Confirm your business details so ScopeBuddy can link your past and
           future project reviews. You can switch back to homeowner projects
           anytime from the account menu.
         </p>

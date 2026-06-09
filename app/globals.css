@@ -222,7 +222,7 @@ body {
   }
 }
 
-.scopemate-logo-draw-stroke path {
+.scopebuddy-logo-draw-stroke path {
   fill: none;
   stroke: currentColor;
   stroke-width: 1px;
@@ -233,57 +233,57 @@ body {
   stroke-dashoffset: 1;
 }
 
-.scopemate-logo-draw-stroke--active path {
+.scopebuddy-logo-draw-stroke--active path {
   stroke-dashoffset: 0;
   transition: stroke-dashoffset 450ms ease-in-out;
 }
 
-.scopemate-logo-draw-stroke--active path:nth-child(1) {
+.scopebuddy-logo-draw-stroke--active path:nth-child(1) {
   transition-delay: 0ms;
 }
 
-.scopemate-logo-draw-stroke--active path:nth-child(2) {
+.scopebuddy-logo-draw-stroke--active path:nth-child(2) {
   transition-delay: 100ms;
 }
 
-.scopemate-logo-draw-stroke--active path:nth-child(3) {
+.scopebuddy-logo-draw-stroke--active path:nth-child(3) {
   transition-delay: 200ms;
 }
 
-.scopemate-logo-draw-stroke--active path:nth-child(4) {
+.scopebuddy-logo-draw-stroke--active path:nth-child(4) {
   transition-delay: 300ms;
 }
 
-.scopemate-logo-draw-stroke--active path:nth-child(5) {
+.scopebuddy-logo-draw-stroke--active path:nth-child(5) {
   transition-delay: 400ms;
 }
 
-.scopemate-logo-draw-stroke--active path:nth-child(6) {
+.scopebuddy-logo-draw-stroke--active path:nth-child(6) {
   transition-delay: 500ms;
 }
 
-.scopemate-logo-draw-stroke--active path:nth-child(7) {
+.scopebuddy-logo-draw-stroke--active path:nth-child(7) {
   transition-delay: 600ms;
 }
 
-.scopemate-logo-draw-stroke--active path:nth-child(8) {
+.scopebuddy-logo-draw-stroke--active path:nth-child(8) {
   transition-delay: 700ms;
 }
 
-.scopemate-logo-draw-stroke--active path:nth-child(9) {
+.scopebuddy-logo-draw-stroke--active path:nth-child(9) {
   transition-delay: 800ms;
 }
 
-.scopemate-logo-draw-stroke--complete {
+.scopebuddy-logo-draw-stroke--complete {
   opacity: 0;
   transition: opacity 500ms ease-out;
 }
 
-.scopemate-logo-draw-fill {
+.scopebuddy-logo-draw-fill {
   opacity: 0;
 }
 
-.scopemate-logo-draw-fill--visible {
+.scopebuddy-logo-draw-fill--visible {
   opacity: 1;
   transition: opacity 500ms ease-out;
 }
@@ -364,16 +364,16 @@ body {
   .share-dock-inline-enter,
   .scope-added-enter,
   .scope-added-exit,
-  .scopemate-logo-draw-stroke,
-  .scopemate-logo-draw-fill {
+  .scopebuddy-logo-draw-stroke,
+  .scopebuddy-logo-draw-fill {
     transition: none;
   }
 
-  .scopemate-logo-draw-stroke {
+  .scopebuddy-logo-draw-stroke {
     opacity: 0;
   }
 
-  .scopemate-logo-draw-fill--visible {
+  .scopebuddy-logo-draw-fill--visible {
     opacity: 1;
   }
 

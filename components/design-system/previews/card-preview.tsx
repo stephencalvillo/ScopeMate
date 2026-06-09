@@ -15,7 +15,7 @@ export function CardPreview() {
         <CardHeader>
           <CardTitle>Your first project starts here</CardTitle>
           <CardDescription>
-            Describe what you want to build in your own words. ScopeMate turns
+            Describe what you want to build in your own words. ScopeBuddy turns
             your notes into a clear scope you can share with contractors.
           </CardDescription>
         </CardHeader>

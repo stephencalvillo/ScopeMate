@@ -28,7 +28,7 @@ export function ScopeGeneratingLoader({
   onError,
   additionalNotes,
   steps = DEFAULT_STEPS,
-  helperText = "ScopeMate is turning your notes into contractor-ready work items.",
+  helperText = "ScopeBuddy is turning your notes into contractor-ready work items.",
 }: {
   projectId: string;
   onComplete: (result: GenerateScopeResult) => void;

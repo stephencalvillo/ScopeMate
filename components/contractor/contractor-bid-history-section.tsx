@@ -86,7 +86,7 @@ export function ContractorBidHistorySection({
         <p className="text-sm font-medium text-neutral-900">No bid history yet</p>
         <p className="text-sm text-[var(--muted)]">
           Past proposals and closed reviews will show up here once you have
-          finished jobs on ScopeMate.
+          finished jobs on ScopeBuddy.
         </p>
       </SectionSurface>
     );

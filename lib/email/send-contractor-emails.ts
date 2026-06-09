@@ -32,11 +32,11 @@ export async function sendProjectShareLinkEmail({
     to,
     subject: `${homeownerName} shared a project scope with you`,
     html: `
-      <p><strong>${escapeHtml(homeownerName)}</strong> shared the scope for <strong>${escapeHtml(projectTitle)}</strong> on ScopeMate.</p>
+      <p><strong>${escapeHtml(homeownerName)}</strong> shared the scope for <strong>${escapeHtml(projectTitle)}</strong> on ScopeBuddy.</p>
       <p>Review the scope and suggest additions or changes before they move forward with pricing.</p>
       <p><a href="${reviewUrl}">Open project review</a></p>
       <p>This link expires on ${escapeHtml(expiryLabel)}.</p>
-      <p style="color:#6b6b6b;font-size:14px;">ScopeMate is a planning tool. Contractors remain responsible for final scope verification and pricing.</p>
+      <p style="color:#6b6b6b;font-size:14px;">ScopeBuddy is a planning tool. Contractors remain responsible for final scope verification and pricing.</p>
     `,
   });
 }
@@ -71,11 +71,11 @@ export async function sendContractorInvitationEmail({
     subject: `${homeownerName} invited you to review a project scope`,
     html: `
       <p>Hi ${escapeHtml(contractorName)},</p>
-      <p><strong>${escapeHtml(homeownerName)}</strong> invited you to review the scope for <strong>${escapeHtml(projectTitle)}</strong> on ScopeMate.</p>
+      <p><strong>${escapeHtml(homeownerName)}</strong> invited you to review the scope for <strong>${escapeHtml(projectTitle)}</strong> on ScopeBuddy.</p>
       <p>You can suggest additions or changes before they share the project for pricing.</p>
       <p><a href="${reviewUrl}">Open project review</a></p>
       <p>This invitation expires on ${escapeHtml(expiryLabel)}.</p>
-      <p style="color:#6b6b6b;font-size:14px;">ScopeMate is a planning tool. Contractors remain responsible for final scope verification and pricing.</p>
+      <p style="color:#6b6b6b;font-size:14px;">ScopeBuddy is a planning tool. Contractors remain responsible for final scope verification and pricing.</p>
     `,
   });
 }

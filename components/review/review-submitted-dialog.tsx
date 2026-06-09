@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
-import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
+import { ScopeBuddyLogo } from "@/components/layout/scopemate-logo";
 import { ContractorAccountCreateForm } from "@/components/review/contractor-account-create-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,7 +54,7 @@ export function ReviewSubmittedDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <div className="mb-4 flex justify-center">
-          <ScopeMateLogo className="h-7 text-neutral-900" />
+          <ScopeBuddyLogo className="h-7 text-neutral-900" />
         </div>
 
         {isSignedIn ? (
@@ -89,7 +89,7 @@ export function ReviewSubmittedDialog({
               </DialogTitle>
             </DialogHeader>
             <p className="text-sm text-[var(--muted)]">
-              Already use ScopeMate as a homeowner? Sign in with the same email to
+              Already use ScopeBuddy as a homeowner? Sign in with the same email to
               add a contractor profile. New here? Create an account below.
             </p>
 
@@ -112,7 +112,7 @@ export function ReviewSubmittedDialog({
               Continue without account
             </Button>
             <Button type="button" variant="outline" className="w-full" asChild>
-              <Link href="/contractors">Learn more about ScopeMate</Link>
+              <Link href="/contractors">Learn more about ScopeBuddy</Link>
             </Button>
           </>
         )}

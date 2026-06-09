@@ -15,8 +15,20 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/:path*",
+        has: [{ type: "host", value: "www.scopebuddy.ai" }],
+        destination: "https://scopebuddy.ai/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
         has: [{ type: "host", value: "www.myscopemate.ai" }],
-        destination: "https://myscopemate.ai/:path*",
+        destination: "https://scopebuddy.ai/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "myscopemate.ai" }],
+        destination: "https://scopebuddy.ai/:path*",
         permanent: true,
       },
     ];

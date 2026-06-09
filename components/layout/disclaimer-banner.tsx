@@ -26,7 +26,7 @@ export function DisclaimerBanner() {
       <div className="flex items-center">
         <div className="flex-1" aria-hidden />
         <p className="text-center">
-          ScopeMate is a planning tool. It does not provide engineering,
+          ScopeBuddy is a planning tool. It does not provide engineering,
           architectural, permit, or final pricing advice. Contractors are
           responsible for verifying scope and pricing.
         </p>

@@ -100,7 +100,7 @@ function SharePreview() {
         <div className="flex gap-2">
           <Input
             readOnly
-            value="scopemate.app/share/kitchen-remodel"
+            value="scopebuddy.ai/share/kitchen-remodel"
             className="text-xs"
             aria-hidden
           />

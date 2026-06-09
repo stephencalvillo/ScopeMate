@@ -25,7 +25,7 @@ export function DesignSystemShell({ children }: { children: React.ReactNode }) {
         <div className="mb-6">
           <p className="font-display text-lg text-neutral-900">Component library</p>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Browse UI building blocks used across ScopeMate.
+            Browse UI building blocks used across ScopeBuddy.
           </p>
         </div>
 

@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { DM_Sans, Lexend } from "next/font/google";
 import { Toaster } from "sonner";
 import { getClerkAppearance } from "@/lib/clerk/appearance";
+import { clerkLocalization } from "@/lib/clerk/localization";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -22,21 +23,21 @@ const appUrl = (() => {
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
-  title: "ScopeMate — Contractor-ready scopes for every project",
+  title: "ScopeBuddy — Contractor-ready scopes for every project",
   description:
-    "ScopeMate turns messy project ideas into contractor-ready scopes. One product for homeowners and contractors to start every project on the same page.",
+    "ScopeBuddy turns messy project ideas into contractor-ready scopes. One product for homeowners and contractors to start every project on the same page.",
   openGraph: {
-    title: "ScopeMate — Contractor-ready scopes for every project",
+    title: "ScopeBuddy — Contractor-ready scopes for every project",
     description:
-      "ScopeMate turns messy project ideas into contractor-ready scopes. One product for homeowners and contractors to start every project on the same page.",
-    siteName: "ScopeMate",
+      "ScopeBuddy turns messy project ideas into contractor-ready scopes. One product for homeowners and contractors to start every project on the same page.",
+    siteName: "ScopeBuddy",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ScopeMate — Contractor-ready scopes for every project",
+    title: "ScopeBuddy — Contractor-ready scopes for every project",
     description:
-      "ScopeMate turns messy project ideas into contractor-ready scopes. One product for homeowners and contractors to start every project on the same page.",
+      "ScopeBuddy turns messy project ideas into contractor-ready scopes. One product for homeowners and contractors to start every project on the same page.",
   },
 };
 
@@ -46,7 +47,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider appearance={getClerkAppearance()}>
+    <ClerkProvider
+      appearance={getClerkAppearance()}
+      localization={clerkLocalization}
+    >
       <html
         lang="en"
         className={`${dmSans.variable} ${lexend.variable}`}

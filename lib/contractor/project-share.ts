@@ -4,7 +4,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import type { ContractorInvitation, Project } from "@/types";
 
 export const SHARE_LINK_PLACEHOLDER_NAME = "Contractor";
-export const SHARE_LINK_PLACEHOLDER_EMAIL = "shared@link.scopemate";
+export const SHARE_LINK_PLACEHOLDER_EMAIL = "shared@link.scopebuddy";
 
 export function isShareLinkPlaceholder(invitation: {
   contractor_email: string;

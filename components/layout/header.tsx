@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AccountMenu } from "@/components/layout/account-menu";
-import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
+import { ScopeBuddyLogo } from "@/components/layout/scopemate-logo";
 
 export function Header() {
   return (
@@ -9,9 +9,9 @@ export function Header() {
         <Link
           href="/projects"
           className="text-neutral-900 transition-opacity hover:opacity-80"
-          aria-label="ScopeMate home"
+          aria-label="ScopeBuddy home"
         >
-          <ScopeMateLogo />
+          <ScopeBuddyLogo />
         </Link>
         <div className="flex items-center">
           <AccountMenu />

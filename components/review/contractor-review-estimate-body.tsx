@@ -70,7 +70,7 @@ export function ContractorReviewEstimateBody({
         {isPreparingEstimate ? (
           <GridLoadingCard
             title="Gathering project scope details"
-            helperText="ScopeMate is preparing this scope and draft pricing for your review."
+            helperText="ScopeBuddy is preparing this scope and draft pricing for your review."
           />
         ) : (
           <ReviewScopeList

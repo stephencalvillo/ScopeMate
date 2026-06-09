@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
+import { ScopeBuddyLogo } from "@/components/layout/scopemate-logo";
 import { CTAButton } from "@/components/marketing/cta-button";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 
@@ -12,9 +12,9 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
             <Link
               href="/"
               className="text-neutral-900 transition-opacity hover:opacity-80"
-              aria-label="ScopeMate home"
+              aria-label="ScopeBuddy home"
             >
-              <ScopeMateLogo />
+              <ScopeBuddyLogo />
             </Link>
 
             <nav className="hidden items-center gap-6 md:flex">

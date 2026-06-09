@@ -45,7 +45,7 @@ export default async function ProjectsPage() {
             ) : null}
           </div>
           <p className="text-base text-[var(--muted)]">
-            Describe what you want in plain language. ScopeMate turns it into a
+            Describe what you want in plain language. ScopeBuddy turns it into a
             clear scope you can share with contractors.
           </p>
         </div>

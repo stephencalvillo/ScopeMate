@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DisclaimerBanner } from "@/components/layout/disclaimer-banner";
-import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
+import { ScopeBuddyLogo } from "@/components/layout/scopemate-logo";
 import { Button } from "@/components/ui/button";
 
 export function PublicShell({
@@ -15,7 +15,7 @@ export function PublicShell({
   learnMoreHref?: string;
 }) {
   const logo = (
-    <ScopeMateLogo className="text-neutral-900 transition-opacity hover:opacity-80" />
+    <ScopeBuddyLogo className="text-neutral-900 transition-opacity hover:opacity-80" />
   );
 
   return (
@@ -25,7 +25,7 @@ export function PublicShell({
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between gap-4 px-[var(--page-padding-x)]">
           <div className="flex min-w-0 items-center gap-3">
             {logoHref ? (
-              <Link href={logoHref} aria-label="ScopeMate for contractors">
+              <Link href={logoHref} aria-label="ScopeBuddy for contractors">
                 {logo}
               </Link>
             ) : (

@@ -16,26 +16,26 @@ export function getFooterLogoStrokeTotalMs() {
   );
 }
 
-type ScopeMateLogoDrawProps = SVGProps<SVGSVGElement> & {
+type ScopeBuddyLogoDrawProps = SVGProps<SVGSVGElement> & {
   strokeActive?: boolean;
   fillVisible?: boolean;
   fullWidth?: boolean;
 };
 
-export function ScopeMateLogoDraw({
+export function ScopeBuddyLogoDraw({
   className,
   strokeActive = false,
   fillVisible = false,
   fullWidth = false,
   ...props
-}: ScopeMateLogoDrawProps) {
+}: ScopeBuddyLogoDrawProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox={FOOTER_LOGO_VIEWBOX}
       fill="none"
       aria-hidden={fullWidth ? undefined : true}
-      aria-label={fullWidth ? "ScopeMate" : undefined}
+      aria-label={fullWidth ? "ScopeBuddy" : undefined}
       role={fullWidth ? "img" : undefined}
       className={cn(
         fullWidth ? "h-auto w-full max-w-none" : "h-6 w-auto",
@@ -45,9 +45,9 @@ export function ScopeMateLogoDraw({
     >
       <g
         className={cn(
-          "scopemate-logo-draw-stroke",
-          strokeActive && "scopemate-logo-draw-stroke--active",
-          fillVisible && "scopemate-logo-draw-stroke--complete"
+          "scopebuddy-logo-draw-stroke",
+          strokeActive && "scopebuddy-logo-draw-stroke--active",
+          fillVisible && "scopebuddy-logo-draw-stroke--complete"
         )}
       >
         {FOOTER_LOGO_PATHS.map((path, index) => (
@@ -57,8 +57,8 @@ export function ScopeMateLogoDraw({
 
       <g
         className={cn(
-          "scopemate-logo-draw-fill",
-          fillVisible && "scopemate-logo-draw-fill--visible"
+          "scopebuddy-logo-draw-fill",
+          fillVisible && "scopebuddy-logo-draw-fill--visible"
         )}
       >
         {FOOTER_LOGO_PATHS.map((path, index) => (
@@ -68,3 +68,6 @@ export function ScopeMateLogoDraw({
     </svg>
   );
 }
+
+/** @deprecated Use ScopeBuddyLogoDraw */
+export const ScopeMateLogoDraw = ScopeBuddyLogoDraw;

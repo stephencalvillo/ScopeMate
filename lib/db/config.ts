@@ -15,5 +15,5 @@ export function isSupabaseConfigured(): boolean {
 export function getSupabaseConfigError(): string | null {
   if (isSupabaseConfigured()) return null;
 
-  return "ScopeMate cannot reach the database yet. Supabase still needs to be connected.";
+  return "ScopeBuddy cannot reach the database yet. Supabase still needs to be connected.";
 }

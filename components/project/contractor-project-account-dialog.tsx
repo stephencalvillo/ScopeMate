@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
-import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
+import { ScopeBuddyLogo } from "@/components/layout/scopemate-logo";
 import { ContractorAccountCreateForm } from "@/components/review/contractor-account-create-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,7 +80,7 @@ export function ContractorProjectAccountDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md space-y-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:space-y-4 sm:p-6">
         <div className="flex justify-center pt-1">
-          <ScopeMateLogo className="h-7 text-neutral-900" />
+          <ScopeBuddyLogo className="h-7 text-neutral-900" />
         </div>
 
         {isSignedIn ? (

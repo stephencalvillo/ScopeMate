@@ -99,7 +99,7 @@ export function ScopeEditor({
         steps={isAddingMore ? ADD_MORE_STEPS : undefined}
         helperText={
           isAddingMore
-            ? "ScopeMate is weaving your new details into the scope."
+            ? "ScopeBuddy is weaving your new details into the scope."
             : undefined
         }
         onComplete={handleGenerated}
@@ -129,7 +129,7 @@ export function ScopeEditor({
       {!hasScope ? (
         <PageSection
           title="Turn your description into a scope"
-          description="ScopeMate will read your description and organize it into clear work items a contractor can review."
+          description="ScopeBuddy will read your description and organize it into clear work items a contractor can review."
         >
           <SectionSurface className="space-y-4">
             {generateError ? (

@@ -36,10 +36,10 @@ export default function ContractorsPage() {
         <div className="mx-auto max-w-2xl space-y-4 text-center">
           <p className="font-display text-2xl tracking-tight text-neutral-900 text-balance">
             Homeowners don&apos;t know what to ask. Contractors don&apos;t know
-            what&apos;s missing. ScopeMate bridges the gap.
+            what&apos;s missing. ScopeBuddy bridges the gap.
           </p>
           <p className="text-base text-[var(--muted)]">
-            Join ScopeMate to receive better-prepared project scopes and spend
+            Join ScopeBuddy to receive better-prepared project scopes and spend
             more time on work that wins jobs.
           </p>
         </div>

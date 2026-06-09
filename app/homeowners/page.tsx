@@ -21,7 +21,7 @@ export default function HomeownersPage() {
         }}
       />
 
-      <MarketingSection title="How ScopeMate helps homeowners">
+      <MarketingSection title="How ScopeBuddy helps homeowners">
         <div className="grid gap-6 sm:grid-cols-2">
           {homeowners.benefits.map((benefit) => (
             <FeatureCard
@@ -35,7 +35,7 @@ export default function HomeownersPage() {
 
       <MarketingSection
         title="From idea to scope"
-        description="ScopeMate guides you through the details contractors need to price your project accurately."
+        description="ScopeBuddy guides you through the details contractors need to price your project accurately."
         className="bg-white"
         centered
       >

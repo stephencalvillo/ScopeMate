@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ContractorNavTabs } from "@/components/contractor/contractor-nav-tabs";
 import { AccountMenu } from "@/components/layout/account-menu";
-import { ScopeMateLogo } from "@/components/layout/scopemate-logo";
+import { ScopeBuddyLogo } from "@/components/layout/scopemate-logo";
 
 export function ContractorShell({ children }: { children: React.ReactNode }) {
   return (
@@ -12,9 +12,9 @@ export function ContractorShell({ children }: { children: React.ReactNode }) {
             <Link
               href="/contractor"
               className="flex shrink-0 items-center self-center text-neutral-900 transition-opacity hover:opacity-80"
-              aria-label="ScopeMate contractor home"
+              aria-label="ScopeBuddy contractor home"
             >
-              <ScopeMateLogo />
+              <ScopeBuddyLogo />
             </Link>
             <ContractorNavTabs />
           </div>

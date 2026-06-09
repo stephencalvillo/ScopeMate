@@ -10,7 +10,7 @@ export function ProjectList({ projects }: { projects: Project[] }) {
       <SectionSurface className="space-y-2">
         <p className="text-sm font-medium text-neutral-900">No projects yet</p>
         <p className="text-sm text-[var(--muted)]">
-          Describe what you want in plain language. ScopeMate turns it into a
+          Describe what you want in plain language. ScopeBuddy turns it into a
           clear scope you can share with contractors.
         </p>
         <Button asChild>

@@ -52,7 +52,7 @@ export function AddMoreToScopeSection({
           Add more to your scope
         </p>
         <p className="text-sm text-[var(--muted)]">
-          Describe anything new — ScopeMate will update your list and summary.
+          Describe anything new — ScopeBuddy will update your list and summary.
         </p>
       </div>
       <Textarea

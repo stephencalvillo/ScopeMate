@@ -38,7 +38,7 @@ export default function ProjectsError({
         <CardContent className="space-y-4 text-sm text-[var(--muted)]">
           {isDatabaseError ? (
             <p>
-              You signed in successfully, but ScopeMate still needs Supabase to
+              You signed in successfully, but ScopeBuddy still needs Supabase to
               store your projects. This is a setup step, not a problem with
               your account.
             </p>

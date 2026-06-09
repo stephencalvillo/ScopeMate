@@ -5,14 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { GridBackground } from "@/components/marketing/grid-background";
 import {
   getFooterLogoStrokeTotalMs,
-  ScopeMateLogoDraw,
+  ScopeBuddyLogoDraw,
 } from "@/components/marketing/scopemate-logo-draw";
 
 const footerNavLinks = [
   { label: "Homeowners", href: "/homeowners" },
   { label: "Contractors", href: "/contractors" },
   { label: "About", href: "/" },
-  { label: "Contact", href: "mailto:hello@myscopemate.ai" },
+  { label: "Contact", href: "mailto:hello@scopebuddy.ai" },
 ] as const;
 
 export function MarketingFooter() {
@@ -71,8 +71,8 @@ export function MarketingFooter() {
       <GridBackground fade="footer" layers="full" />
 
       <div className="relative z-10 mx-auto max-w-6xl px-[var(--page-padding-x)] pb-5 pt-8 md:pt-12">
-        <Link href="/" aria-label="ScopeMate home" className="block w-full">
-          <ScopeMateLogoDraw
+        <Link href="/" aria-label="ScopeBuddy home" className="block w-full">
+          <ScopeBuddyLogoDraw
             fullWidth
             strokeActive={strokeActive}
             fillVisible={fillVisible}
@@ -81,7 +81,7 @@ export function MarketingFooter() {
         </Link>
 
         <div className="mt-3 flex flex-col gap-4 font-display text-xs text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
-          <p className="shrink-0">© {year} ScopeMate. All rights reserved.</p>
+          <p className="shrink-0">© {year} ScopeBuddy. All rights reserved.</p>
           <nav
             aria-label="Footer"
             className="flex flex-wrap items-center gap-x-5 gap-y-2"

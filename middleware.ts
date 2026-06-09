@@ -26,6 +26,8 @@ function isGuestAccessibleProjectApi(request: NextRequest) {
 
 function shouldProxyClerkFrontendApi(url: URL) {
   return (
+    url.hostname === "scopebuddy.ai" ||
+    url.hostname === "www.scopebuddy.ai" ||
     url.hostname === "myscopemate.ai" ||
     url.hostname === "www.myscopemate.ai" ||
     url.hostname.endsWith(".vercel.app")

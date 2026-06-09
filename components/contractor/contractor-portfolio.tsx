@@ -103,7 +103,7 @@ export function ContractorPortfolio({
             href="/contractors"
             className="text-sm font-medium text-neutral-900 hover:underline"
           >
-            Learn more about ScopeMate for contractors
+            Learn more about ScopeBuddy for contractors
           </Link>
         </div>
       </SectionSurface>
