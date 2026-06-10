@@ -1,8 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { Badge } from "@/components/ui/badge";
@@ -48,9 +47,7 @@ export function AdminUsersTable({
   users: AdminUserRow[];
   currentAdminUserId: string;
 }) {
-  const router = useRouter();
   const { getToken } = useAuth();
-  const [, startTransition] = useTransition();
   const selectAllRef = useRef<HTMLInputElement>(null);
   const lastSelectedIndexRef = useRef<number | null>(null);
   const [visibleUsers, setVisibleUsers] = useState(users);
@@ -174,9 +171,6 @@ export function AdminUsersTable({
 
       clearSelection();
       setConfirmOpen(false);
-      startTransition(() => {
-        router.refresh();
-      });
     } catch (error) {
       const message =
         error instanceof Error

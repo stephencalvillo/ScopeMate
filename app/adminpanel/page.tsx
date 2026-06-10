@@ -35,6 +35,10 @@ export default async function AdminPanelPage() {
       return <AdminAccessDenied message={error.message} />;
     }
 
-    throw error;
+    console.error("Admin panel failed to load:", error);
+
+    return (
+      <AdminAccessDenied message="Unable to load the admin dashboard. Try refreshing the page. If delete was in progress, the user may still have been removed." />
+    );
   }
 }

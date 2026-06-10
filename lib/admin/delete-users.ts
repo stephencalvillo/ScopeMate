@@ -15,7 +15,20 @@ function isClerkNotFound(error: unknown) {
   );
 }
 
+function isClerkUnauthorized(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    (error as { status: number }).status === 401
+  );
+}
+
 function getErrorMessage(error: unknown) {
+  if (isClerkUnauthorized(error)) {
+    return "Clerk rejected the server API key. Update CLERK_SECRET_KEY in Vercel production and redeploy.";
+  }
+
   if (error instanceof Error) {
     return error.message;
   }

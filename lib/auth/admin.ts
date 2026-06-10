@@ -1,4 +1,4 @@
-import { clerkClient } from "@clerk/nextjs/server";
+import { clerkClient, currentUser } from "@clerk/nextjs/server";
 import { ForbiddenError, resolveClerkUserId } from "@/lib/auth/clerk";
 import {
   hasClerkAdminMetadata,
@@ -8,6 +8,37 @@ import {
 } from "@/lib/auth/admin-config";
 
 export { isAdminConfigured } from "@/lib/auth/admin-config";
+
+function resolveClerkEmail(clerkUser: {
+  primaryEmailAddressId: string | null;
+  emailAddresses: Array<{ id: string; emailAddress: string }>;
+}) {
+  return (
+    clerkUser.emailAddresses.find(
+      (entry) => entry.id === clerkUser.primaryEmailAddressId
+    )?.emailAddress ??
+    clerkUser.emailAddresses[0]?.emailAddress ??
+    null
+  );
+}
+
+async function loadClerkUserForAdmin(userId: string, request?: Request) {
+  if (!request) {
+    const cached = await currentUser();
+    if (cached?.id === userId) {
+      return cached;
+    }
+  }
+
+  try {
+    return await (await clerkClient()).users.getUser(userId);
+  } catch (error) {
+    console.error("Failed to load Clerk user for admin check:", error);
+    throw new ForbiddenError(
+      "Unable to verify admin access. Confirm CLERK_SECRET_KEY is set correctly in Vercel production, then redeploy."
+    );
+  }
+}
 
 export async function isAdminUser(userId: string, email?: string | null) {
   if (isAdminUserId(userId)) {
@@ -28,13 +59,8 @@ export async function requireAdmin(request?: Request) {
     throw new ForbiddenError("You need to sign in to access the admin panel.");
   }
 
-  const clerkUser = await (await clerkClient()).users.getUser(userId);
-  const email =
-    clerkUser.emailAddresses.find(
-      (entry) => entry.id === clerkUser.primaryEmailAddressId
-    )?.emailAddress ??
-    clerkUser.emailAddresses[0]?.emailAddress ??
-    null;
+  const clerkUser = await loadClerkUserForAdmin(userId, request);
+  const email = resolveClerkEmail(clerkUser);
 
   const allowed =
     hasClerkAdminMetadata(clerkUser.publicMetadata) ||
