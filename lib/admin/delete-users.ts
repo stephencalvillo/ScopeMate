@@ -15,6 +15,18 @@ function isClerkNotFound(error: unknown) {
   );
 }
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "object" && error !== null && "message" in error) {
+    return String((error as { message: unknown }).message);
+  }
+
+  return "Failed to delete user. Please try again.";
+}
+
 export async function deleteUsers(userIds: string[]): Promise<DeleteUsersResult> {
   const supabase = createServiceClient();
   const client = await clerkClient();
@@ -41,10 +53,7 @@ export async function deleteUsers(userIds: string[]): Promise<DeleteUsersResult>
     } catch (error) {
       failed.push({
         userId,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to delete user. Please try again.",
+        error: getErrorMessage(error),
       });
     }
   }
