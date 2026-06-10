@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
@@ -16,6 +17,8 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 const isProjectDetailRoute = createRouteMatcher(["/projects/:id"]);
+
+const isAdminPanelRoute = createRouteMatcher(["/adminpanel(.*)"]);
 
 const guestProjectApiPattern =
   /^\/api\/projects\/[^/]+\/(generate-scope|claim|guest-token|scope-items(?:\/.*)?|follow-up-questions(?:\/.*)?|photos(?:\/.*)?)$/;
@@ -41,6 +44,16 @@ export default clerkMiddleware(
       isProjectDetailRoute(request) ||
       isGuestAccessibleProjectApi(request)
     ) {
+      return;
+    }
+
+    if (isAdminPanelRoute(request)) {
+      const { userId } = await auth();
+      if (!userId) {
+        const signInUrl = new URL("/sign-in", request.url);
+        signInUrl.searchParams.set("redirect_url", "/adminpanel");
+        return NextResponse.redirect(signInUrl);
+      }
       return;
     }
 

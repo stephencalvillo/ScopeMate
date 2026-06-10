@@ -1,7 +1,7 @@
+import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { AdminAccessDenied } from "@/components/admin/admin-access-denied";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { AdminSignIn } from "@/components/admin/admin-sign-in";
 import { getAdminStats } from "@/lib/admin/stats";
 import { ForbiddenError } from "@/lib/auth/clerk";
 import { isAdminConfigured, requireAdmin } from "@/lib/auth/admin";
@@ -10,11 +10,7 @@ export default async function AdminPanelPage() {
   const { userId } = await auth();
 
   if (!userId) {
-    return (
-      <div className="flex min-h-screen items-center justify-center px-[var(--page-padding-x)] py-12">
-        <AdminSignIn />
-      </div>
-    );
+    redirect("/sign-in?redirect_url=/adminpanel");
   }
 
   if (!isAdminConfigured()) {
