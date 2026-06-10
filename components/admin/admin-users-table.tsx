@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -39,14 +39,6 @@ function accountTypeBadgeVariant(type: AdminAccountType) {
   }
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
 export function AdminUsersTable({
   users,
   currentAdminUserId,
@@ -55,20 +47,26 @@ export function AdminUsersTable({
   currentAdminUserId: string;
 }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const selectAllRef = useRef<HTMLInputElement>(null);
   const lastSelectedIndexRef = useRef<number | null>(null);
+  const [visibleUsers, setVisibleUsers] = useState(users);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  useEffect(() => {
+    setVisibleUsers(users);
+  }, [users]);
+
   const selectableUsers = useMemo(
-    () => users.filter((user) => user.id !== currentAdminUserId),
-    [currentAdminUserId, users]
+    () => visibleUsers.filter((user) => user.id !== currentAdminUserId),
+    [currentAdminUserId, visibleUsers]
   );
 
   const selectedUsers = useMemo(
-    () => users.filter((user) => selectedIds.includes(user.id)),
-    [selectedIds, users]
+    () => visibleUsers.filter((user) => selectedIds.includes(user.id)),
+    [selectedIds, visibleUsers]
   );
 
   const allSelected =
@@ -112,7 +110,7 @@ export function AdminUsersTable({
     if (shiftKey && lastSelectedIndexRef.current !== null) {
       const start = Math.min(lastSelectedIndexRef.current, index);
       const end = Math.max(lastSelectedIndexRef.current, index);
-      const rangeIds = users
+      const rangeIds = visibleUsers
         .slice(start, end + 1)
         .filter((user) => user.id !== currentAdminUserId)
         .map((user) => user.id);
@@ -139,6 +137,9 @@ export function AdminUsersTable({
       const failedCount = result.failed.length;
 
       if (deletedCount > 0) {
+        setVisibleUsers((current) =>
+          current.filter((user) => !result.deleted.includes(user.id))
+        );
         toast.success(
           deletedCount === 1
             ? "Deleted 1 user from Clerk and Supabase."
@@ -156,11 +157,20 @@ export function AdminUsersTable({
 
       clearSelection();
       setConfirmOpen(false);
-      router.refresh();
+      startTransition(() => {
+        router.refresh();
+      });
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to delete users."
-      );
+      const message =
+        error instanceof Error
+          ? error.message
+          : typeof error === "object" &&
+              error !== null &&
+              "message" in error &&
+              typeof error.message === "string"
+            ? error.message
+            : "Failed to delete users.";
+      toast.error(message);
     } finally {
       setIsDeleting(false);
     }
@@ -201,7 +211,7 @@ export function AdminUsersTable({
               </tr>
             </thead>
             <tbody>
-              {users.map((user, index) => {
+              {visibleUsers.map((user, index) => {
                 const isCurrentAdmin = user.id === currentAdminUserId;
                 const isSelected = selectedIds.includes(user.id);
 
@@ -284,7 +294,7 @@ export function AdminUsersTable({
                       {user.projectCount}
                     </td>
                     <td className="px-3 py-3 text-neutral-700">
-                      {formatDate(user.createdAt)}
+                      {user.joinedAt}
                     </td>
                   </tr>
                 );

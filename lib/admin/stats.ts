@@ -10,6 +10,7 @@ export interface AdminUserRow {
   contractorOnboarded: boolean;
   projectCount: number;
   createdAt: string;
+  joinedAt: string;
 }
 
 export interface AdminStats {
@@ -58,6 +59,15 @@ function countRecent(items: { created_at: string }[], days = 7) {
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
   return items.filter((item) => new Date(item.created_at).getTime() >= cutoff)
     .length;
+}
+
+function formatAdminDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(value));
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
@@ -122,6 +132,7 @@ export async function getAdminStats(): Promise<AdminStats> {
       contractorOnboarded: Boolean(profile?.onboarding_completed_at),
       projectCount: homeownerProjectCount,
       createdAt: user.created_at,
+      joinedAt: formatAdminDate(user.created_at),
     };
   });
 
