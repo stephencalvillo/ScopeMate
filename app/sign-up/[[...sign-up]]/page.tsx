@@ -1,6 +1,7 @@
 import { AuthClerkForm } from "@/components/auth/auth-clerk-form";
 import { AuthPageLayout } from "@/components/auth/auth-page-layout";
 import { AuthSignUpForm } from "@/components/auth/auth-sign-up-form";
+import { normalizeAuthRedirectUrl } from "@/lib/auth/normalize-redirect-url";
 
 export default async function SignUpPage({
   searchParams,
@@ -8,10 +9,7 @@ export default async function SignUpPage({
   searchParams: Promise<{ redirect_url?: string }>;
 }) {
   const { redirect_url: redirectUrl } = await searchParams;
-  const safeRedirect =
-    redirectUrl?.startsWith("/") && !redirectUrl.startsWith("//")
-      ? redirectUrl.split("?")[0] || "/projects"
-      : "/projects";
+  const safeRedirect = normalizeAuthRedirectUrl(redirectUrl);
 
   return (
     <AuthPageLayout>

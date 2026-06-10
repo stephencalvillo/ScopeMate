@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
-import { useSignUp } from "@clerk/nextjs";
+import { useAuth, useSignUp } from "@clerk/nextjs";
 import { ClerkCaptcha } from "@/components/auth/clerk-captcha";
+import { waitForClerkSession } from "@/lib/auth/clerk-session-ready";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -82,7 +82,7 @@ export function ContractorAccountCreateForm({
   emailEditable?: boolean;
   onComplete?: () => void;
 }) {
-  const router = useRouter();
+  const { getToken } = useAuth();
   const { signUp, fetchStatus } = useSignUp();
   const [email, setEmail] = useState(prefill?.email ?? "");
   const [password, setPassword] = useState("");
@@ -106,9 +106,10 @@ export function ContractorAccountCreateForm({
 
     if (signUp.status === "complete") {
       const { error: finalizeError } = await signUp.finalize({
-        navigate: () => {
+        navigate: async () => {
           onComplete?.();
-          router.push("/contractor/complete-setup");
+          await waitForClerkSession(getToken);
+          window.location.assign("/contractor/complete-setup");
         },
       });
       if (finalizeError) {
