@@ -1,4 +1,5 @@
 import { clerkClient } from "@clerk/nextjs/server";
+import { getClerkSecretKeyError } from "@/lib/auth/clerk-config";
 import { createServiceClient } from "@/lib/db/supabase";
 
 export type DeleteUsersResult = {
@@ -41,6 +42,14 @@ function getErrorMessage(error: unknown) {
 }
 
 export async function deleteUsers(userIds: string[]): Promise<DeleteUsersResult> {
+  const configError = getClerkSecretKeyError();
+  if (configError) {
+    return {
+      deleted: [],
+      failed: userIds.map((userId) => ({ userId, error: configError })),
+    };
+  }
+
   const supabase = createServiceClient();
   const client = await clerkClient();
   const deleted: string[] = [];

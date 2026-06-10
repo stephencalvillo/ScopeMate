@@ -1,4 +1,5 @@
 import { clerkClient, currentUser } from "@clerk/nextjs/server";
+import { getClerkSecretKeyError } from "@/lib/auth/clerk-config";
 import { ForbiddenError, resolveClerkUserId } from "@/lib/auth/clerk";
 import {
   hasClerkAdminMetadata,
@@ -31,6 +32,11 @@ async function loadClerkUserForAdmin(userId: string, request?: Request) {
   }
 
   try {
+    const configError = getClerkSecretKeyError();
+    if (configError) {
+      throw new ForbiddenError(configError);
+    }
+
     return await (await clerkClient()).users.getUser(userId);
   } catch (error) {
     console.error("Failed to load Clerk user for admin check:", error);
