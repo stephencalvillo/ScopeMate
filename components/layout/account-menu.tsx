@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useAuth, UserButton } from "@clerk/nextjs";
 import { Briefcase, Home, UserPlus } from "lucide-react";
+import { waitForClerkSession } from "@/lib/auth/clerk-session-ready";
 
 type AccountMenuProps = {
   variant?: "homeowner" | "contractor";
 };
 
 export function AccountMenu({ variant = "homeowner" }: AccountMenuProps) {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [hasContractorProfile, setHasContractorProfile] = useState<boolean | null>(
     null
@@ -33,6 +34,14 @@ export function AccountMenu({ variant = "homeowner" }: AccountMenuProps) {
 
     async function loadContractorProfile() {
       try {
+        const sessionToken = await waitForClerkSession(getToken);
+        if (!sessionToken || cancelled) {
+          if (!cancelled) {
+            setHasContractorProfile(false);
+          }
+          return;
+        }
+
         const response = await fetch("/api/contractor/profile");
         if (!response.ok) {
           if (!cancelled) {
@@ -57,7 +66,7 @@ export function AccountMenu({ variant = "homeowner" }: AccountMenuProps) {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn, mounted]);
+  }, [getToken, isLoaded, isSignedIn, mounted]);
 
   if (!mounted) {
     return (

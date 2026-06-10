@@ -3,10 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import {
-  clearGuestProjectToken,
-  readGuestProjectToken,
-} from "@/lib/auth/guest-project-session";
+import { claimGuestProjectClient } from "@/lib/project/claim-guest-project-client";
 
 export function ProjectClaimHandler({
   projectId,
@@ -19,11 +16,16 @@ export function ProjectClaimHandler({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const claimStarted = useRef(false);
 
   useEffect(() => {
-    if (!isGuestProject || !isSignedIn || searchParams.get("claim") !== "1") {
+    if (
+      !isGuestProject ||
+      !isLoaded ||
+      !isSignedIn ||
+      searchParams.get("claim") !== "1"
+    ) {
       return;
     }
 
@@ -31,21 +33,12 @@ export function ProjectClaimHandler({
     claimStarted.current = true;
 
     void (async () => {
-      const guestToken = readGuestProjectToken(projectId);
-      const response = await fetch(`/api/projects/${projectId}/claim`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...(guestToken ? { guest_token: guestToken } : {}),
-        }),
-      });
-
-      if (!response.ok) {
+      try {
+        await claimGuestProjectClient(projectId, getToken);
+      } catch {
         claimStarted.current = false;
         return;
       }
-
-      clearGuestProjectToken(projectId);
 
       if (searchParams.get("share") === "1") {
         await onClaimed?.();
@@ -57,7 +50,9 @@ export function ProjectClaimHandler({
       router.refresh();
     })();
   }, [
+    getToken,
     isGuestProject,
+    isLoaded,
     isSignedIn,
     onClaimed,
     projectId,

@@ -20,10 +20,7 @@ import { ShareLinkDialog } from "@/components/project/share-link-dialog-content"
 import { SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
 import { getProjectShareCopy } from "@/lib/project/share-copy";
-import {
-  clearGuestProjectToken,
-  readGuestProjectToken,
-} from "@/lib/auth/guest-project-session";
+import { claimGuestProjectClient } from "@/lib/project/claim-guest-project-client";
 import { cn, mobileFullWidthCtaClassName } from "@/lib/utils";
 import type { Project } from "@/types";
 
@@ -75,13 +72,13 @@ function ProjectShareReturnHandler({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const opened = useRef(false);
 
   useEffect(() => {
     if (opened.current) return;
     if (searchParams.get("share") !== "1") return;
-    if (!isSignedIn) return;
+    if (!isLoaded || !isSignedIn) return;
 
     opened.current = true;
 
@@ -94,7 +91,7 @@ function ProjectShareReturnHandler({
         console.error(error);
       }
     })();
-  }, [isSignedIn, onOpenShare, projectId, router, searchParams]);
+  }, [isLoaded, isSignedIn, onOpenShare, projectId, router, searchParams]);
 
   return null;
 }
@@ -109,7 +106,7 @@ export function ProjectShareProvider({
   children: ReactNode;
 }) {
   const router = useRouter();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const isGuestProject = project.homeowner_id === null;
   const isContractorProject = project.creator_role === "contractor";
   const shareCopy = getProjectShareCopy(isContractorProject);
@@ -131,27 +128,9 @@ export function ProjectShareProvider({
       : "header";
 
   const claimProject = useCallback(async () => {
-    const guestToken = readGuestProjectToken(project.id);
-    const response = await fetch(`/api/projects/${project.id}/claim`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...(guestToken ? { guest_token: guestToken } : {}),
-      }),
-    });
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(
-        typeof data.error === "string"
-          ? data.error
-          : "Could not save this project to your account."
-      );
-    }
-
-    clearGuestProjectToken(project.id);
+    await claimGuestProjectClient(project.id, getToken);
     router.refresh();
-  }, [project.id, router]);
+  }, [getToken, project.id, router]);
 
   const openShareLinkDialog = useCallback(() => {
     setShareDialogOpen(true);
@@ -161,7 +140,8 @@ export function ProjectShareProvider({
     setShareError(null);
 
     if (isGuestProject) {
-      if (!isSignedIn) {
+      if (!isLoaded || !isSignedIn) {
+        if (!isLoaded) return;
         setAccountDialogOpen(true);
         return;
       }
@@ -173,6 +153,7 @@ export function ProjectShareProvider({
   }, [
     claimProject,
     isGuestProject,
+    isLoaded,
     isSignedIn,
     openShareLinkDialog,
   ]);

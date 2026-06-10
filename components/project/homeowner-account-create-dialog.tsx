@@ -30,7 +30,7 @@ export function HomeownerAccountCreateDialog({
   onOpenChange: (open: boolean) => void;
   onAccountReady: () => void | Promise<void>;
 }) {
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const [continuing, setContinuing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const returnUrl = projectReturnUrl(projectId);
@@ -52,7 +52,7 @@ export function HomeownerAccountCreateDialog({
   }, [open, projectId]);
 
   useEffect(() => {
-    if (!open || !isSignedIn) return;
+    if (!open || !isLoaded || !isSignedIn) return;
 
     let cancelled = false;
     setContinuing(true);
@@ -82,7 +82,7 @@ export function HomeownerAccountCreateDialog({
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn, onAccountReady, onOpenChange, open]);
+  }, [isLoaded, isSignedIn, onAccountReady, onOpenChange, open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

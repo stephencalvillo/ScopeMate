@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildShareUrl } from "@/lib/contractor/urls";
+import { waitForClerkSession } from "@/lib/auth/clerk-session-ready";
 import { getProjectShareCopy } from "@/lib/project/share-copy";
 import type { Project } from "@/types";
 
@@ -27,6 +29,7 @@ export function ShareLinkDialogContent({
   autoCreate?: boolean;
   onClose?: () => void;
 }) {
+  const { getToken } = useAuth();
   const [shareEnabled, setShareEnabled] = useState(project.share_enabled);
   const [shareUrl, setShareUrl] = useState<string | null>(
     project.share_token ? buildShareUrl(project.share_token) : null
@@ -43,6 +46,16 @@ export function ShareLinkDialogContent({
     setLoading(true);
     setMessage(null);
     setMessageIsError(false);
+
+    const sessionToken = await waitForClerkSession(getToken);
+    if (!sessionToken) {
+      setLoading(false);
+      setMessageIsError(true);
+      setMessage(
+        "Your account session is still loading. Please try again in a moment."
+      );
+      return false;
+    }
 
     const response = await fetch(`/api/projects/${project.id}/share`, {
       method: "POST",
