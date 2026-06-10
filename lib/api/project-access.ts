@@ -93,18 +93,17 @@ export async function getAccessibleProject(projectId: string): Promise<Project> 
   const { userId } = await auth();
 
   if (userId) {
-    const user = await ensureUserRecord();
     const project = await fetchProject(projectId);
 
     if (!project) {
       throw new NotFoundError("Project not found.");
     }
 
-    if (project.homeowner_id === user.id) {
+    if (project.homeowner_id === userId) {
       return project;
     }
 
-    if (project.created_by_user_id === user.id) {
+    if (project.created_by_user_id === userId) {
       return project;
     }
 

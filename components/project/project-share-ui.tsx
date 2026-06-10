@@ -70,7 +70,6 @@ function ProjectShareReturnHandler({
   projectId: string;
   onOpenShare: () => void | Promise<void>;
 }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
   const opened = useRef(false);
@@ -82,16 +81,11 @@ function ProjectShareReturnHandler({
 
     opened.current = true;
 
-    void (async () => {
-      try {
-        await onOpenShare();
-        router.replace(`/projects/${projectId}`);
-      } catch (error) {
-        opened.current = false;
-        console.error(error);
-      }
-    })();
-  }, [isLoaded, isSignedIn, onOpenShare, projectId, router, searchParams]);
+    void onOpenShare().catch((error) => {
+      opened.current = false;
+      console.error(error);
+    });
+  }, [isLoaded, isSignedIn, onOpenShare, searchParams]);
 
   return null;
 }
@@ -129,8 +123,18 @@ export function ProjectShareProvider({
 
   const claimProject = useCallback(async () => {
     await claimGuestProjectClient(project.id, getToken);
+  }, [getToken, project.id]);
+
+  const cleanShareReturnUrl = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("share") && !params.has("claim")) return;
+    router.replace(`/projects/${project.id}`, { scroll: false });
+  }, [project.id, router]);
+
+  const refreshProject = useCallback(() => {
     router.refresh();
-  }, [getToken, project.id, router]);
+  }, [router]);
 
   const openShareLinkDialog = useCallback(() => {
     setShareDialogOpen(true);
@@ -149,9 +153,11 @@ export function ProjectShareProvider({
       await claimProject();
     }
 
+    cleanShareReturnUrl();
     openShareLinkDialog();
   }, [
     claimProject,
+    cleanShareReturnUrl,
     isGuestProject,
     isLoaded,
     isSignedIn,
@@ -310,7 +316,10 @@ export function ProjectShareProvider({
         autoCreate
         onOpenChange={(open) => {
           setShareDialogOpen(open);
-          if (!open) onActivityChange?.();
+          if (!open) {
+            refreshProject();
+            onActivityChange?.();
+          }
         }}
       />
     </ProjectShareContext.Provider>
