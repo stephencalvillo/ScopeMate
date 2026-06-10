@@ -27,7 +27,13 @@ export default async function AdminPanelPage() {
     const admin = await requireAdmin();
     const stats = await getAdminStats();
 
-    return <AdminShell stats={stats} adminEmail={admin.email} />;
+    return (
+      <AdminShell
+        stats={stats}
+        adminEmail={admin.email}
+        adminUserId={admin.userId}
+      />
+    );
   } catch (error) {
     if (error instanceof ForbiddenError) {
       return <AdminAccessDenied message={error.message} />;

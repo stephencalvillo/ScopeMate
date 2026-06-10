@@ -1,0 +1,53 @@
+import { clerkClient } from "@clerk/nextjs/server";
+import { createServiceClient } from "@/lib/db/supabase";
+
+export type DeleteUsersResult = {
+  deleted: string[];
+  failed: Array<{ userId: string; error: string }>;
+};
+
+function isClerkNotFound(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    (error as { status: number }).status === 404
+  );
+}
+
+export async function deleteUsers(userIds: string[]): Promise<DeleteUsersResult> {
+  const supabase = createServiceClient();
+  const client = await clerkClient();
+  const deleted: string[] = [];
+  const failed: Array<{ userId: string; error: string }> = [];
+
+  for (const userId of userIds) {
+    try {
+      try {
+        await client.users.deleteUser(userId);
+      } catch (error) {
+        if (!isClerkNotFound(error)) {
+          throw error;
+        }
+      }
+
+      const { error } = await supabase.from("users").delete().eq("id", userId);
+
+      if (error) {
+        throw error;
+      }
+
+      deleted.push(userId);
+    } catch (error) {
+      failed.push({
+        userId,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete user. Please try again.",
+      });
+    }
+  }
+
+  return { deleted, failed };
+}

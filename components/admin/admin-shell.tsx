@@ -6,9 +6,11 @@ import type { AdminStats } from "@/lib/admin/stats";
 export function AdminShell({
   stats,
   adminEmail,
+  adminUserId,
 }: {
   stats: AdminStats;
   adminEmail: string | null;
+  adminUserId: string;
 }) {
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -35,7 +37,7 @@ export function AdminShell({
       </header>
 
       <main className="mx-auto max-w-7xl px-[var(--page-padding-x)] py-8">
-        <AdminDashboard stats={stats} />
+        <AdminDashboard stats={stats} currentAdminUserId={adminUserId} />
       </main>
     </div>
   );
