@@ -4,6 +4,9 @@ import { useState, type ReactNode } from "react";
 import { useAuth, useSignUp } from "@clerk/nextjs";
 import { ClerkCaptcha } from "@/components/auth/clerk-captcha";
 import { waitForClerkSession } from "@/lib/auth/clerk-session-ready";
+import { finishContractorAccountSetup } from "@/lib/contractor/complete-signup";
+import { readShareLinkReturn } from "@/lib/contractor/share-link-onboarding";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,15 +104,36 @@ export function ContractorAccountCreateForm({
     });
   }
 
+  async function navigateAfterSignup() {
+    onComplete?.();
+    await waitForClerkSession(getToken);
+
+    const shareReturn = readShareLinkReturn();
+    if (shareReturn?.startsWith("/review/")) {
+      try {
+        await finishContractorAccountSetup(getToken);
+        const token = shareReturn.replace("/review/", "");
+        await authenticatedFetch(getToken, `/api/review/${token}/claim`, {
+          method: "POST",
+        });
+        window.location.assign(shareReturn);
+        return;
+      } catch {
+        window.location.assign("/contractor/complete-setup");
+        return;
+      }
+    }
+
+    window.location.assign("/contractor/complete-setup");
+  }
+
   async function completeSignup() {
     if (!signUp) return;
 
     if (signUp.status === "complete") {
       const { error: finalizeError } = await signUp.finalize({
         navigate: async () => {
-          onComplete?.();
-          await waitForClerkSession(getToken);
-          window.location.assign("/contractor/complete-setup");
+          await navigateAfterSignup();
         },
       });
       if (finalizeError) {

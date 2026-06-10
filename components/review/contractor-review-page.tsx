@@ -12,6 +12,7 @@ import { HomeownerContractorSharedReviewView } from "@/components/review/homeown
 import { HomeownerReviewEntryPrompt } from "@/components/review/homeowner-review-entry-prompt";
 import { ReviewExpiredNotice } from "@/components/review/review-expired-notice";
 import { ReviewSubmittedDialog } from "@/components/review/review-submitted-dialog";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import {
   isShareLinkOnboardingDeferred,
   persistShareLinkReturn,
@@ -45,12 +46,13 @@ type ReviewPayload = {
 
 export function ContractorReviewPage({ token }: { token: string }) {
   const searchParams = useSearchParams();
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const [payload, setPayload] = useState<ReviewPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [unavailable, setUnavailable] = useState(false);
   const [showSubmittedDialog, setShowSubmittedDialog] = useState(false);
   const [showShareLinkDialog, setShowShareLinkDialog] = useState(false);
+  const [shareLinkSignupOnly, setShareLinkSignupOnly] = useState(false);
 
   const loadReview = useCallback(
     async (options?: { silent?: boolean }) => {
@@ -122,7 +124,7 @@ export function ContractorReviewPage({ token }: { token: string }) {
         return;
       }
 
-      const response = await fetch(`/api/review/${token}/claim`, {
+      const response = await authenticatedFetch(getToken, `/api/review/${token}/claim`, {
         method: "POST",
       });
 
@@ -136,6 +138,7 @@ export function ContractorReviewPage({ token }: { token: string }) {
   }, [
     isHomeownerShareRecipient,
     isSignedIn,
+    getToken,
     loadReview,
     payload?.can_edit,
     payload?.is_share_link,
@@ -231,16 +234,25 @@ export function ContractorReviewPage({ token }: { token: string }) {
         onRefresh={() => loadReview({ silent: true })}
         onReviewSubmitted={handleReviewSubmitted}
         requireAccountForEstimate={requiresShareLinkAccount}
-        onRequestAccount={() => setShowShareLinkDialog(true)}
+        onRequestAccount={() => {
+          setShareLinkSignupOnly(true);
+          setShowShareLinkDialog(true);
+        }}
       />
 
       {requiresShareLinkAccount ? (
         <ContractorShareLinkOnboardingDialog
           open={showShareLinkDialog}
-          onOpenChange={setShowShareLinkDialog}
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
+              setShareLinkSignupOnly(false);
+            }
+            setShowShareLinkDialog(nextOpen);
+          }}
           token={token}
           homeownerName={payload.homeowner_name ?? "A homeowner"}
           invitation={payload.invitation}
+          signupOnly={shareLinkSignupOnly}
         />
       ) : null}
 

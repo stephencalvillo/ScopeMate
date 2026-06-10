@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { completeContractorSignup } from "@/lib/contractor/complete-signup";
 import {
   clearContractorSignupPrefill,
@@ -29,6 +31,7 @@ export function ContractorOnboardingForm({
   defaultServiceArea?: string;
 }) {
   const router = useRouter();
+  const { getToken } = useAuth();
   const [companyName, setCompanyName] = useState(defaultCompanyName);
   const [contactName, setContactName] = useState(defaultContactName);
   const [serviceArea, setServiceArea] = useState(defaultServiceArea);
@@ -49,18 +52,23 @@ export function ContractorOnboardingForm({
     setError(null);
 
     try {
-      await completeContractorSignup({
-        company_name: companyName,
-        contact_name: contactName,
-        service_area: serviceArea,
-        complete_onboarding: true,
-      });
+      await completeContractorSignup(
+        {
+          company_name: companyName,
+          contact_name: contactName,
+          service_area: serviceArea,
+          complete_onboarding: true,
+        },
+        getToken
+      );
       clearContractorSignupPrefill();
 
       const shareLinkReturn = readShareLinkReturn();
       if (shareLinkReturn?.startsWith("/review/")) {
         const token = shareLinkReturn.replace("/review/", "");
-        await fetch(`/api/review/${token}/claim`, { method: "POST" });
+        await authenticatedFetch(getToken, `/api/review/${token}/claim`, {
+          method: "POST",
+        });
         clearShareLinkReturn();
         router.push(shareLinkReturn);
         router.refresh();

@@ -5,7 +5,7 @@ import { completeContractorSetupIfReady } from "@/lib/contractor/profile";
 
 export async function POST(request: Request) {
   try {
-    const user = await ensureUserRecord();
+    const user = await ensureUserRecord(request);
     const body = await request.json().catch(() => ({}));
     const prefill =
       body.prefill && typeof body.prefill === "object"

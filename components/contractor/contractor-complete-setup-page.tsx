@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { finishContractorAccountSetup } from "@/lib/contractor/complete-signup";
 import { readContractorProjectReturn } from "@/lib/contractor/contractor-project-onboarding";
 import { readShareLinkReturn } from "@/lib/contractor/share-link-onboarding";
 
 export function ContractorCompleteSetupPage() {
   const router = useRouter();
+  const { getToken } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -16,13 +19,23 @@ export function ContractorCompleteSetupPage() {
 
     async function run() {
       try {
-        const result = await finishContractorAccountSetup();
+        const result = await finishContractorAccountSetup(getToken);
         if (cancelled) return;
 
-        const returnUrl = readShareLinkReturn() ?? readContractorProjectReturn();
+        const shareReturn = readShareLinkReturn();
+        if (shareReturn?.startsWith("/review/")) {
+          const token = shareReturn.replace("/review/", "");
+          await authenticatedFetch(getToken, `/api/review/${token}/claim`, {
+            method: "POST",
+          });
+          window.location.assign(shareReturn);
+          return;
+        }
+
+        const projectReturn = readContractorProjectReturn();
         router.replace(
           result.ready
-            ? returnUrl ?? "/contractor"
+            ? projectReturn ?? "/contractor"
             : "/contractor/onboarding"
         );
         router.refresh();
@@ -41,7 +54,7 @@ export function ContractorCompleteSetupPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [getToken, router]);
 
   if (error) {
     return (

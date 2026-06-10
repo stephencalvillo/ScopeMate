@@ -1,15 +1,19 @@
 "use client";
 
 import type { UpsertContractorProfileInput } from "@/lib/contractor/profile";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import {
   clearContractorSignupPrefill,
   readContractorSignupPrefill,
 } from "@/lib/contractor/signup-prefill";
 
+type GetToken = () => Promise<string | null>;
+
 export async function completeContractorSignup(
-  input: UpsertContractorProfileInput
+  input: UpsertContractorProfileInput,
+  getToken: GetToken
 ) {
-  const response = await fetch("/api/contractor/profile", {
+  const response = await authenticatedFetch(getToken, "/api/contractor/profile", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -31,20 +35,24 @@ export async function completeContractorSignup(
   };
 }
 
-export async function finishContractorAccountSetup() {
+export async function finishContractorAccountSetup(getToken: GetToken) {
   const prefill = readContractorSignupPrefill();
-  const response = await fetch("/api/contractor/profile/complete-setup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      prefill: prefill
-        ? {
-            contactName: prefill.contactName,
-            companyName: prefill.companyName,
-          }
-        : undefined,
-    }),
-  });
+  const response = await authenticatedFetch(
+    getToken,
+    "/api/contractor/profile/complete-setup",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prefill: prefill
+          ? {
+              contactName: prefill.contactName,
+              companyName: prefill.companyName,
+            }
+          : undefined,
+      }),
+    }
+  );
 
   const data = await response.json();
 

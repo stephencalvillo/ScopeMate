@@ -27,13 +27,16 @@ export async function POST(request: Request) {
       typeof body.service_area === "string" ? body.service_area : null;
     const completeOnboarding = body.complete_onboarding !== false;
 
-    const { profile, user } = await ensureContractorProfile({
-      company_name: companyName,
-      contact_name: contactName,
-      service_area: serviceArea,
-      phone,
-      complete_onboarding: completeOnboarding,
-    });
+    const { profile, user } = await ensureContractorProfile(
+      {
+        company_name: companyName,
+        contact_name: contactName,
+        service_area: serviceArea,
+        phone,
+        complete_onboarding: completeOnboarding,
+      },
+      request
+    );
 
     return NextResponse.json({ profile, user });
   } catch (error) {

@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { ScopeBuddyLogo } from "@/components/layout/scopemate-logo";
 import { ContractorAccountCreateForm } from "@/components/review/contractor-account-create-form";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -14,24 +16,27 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatShareLinkHomeownerName } from "@/lib/contractor/display-homeowner";
-import { persistContractorSignupPrefill } from "@/lib/contractor/signup-prefill";
+import {
+  readContractorSignupPrefill,
+  persistContractorSignupPrefill,
+} from "@/lib/contractor/signup-prefill";
 import {
   clearShareLinkOnboardingDeferral,
   deferShareLinkOnboarding,
   isShareLinkOnboardingDeferred,
   persistShareLinkReturn,
 } from "@/lib/contractor/share-link-onboarding";
-import { SHARE_LINK_PLACEHOLDER_EMAIL } from "@/lib/contractor/project-share";
+import { SHARE_LINK_PLACEHOLDER_NAME } from "@/lib/contractor/project-share";
 import type { ContractorInvitation } from "@/types";
 
-function reviewSignupPrefill(invitation: ContractorInvitation) {
-  const needsEmail = invitation.contractor_email === SHARE_LINK_PLACEHOLDER_EMAIL;
+type DialogStep = "intro" | "signup";
 
-  return {
-    email: needsEmail ? "" : invitation.contractor_email,
-    contactName: invitation.contractor_name,
-    companyName: invitation.contractor_company ?? "",
-  };
+function hasIdentityPrefill(contactName: string, companyName: string) {
+  return (
+    contactName.trim().length > 0 &&
+    contactName.trim() !== SHARE_LINK_PLACEHOLDER_NAME &&
+    companyName.trim().length > 0
+  );
 }
 
 export function ContractorShareLinkOnboardingDialog({
@@ -40,30 +45,65 @@ export function ContractorShareLinkOnboardingDialog({
   token,
   homeownerName,
   invitation,
+  signupOnly = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   token: string;
   homeownerName: string;
   invitation: ContractorInvitation;
+  signupOnly?: boolean;
 }) {
   const { isSignedIn } = useAuth();
-  const prefill = reviewSignupPrefill(invitation);
-  const needsEmail = invitation.contractor_email === SHARE_LINK_PLACEHOLDER_EMAIL;
   const displayHomeownerName = formatShareLinkHomeownerName(homeownerName);
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(
     `/review/${token}?as=contractor`
   )}`;
 
+  const storedPrefill = readContractorSignupPrefill();
+  const [step, setStep] = useState<DialogStep>("intro");
+  const [contactName, setContactName] = useState(
+    storedPrefill?.contactName ||
+      (invitation.contractor_name === SHARE_LINK_PLACEHOLDER_NAME
+        ? ""
+        : invitation.contractor_name)
+  );
+  const [companyName, setCompanyName] = useState(
+    storedPrefill?.companyName || invitation.contractor_company || ""
+  );
+  const [introError, setIntroError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!open) return;
     persistShareLinkReturn(token);
+
+    const prefill = readContractorSignupPrefill();
+    if (prefill?.contactName) {
+      setContactName((current) => current || prefill.contactName || "");
+    }
+    if (prefill?.companyName) {
+      setCompanyName((current) => current || prefill.companyName || "");
+    }
+
+    if (signupOnly) {
+      const contact = prefill?.contactName || contactName;
+      const company = prefill?.companyName || companyName;
+      setStep(
+        hasIdentityPrefill(contact, company) ? "signup" : "intro"
+      );
+      return;
+    }
+
+    setStep("intro");
+  }, [open, signupOnly, token]);
+
+  function persistIdentityPrefill() {
     persistContractorSignupPrefill({
-      email: prefill.email,
-      contactName: prefill.contactName,
-      companyName: prefill.companyName,
+      email: "",
+      contactName: contactName.trim(),
+      companyName: companyName.trim(),
     });
-  }, [open, prefill.companyName, prefill.contactName, prefill.email, token]);
+  }
 
   function handleDefer() {
     deferShareLinkOnboarding(token);
@@ -81,6 +121,27 @@ export function ContractorShareLinkOnboardingDialog({
     clearShareLinkOnboardingDeferral(token);
     onOpenChange(false);
   }
+
+  function handleContinueToSignup(event: React.FormEvent) {
+    event.preventDefault();
+    setIntroError(null);
+
+    if (!contactName.trim() || !companyName.trim()) {
+      setIntroError("Enter your name and company to continue.");
+      return;
+    }
+
+    persistIdentityPrefill();
+    setStep("signup");
+  }
+
+  const signupTitle = signupOnly
+    ? "Create account to review and submit project estimate"
+    : "Create your contractor account";
+
+  const signupDescription = signupOnly
+    ? "Sign up to build your estimate, add scope feedback, and submit your proposal."
+    : "Use the email and password you want for managing projects and estimates.";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -113,26 +174,49 @@ export function ContractorShareLinkOnboardingDialog({
               I&apos;ll do this later
             </Button>
           </div>
-        ) : (
+        ) : step === "intro" ? (
           <div className="space-y-3">
             <DialogHeader className="mb-0 text-center">
               <DialogTitle className="font-display text-lg font-normal tracking-tight text-balance break-words sm:text-xl">
                 {displayHomeownerName} shared a project with you
               </DialogTitle>
               <DialogDescription className="text-[var(--muted)]">
-                Create an account to view, estimate, and manage all your projects.
+                Tell us who you are, then create an account when you&apos;re
+                ready to estimate and submit your proposal.
               </DialogDescription>
             </DialogHeader>
 
-            <ContractorAccountCreateForm
-              prefill={prefill}
-              emailEditable={needsEmail}
-              onComplete={handleAccountComplete}
-            />
+            <form onSubmit={handleContinueToSignup} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="share_link_contact_name">Your name</Label>
+                <Input
+                  id="share_link_contact_name"
+                  value={contactName}
+                  onChange={(event) => setContactName(event.target.value)}
+                  placeholder="How homeowners should address you"
+                  required
+                />
+              </div>
 
-            <Button type="button" variant="outline" className="w-full" asChild>
-              <Link href={signInHref}>Sign in with existing account</Link>
-            </Button>
+              <div className="space-y-2">
+                <Label htmlFor="share_link_company_name">Company</Label>
+                <Input
+                  id="share_link_company_name"
+                  value={companyName}
+                  onChange={(event) => setCompanyName(event.target.value)}
+                  placeholder="Your company"
+                  required
+                />
+              </div>
+
+              {introError ? (
+                <p className="text-sm text-red-600">{introError}</p>
+              ) : null}
+
+              <Button type="submit" className="w-full">
+                Create account
+              </Button>
+            </form>
 
             <Button
               type="button"
@@ -142,6 +226,51 @@ export function ContractorShareLinkOnboardingDialog({
             >
               I&apos;ll do this later
             </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <DialogHeader className="mb-0 text-center">
+              <DialogTitle className="font-display text-lg font-normal tracking-tight text-balance break-words sm:text-xl">
+                {signupTitle}
+              </DialogTitle>
+              <DialogDescription className="text-[var(--muted)]">
+                {signupDescription}
+              </DialogDescription>
+            </DialogHeader>
+
+            <ContractorAccountCreateForm
+              prefill={{
+                email: "",
+                contactName: contactName.trim(),
+                companyName: companyName.trim(),
+              }}
+              emailEditable
+              onComplete={handleAccountComplete}
+            />
+
+            <Button type="button" variant="outline" className="w-full" asChild>
+              <Link href={signInHref}>Sign in with existing account</Link>
+            </Button>
+
+            {!signupOnly ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={() => setStep("intro")}
+              >
+                Back
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={handleDefer}
+              >
+                I&apos;ll do this later
+              </Button>
+            )}
           </div>
         )}
       </DialogContent>

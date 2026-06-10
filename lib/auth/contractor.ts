@@ -21,9 +21,10 @@ export async function requireContractorProfile(): Promise<{
 }
 
 export async function ensureContractorProfile(
-  input: UpsertContractorProfileInput
+  input: UpsertContractorProfileInput,
+  request?: Request
 ): Promise<{ user: User; profile: ContractorProfile }> {
-  const user = await ensureUserRecord();
+  const user = await ensureUserRecord(request);
   const profile = await upsertContractorProfile(user, input);
   return { user, profile };
 }
