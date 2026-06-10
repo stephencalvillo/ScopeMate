@@ -8,6 +8,7 @@
   --muted-foreground: #8a8a8a;
   --border: #e8e8e4;
   --marketing-grid-line: color-mix(in srgb, var(--border) 80%, transparent);
+  --marketing-grid-line-strong: color-mix(in srgb, var(--border) 45%, #171717 55%);
   --card: #ffffff;
   --accent: #e8d4a8;
   --accent-foreground: #3d3428;
@@ -67,6 +68,76 @@ body {
 .marketing-hero-grid {
   background-color: var(--card);
   contain: layout paint style;
+  --grid-hover-x: 50%;
+  --grid-hover-y: 50%;
+}
+
+.marketing-hero-grid-spotlight {
+  position: absolute;
+  inset: -24px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 220ms ease;
+  -webkit-mask-image: radial-gradient(
+    circle 180px at var(--grid-hover-x) var(--grid-hover-y),
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 0.55) 38%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    circle 180px at var(--grid-hover-x) var(--grid-hover-y),
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 0.55) 38%,
+    transparent 72%
+  );
+}
+
+.marketing-hero-grid--hovering .marketing-hero-grid-spotlight {
+  opacity: 1;
+}
+
+.marketing-hero-grid-layer--strong.marketing-hero-grid-h-fwd {
+  background-image: repeating-linear-gradient(
+    0deg,
+    var(--marketing-grid-line-strong) 0,
+    var(--marketing-grid-line-strong) 1px,
+    transparent 1px,
+    transparent 24px
+  );
+}
+
+.marketing-hero-grid-layer--strong.marketing-hero-grid-h-rev {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 12px,
+    var(--marketing-grid-line-strong) 12px,
+    var(--marketing-grid-line-strong) 13px,
+    transparent 13px,
+    transparent 24px
+  );
+}
+
+.marketing-hero-grid-layer--strong.marketing-hero-grid-v-fwd {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--marketing-grid-line-strong) 0,
+    var(--marketing-grid-line-strong) 1px,
+    transparent 1px,
+    transparent 24px
+  );
+}
+
+.marketing-hero-grid-layer--strong.marketing-hero-grid-v-rev {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 12px,
+    var(--marketing-grid-line-strong) 12px,
+    var(--marketing-grid-line-strong) 13px,
+    transparent 13px,
+    transparent 24px
+  );
 }
 
 .marketing-hero-grid--paused .marketing-hero-grid-layer {
@@ -365,8 +436,13 @@ body {
   .scope-added-enter,
   .scope-added-exit,
   .scopebuddy-logo-draw-stroke,
-  .scopebuddy-logo-draw-fill {
+  .scopebuddy-logo-draw-fill,
+  .marketing-hero-grid-spotlight {
     transition: none;
+  }
+
+  .marketing-hero-grid-spotlight {
+    opacity: 0;
   }
 
   .scopebuddy-logo-draw-stroke {

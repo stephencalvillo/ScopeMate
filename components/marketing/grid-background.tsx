@@ -8,6 +8,49 @@ type GridBackgroundProps = {
   layers?: "full" | "minimal";
 };
 
+function GridLayers({
+  layers,
+  strong = false,
+}: {
+  layers: "full" | "minimal";
+  strong?: boolean;
+}) {
+  const layerClass = strong ? "marketing-hero-grid-layer--strong" : undefined;
+
+  return (
+    <>
+      <div
+        className={cn(
+          "marketing-hero-grid-layer marketing-hero-grid-h-fwd",
+          layerClass
+        )}
+      />
+      {layers === "full" ? (
+        <div
+          className={cn(
+            "marketing-hero-grid-layer marketing-hero-grid-h-rev",
+            layerClass
+          )}
+        />
+      ) : null}
+      <div
+        className={cn(
+          "marketing-hero-grid-layer marketing-hero-grid-v-fwd",
+          layerClass
+        )}
+      />
+      {layers === "full" ? (
+        <div
+          className={cn(
+            "marketing-hero-grid-layer marketing-hero-grid-v-rev",
+            layerClass
+          )}
+        />
+      ) : null}
+    </>
+  );
+}
+
 export function GridBackground({
   fade = "hero",
   layers = "full",
@@ -34,6 +77,54 @@ export function GridBackground({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const grid = gridRef.current;
+    const section = grid?.parentElement;
+    if (!grid || !section) {
+      return;
+    }
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const prefersFinePointer = window.matchMedia("(pointer: fine)").matches;
+
+    if (prefersReducedMotion || !prefersFinePointer) {
+      return;
+    }
+
+    let frameId = 0;
+
+    function updateHoverPosition(clientX: number, clientY: number) {
+      const rect = section.getBoundingClientRect();
+      grid.style.setProperty("--grid-hover-x", `${clientX - rect.left}px`);
+      grid.style.setProperty("--grid-hover-y", `${clientY - rect.top}px`);
+    }
+
+    function handleMouseMove(event: MouseEvent) {
+      cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        updateHoverPosition(event.clientX, event.clientY);
+        grid.classList.add("marketing-hero-grid--hovering");
+      });
+    }
+
+    function handleMouseLeave() {
+      cancelAnimationFrame(frameId);
+      grid.classList.remove("marketing-hero-grid--hovering");
+    }
+
+    section.addEventListener("mousemove", handleMouseMove);
+    section.addEventListener("mouseleave", handleMouseLeave);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      section.removeEventListener("mousemove", handleMouseMove);
+      section.removeEventListener("mouseleave", handleMouseLeave);
+      grid.classList.remove("marketing-hero-grid--hovering");
+    };
+  }, []);
+
   return (
     <div
       ref={gridRef}
@@ -45,14 +136,10 @@ export function GridBackground({
       )}
       aria-hidden
     >
-      <div className="marketing-hero-grid-layer marketing-hero-grid-h-fwd" />
-      {layers === "full" ? (
-        <div className="marketing-hero-grid-layer marketing-hero-grid-h-rev" />
-      ) : null}
-      <div className="marketing-hero-grid-layer marketing-hero-grid-v-fwd" />
-      {layers === "full" ? (
-        <div className="marketing-hero-grid-layer marketing-hero-grid-v-rev" />
-      ) : null}
+      <GridLayers layers={layers} />
+      <div className="marketing-hero-grid-spotlight" aria-hidden>
+        <GridLayers layers={layers} strong />
+      </div>
       {fade === "hero" ? (
         <div className="marketing-hero-grid-fade pointer-events-none absolute inset-0" />
       ) : null}
