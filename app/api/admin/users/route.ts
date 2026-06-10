@@ -4,6 +4,9 @@ import { deleteUsers } from "@/lib/admin/delete-users";
 import { jsonError } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth/admin";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 const deleteUsersSchema = z.object({
   userIds: z.array(z.string().min(1)).min(1).max(100),
 });
@@ -16,7 +19,10 @@ export async function DELETE(request: Request) {
     if (body.userIds.includes(admin.userId)) {
       return NextResponse.json(
         { error: "You cannot delete your own account from the admin panel." },
-        { status: 400 }
+        {
+          status: 400,
+          headers: { "Cache-Control": "no-store" },
+        }
       );
     }
 
@@ -28,12 +34,19 @@ export async function DELETE(request: Request) {
           error: "No users were deleted.",
           failed: result.failed,
         },
-        { status: 500 }
+        {
+          status: 500,
+          headers: { "Cache-Control": "no-store" },
+        }
       );
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (error) {
-    return jsonError(error);
+    const response = jsonError(error);
+    response.headers.set("Cache-Control", "no-store");
+    return response;
   }
 }

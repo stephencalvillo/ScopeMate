@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { deleteAdminUsers } from "@/lib/admin/delete-users-action";
 import type { AdminAccountType, AdminUserRow } from "@/lib/admin/stats";
 import { cn } from "@/lib/utils";
 
@@ -133,24 +134,9 @@ export function AdminUsersTable({
     setIsDeleting(true);
 
     try {
-      const response = await fetch("/api/admin/users", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userIds: selectedIds }),
-      });
-
-      const payload = (await response.json()) as {
-        deleted?: string[];
-        failed?: Array<{ userId: string; error: string }>;
-        error?: string;
-      };
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Failed to delete users.");
-      }
-
-      const deletedCount = payload.deleted?.length ?? 0;
-      const failedCount = payload.failed?.length ?? 0;
+      const result = await deleteAdminUsers(selectedIds);
+      const deletedCount = result.deleted.length;
+      const failedCount = result.failed.length;
 
       if (deletedCount > 0) {
         toast.success(
