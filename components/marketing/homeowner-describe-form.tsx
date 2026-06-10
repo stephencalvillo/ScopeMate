@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { persistGuestProjectToken } from "@/lib/auth/guest-project-session";
 
 export function HomeownerDescribeForm({
   mode = "marketing",
@@ -55,6 +56,10 @@ export function HomeownerDescribeForm({
           : null;
       setError(message || data.error || "Could not start your project.");
       return;
+    }
+
+    if (typeof data.guest_access_token === "string") {
+      persistGuestProjectToken(data.id, data.guest_access_token);
     }
 
     router.push(`/projects/${data.id}?generate=1`);

@@ -20,6 +20,10 @@ import { ShareLinkDialog } from "@/components/project/share-link-dialog-content"
 import { SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
 import { getProjectShareCopy } from "@/lib/project/share-copy";
+import {
+  clearGuestProjectToken,
+  readGuestProjectToken,
+} from "@/lib/auth/guest-project-session";
 import { cn, mobileFullWidthCtaClassName } from "@/lib/utils";
 import type { Project } from "@/types";
 
@@ -64,12 +68,10 @@ export function ShareLinkTriggerButton({
 
 function ProjectShareReturnHandler({
   projectId,
-  isGuestProject,
   onOpenShare,
 }: {
   projectId: string;
-  isGuestProject: boolean;
-  onOpenShare: () => void;
+  onOpenShare: () => void | Promise<void>;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -79,19 +81,20 @@ function ProjectShareReturnHandler({
   useEffect(() => {
     if (opened.current) return;
     if (searchParams.get("share") !== "1") return;
-    if (!isSignedIn || isGuestProject) return;
+    if (!isSignedIn) return;
 
     opened.current = true;
-    onOpenShare();
-    router.replace(`/projects/${projectId}`);
-  }, [
-    isGuestProject,
-    isSignedIn,
-    onOpenShare,
-    projectId,
-    router,
-    searchParams,
-  ]);
+
+    void (async () => {
+      try {
+        await onOpenShare();
+        router.replace(`/projects/${projectId}`);
+      } catch (error) {
+        opened.current = false;
+        console.error(error);
+      }
+    })();
+  }, [isSignedIn, onOpenShare, projectId, router, searchParams]);
 
   return null;
 }
@@ -117,6 +120,7 @@ export function ProjectShareProvider({
   const [sectionObserved, setSectionObserved] = useState(false);
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
   const [animation, setAnimation] = useState<DockAnimation>(null);
 
   const hasObserved = headerObserved || sectionObserved;
@@ -127,15 +131,25 @@ export function ProjectShareProvider({
       : "header";
 
   const claimProject = useCallback(async () => {
+    const guestToken = readGuestProjectToken(project.id);
     const response = await fetch(`/api/projects/${project.id}/claim`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...(guestToken ? { guest_token: guestToken } : {}),
+      }),
     });
 
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error ?? "Could not save this project to your account.");
+      const data = await response.json().catch(() => ({}));
+      throw new Error(
+        typeof data.error === "string"
+          ? data.error
+          : "Could not save this project to your account."
+      );
     }
 
+    clearGuestProjectToken(project.id);
     router.refresh();
   }, [project.id, router]);
 
@@ -144,18 +158,15 @@ export function ProjectShareProvider({
   }, []);
 
   const openShareDialog = useCallback(async () => {
+    setShareError(null);
+
     if (isGuestProject) {
       if (!isSignedIn) {
         setAccountDialogOpen(true);
         return;
       }
 
-      try {
-        await claimProject();
-      } catch (error) {
-        console.error(error);
-        return;
-      }
+      await claimProject();
     }
 
     openShareLinkDialog();
@@ -181,7 +192,14 @@ export function ProjectShareProvider({
   }, [claimProject, isGuestProject, openShareLinkDialog]);
 
   const openShareDialogRef = useCallback(() => {
-    void openShareDialog();
+    return openShareDialog().catch((error) => {
+      setShareError(
+        error instanceof Error
+          ? error.message
+          : "Could not open the share link."
+      );
+      throw error;
+    });
   }, [openShareDialog]);
 
   const headerSentinelRef = useCallback((node: HTMLDivElement | null) => {
@@ -242,13 +260,18 @@ export function ProjectShareProvider({
         setSectionObserved: markSectionObserved,
       }}
     >
+      {shareError ? (
+        <div className="rounded-[8px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {shareError}
+        </div>
+      ) : null}
+
       {children}
 
       <Suspense fallback={null}>
         <ProjectShareReturnHandler
           projectId={project.id}
-          isGuestProject={isGuestProject}
-          onOpenShare={openShareLinkDialog}
+          onOpenShare={openShareDialogRef}
         />
       </Suspense>
 

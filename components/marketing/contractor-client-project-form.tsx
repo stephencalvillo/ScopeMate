@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { persistContractorProjectReturn } from "@/lib/contractor/contractor-project-onboarding";
+import { persistGuestProjectToken } from "@/lib/auth/guest-project-session";
 
 export function ContractorClientProjectForm({
   mode = "marketing",
@@ -61,6 +62,10 @@ export function ContractorClientProjectForm({
 
     if (!isPortal) {
       persistContractorProjectReturn(data.id);
+    }
+
+    if (typeof data.guest_access_token === "string") {
+      persistGuestProjectToken(data.id, data.guest_access_token);
     }
 
     router.push(

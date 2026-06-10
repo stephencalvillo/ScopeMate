@@ -120,12 +120,6 @@ export function ProjectDetailView({
       project={project}
       onActivityChange={handleActivityChange}
     >
-      <Suspense fallback={null}>
-        <ProjectClaimHandler
-          projectId={project.id}
-          isGuestProject={isGuestProject}
-        />
-      </Suspense>
       <div className="space-y-8">
         <PageBreadcrumbHeader breadcrumb={breadcrumb}>
           <ProjectShareHeaderRow>

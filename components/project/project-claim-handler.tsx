@@ -3,13 +3,19 @@
 import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import {
+  clearGuestProjectToken,
+  readGuestProjectToken,
+} from "@/lib/auth/guest-project-session";
 
 export function ProjectClaimHandler({
   projectId,
   isGuestProject,
+  onClaimed,
 }: {
   projectId: string;
   isGuestProject: boolean;
+  onClaimed?: () => void | Promise<void>;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,16 +31,39 @@ export function ProjectClaimHandler({
     claimStarted.current = true;
 
     void (async () => {
+      const guestToken = readGuestProjectToken(projectId);
       const response = await fetch(`/api/projects/${projectId}/claim`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...(guestToken ? { guest_token: guestToken } : {}),
+        }),
       });
 
-      if (response.ok) {
-        router.replace(`/projects/${projectId}?share=1`);
-        router.refresh();
+      if (!response.ok) {
+        claimStarted.current = false;
+        return;
       }
+
+      clearGuestProjectToken(projectId);
+
+      if (searchParams.get("share") === "1") {
+        await onClaimed?.();
+        router.replace(`/projects/${projectId}`);
+        return;
+      }
+
+      router.replace(`/projects/${projectId}`);
+      router.refresh();
     })();
-  }, [isGuestProject, isSignedIn, projectId, router, searchParams]);
+  }, [
+    isGuestProject,
+    isSignedIn,
+    onClaimed,
+    projectId,
+    router,
+    searchParams,
+  ]);
 
   return null;
 }

@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { persistGuestProjectToken } from "@/lib/auth/guest-project-session";
 
 function projectReturnUrl(projectId: string) {
   return `/projects/${projectId}?claim=1&share=1`;
@@ -35,6 +36,20 @@ export function HomeownerAccountCreateDialog({
   const returnUrl = projectReturnUrl(projectId);
   const signUpHref = `/sign-up?redirect_url=${encodeURIComponent(returnUrl)}`;
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
+
+  useEffect(() => {
+    if (!open) return;
+
+    void (async () => {
+      const response = await fetch(`/api/projects/${projectId}/guest-token`);
+      if (!response.ok) return;
+
+      const data = await response.json();
+      if (typeof data.guest_access_token === "string") {
+        persistGuestProjectToken(projectId, data.guest_access_token);
+      }
+    })();
+  }, [open, projectId]);
 
   useEffect(() => {
     if (!open || !isSignedIn) return;

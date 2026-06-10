@@ -21,7 +21,10 @@ export async function POST(request: Request) {
       guest_access_token: guestAccessToken,
     });
 
-    const response = NextResponse.json(data, { status: 201 });
+    const response = NextResponse.json(
+      { ...data, guest_access_token: guestAccessToken },
+      { status: 201 }
+    );
     setGuestProjectCookie(response, data.id, guestAccessToken);
     return response;
   } catch (error) {

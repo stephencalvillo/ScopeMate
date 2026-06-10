@@ -19,7 +19,7 @@ const isPublicRoute = createRouteMatcher([
 const isProjectDetailRoute = createRouteMatcher(["/projects/:id"]);
 
 const guestProjectApiPattern =
-  /^\/api\/projects\/[^/]+\/(generate-scope|claim|scope-items(?:\/.*)?|follow-up-questions(?:\/.*)?|photos(?:\/.*)?)$/;
+  /^\/api\/projects\/[^/]+\/(generate-scope|claim|guest-token|scope-items(?:\/.*)?|follow-up-questions(?:\/.*)?|photos(?:\/.*)?)$/;
 
 function isGuestAccessibleProjectApi(request: NextRequest) {
   return guestProjectApiPattern.test(request.nextUrl.pathname);

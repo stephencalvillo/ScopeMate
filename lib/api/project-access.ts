@@ -56,6 +56,39 @@ async function verifyGuestProjectAccess(
   return project;
 }
 
+async function resolveGuestProjectForClaim(
+  projectId: string,
+  guestToken?: string | null
+): Promise<Project> {
+  const project = await fetchProject(projectId);
+
+  if (!project) {
+    throw new NotFoundError("Project not found.");
+  }
+
+  if (project.homeowner_id !== null) {
+    return project;
+  }
+
+  const cookie = await getGuestProjectCookie();
+  if (
+    cookie?.projectId === projectId &&
+    cookie.token === project.guest_access_token
+  ) {
+    return project;
+  }
+
+  if (
+    guestToken &&
+    project.guest_access_token &&
+    project.guest_access_token === guestToken
+  ) {
+    return project;
+  }
+
+  throw new ForbiddenError("You do not have access to this project.");
+}
+
 export async function getAccessibleProject(projectId: string): Promise<Project> {
   const { userId } = await auth();
 
@@ -156,9 +189,15 @@ export async function claimContractorClientProjectForHomeowner(
   return data as Project;
 }
 
-export async function claimGuestProject(projectId: string): Promise<Project> {
+export async function claimGuestProject(
+  projectId: string,
+  options?: { guestToken?: string | null }
+): Promise<Project> {
   const user = await ensureUserRecord();
-  const project = await getAccessibleProject(projectId);
+  const project = await resolveGuestProjectForClaim(
+    projectId,
+    options?.guestToken
+  );
 
   if (project.homeowner_id === user.id) {
     return project;
@@ -194,9 +233,15 @@ export async function claimGuestProject(projectId: string): Promise<Project> {
   return data as Project;
 }
 
-export async function claimContractorGuestProject(projectId: string): Promise<Project> {
+export async function claimContractorGuestProject(
+  projectId: string,
+  options?: { guestToken?: string | null }
+): Promise<Project> {
   const user = await ensureUserRecord();
-  const project = await getAccessibleProject(projectId);
+  const project = await resolveGuestProjectForClaim(
+    projectId,
+    options?.guestToken
+  );
 
   if (!isContractorCreatedProject(project)) {
     throw new ForbiddenError("This project is not a contractor client project.");
