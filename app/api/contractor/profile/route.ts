@@ -4,9 +4,9 @@ import { ensureContractorProfile } from "@/lib/auth/contractor";
 import { ensureUserRecord } from "@/lib/auth/clerk";
 import { getContractorProfile } from "@/lib/contractor/profile";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const user = await ensureUserRecord();
+    const user = await ensureUserRecord(request);
     const profile = await getContractorProfile(user.id);
 
     return NextResponse.json({ profile, user });

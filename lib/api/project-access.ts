@@ -129,8 +129,11 @@ export async function getAccessibleProject(projectId: string): Promise<Project> 
   return verifyGuestProjectAccess(projectId, guest.token);
 }
 
-export async function getOwnedProject(projectId: string): Promise<Project> {
-  const user = await ensureUserRecord();
+export async function getOwnedProject(
+  projectId: string,
+  request?: Request
+): Promise<Project> {
+  const user = await ensureUserRecord(request);
   const project = await fetchProject(projectId);
 
   if (!project) {
@@ -150,9 +153,10 @@ export async function getOwnedProject(projectId: string): Promise<Project> {
 
 export async function claimContractorClientProjectForHomeowner(
   projectId: string,
-  user?: Awaited<ReturnType<typeof ensureUserRecord>>
+  user?: Awaited<ReturnType<typeof ensureUserRecord>>,
+  request?: Request
 ): Promise<Project> {
-  const resolvedUser = user ?? (await ensureUserRecord());
+  const resolvedUser = user ?? (await ensureUserRecord(request));
   const project = await fetchProject(projectId);
 
   if (!project) {
@@ -191,9 +195,9 @@ export async function claimContractorClientProjectForHomeowner(
 
 export async function claimGuestProject(
   projectId: string,
-  options?: { guestToken?: string | null }
+  options?: { guestToken?: string | null; request?: Request }
 ): Promise<Project> {
-  const user = await ensureUserRecord();
+  const user = await ensureUserRecord(options?.request);
   const project = await resolveGuestProjectForClaim(
     projectId,
     options?.guestToken
@@ -235,9 +239,9 @@ export async function claimGuestProject(
 
 export async function claimContractorGuestProject(
   projectId: string,
-  options?: { guestToken?: string | null }
+  options?: { guestToken?: string | null; request?: Request }
 ): Promise<Project> {
-  const user = await ensureUserRecord();
+  const user = await ensureUserRecord(options?.request);
   const project = await resolveGuestProjectForClaim(
     projectId,
     options?.guestToken

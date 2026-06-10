@@ -31,7 +31,7 @@ export async function POST(
 ) {
   try {
     const { id } = await context.params;
-    const user = await ensureUserRecord();
+    const user = await ensureUserRecord(request);
     const body = await request.json().catch(() => ({}));
     const guestToken = parseGuestToken(body);
     const supabase = createServiceClient();
@@ -50,12 +50,12 @@ export async function POST(
     if (isContractorCreatedProject(project)) {
       const profile = await getContractorProfile(user.id);
       if (profile) {
-        claimed = await claimContractorGuestProject(id, { guestToken });
+        claimed = await claimContractorGuestProject(id, { guestToken, request });
       } else {
-        claimed = await claimContractorClientProjectForHomeowner(id, user);
+        claimed = await claimContractorClientProjectForHomeowner(id, user, request);
       }
     } else {
-      claimed = await claimGuestProject(id, { guestToken });
+      claimed = await claimGuestProject(id, { guestToken, request });
     }
 
     const response = NextResponse.json(claimed);

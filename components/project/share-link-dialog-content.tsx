@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildShareUrl } from "@/lib/contractor/urls";
-import { waitForClerkSession } from "@/lib/auth/clerk-session-ready";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { getProjectShareCopy } from "@/lib/project/share-copy";
 import type { Project } from "@/types";
 
@@ -47,21 +47,15 @@ export function ShareLinkDialogContent({
     setMessage(null);
     setMessageIsError(false);
 
-    const sessionToken = await waitForClerkSession(getToken);
-    if (!sessionToken) {
-      setLoading(false);
-      setMessageIsError(true);
-      setMessage(
-        "Your account session is still loading. Please try again in a moment."
-      );
-      return false;
-    }
-
-    const response = await fetch(`/api/projects/${project.id}/share`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
+    const response = await authenticatedFetch(
+      getToken,
+      `/api/projects/${project.id}/share`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      }
+    );
 
     const data = await response.json();
     setLoading(false);

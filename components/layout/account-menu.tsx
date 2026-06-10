@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth, UserButton } from "@clerk/nextjs";
 import { Briefcase, Home, UserPlus } from "lucide-react";
-import { waitForClerkSession } from "@/lib/auth/clerk-session-ready";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 
 type AccountMenuProps = {
   variant?: "homeowner" | "contractor";
@@ -34,15 +34,7 @@ export function AccountMenu({ variant = "homeowner" }: AccountMenuProps) {
 
     async function loadContractorProfile() {
       try {
-        const sessionToken = await waitForClerkSession(getToken);
-        if (!sessionToken || cancelled) {
-          if (!cancelled) {
-            setHasContractorProfile(false);
-          }
-          return;
-        }
-
-        const response = await fetch("/api/contractor/profile");
+        const response = await authenticatedFetch(getToken, "/api/contractor/profile");
         if (!response.ok) {
           if (!cancelled) {
             setHasContractorProfile(false);

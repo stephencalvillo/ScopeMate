@@ -18,8 +18,8 @@ export async function POST(
 ) {
   try {
     const { id } = await context.params;
-    const project = await getOwnedProject(id);
-    const homeowner = await ensureUserRecord();
+    const project = await getOwnedProject(id, request);
+    const homeowner = await ensureUserRecord(request);
     const body = await request.json().catch(() => ({}));
     const input = shareProjectSchema.parse(body);
     const supabase = createServiceClient();

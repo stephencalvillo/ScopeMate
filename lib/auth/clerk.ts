@@ -1,9 +1,35 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
+import { getAuthorizedParties } from "@/lib/auth/authorized-parties";
 import { createServiceClient } from "@/lib/db/supabase";
 import type { User } from "@/types";
 
-export async function requireAuth() {
+export async function resolveClerkUserId(
+  request?: Request
+): Promise<string | null> {
+  if (request) {
+    try {
+      const client = await clerkClient();
+      const state = await client.authenticateRequest(request, {
+        authorizedParties: getAuthorizedParties(),
+      });
+
+      if (state.isAuthenticated) {
+        const authState = state.toAuth();
+        if (authState.userId) {
+          return authState.userId;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to authenticate bearer session token:", error);
+    }
+  }
+
   const { userId } = await auth();
+  return userId ?? null;
+}
+
+export async function requireAuth(request?: Request) {
+  const userId = await resolveClerkUserId(request);
   if (!userId) {
     throw new AuthError("You need to sign in to continue.");
   }
@@ -46,9 +72,14 @@ function isUniqueViolation(error: unknown) {
   );
 }
 
-function resolveClerkEmail(
-  clerkUser: NonNullable<Awaited<ReturnType<typeof currentUser>>>
-) {
+function resolveClerkEmailFromUser(clerkUser: {
+  primaryEmailAddressId: string | null;
+  emailAddresses: Array<{
+    id: string;
+    emailAddress: string;
+    verification?: { status: string | null } | null;
+  }>;
+}) {
   return (
     clerkUser.emailAddresses.find(
       (entry) => entry.id === clerkUser.primaryEmailAddressId
@@ -61,13 +92,19 @@ function resolveClerkEmail(
   );
 }
 
-export async function ensureUserRecord(): Promise<User> {
-  const clerkUser = await currentUser();
-  if (!clerkUser) {
+export async function ensureUserRecord(request?: Request): Promise<User> {
+  const userId = await resolveClerkUserId(request);
+  if (!userId) {
     throw new AuthError("You need to sign in to continue.");
   }
 
-  const email = resolveClerkEmail(clerkUser);
+  const cachedUser = await currentUser();
+  const clerkUser =
+    cachedUser?.id === userId
+      ? cachedUser
+      : await (await clerkClient()).users.getUser(userId);
+
+  const email = resolveClerkEmailFromUser(clerkUser);
 
   if (!email) {
     throw new AuthError(
@@ -75,15 +112,16 @@ export async function ensureUserRecord(): Promise<User> {
     );
   }
 
-  const supabase = createServiceClient();
   const name =
     [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") ||
     null;
 
+  const supabase = createServiceClient();
+
   const { data: existing } = await supabase
     .from("users")
     .select("*")
-    .eq("id", clerkUser.id)
+    .eq("id", userId)
     .maybeSingle();
 
   if (existing) {
@@ -91,7 +129,7 @@ export async function ensureUserRecord(): Promise<User> {
       const { data: updated, error } = await supabase
         .from("users")
         .update({ email, name })
-        .eq("id", clerkUser.id)
+        .eq("id", userId)
         .select("*")
         .single();
 
@@ -105,7 +143,7 @@ export async function ensureUserRecord(): Promise<User> {
   const { data: created, error } = await supabase
     .from("users")
     .insert({
-      id: clerkUser.id,
+      id: userId,
       email,
       name,
       role: "homeowner",
