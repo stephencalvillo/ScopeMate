@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { SignUp } from "@clerk/nextjs";
-import { ClerkCaptcha } from "@/components/auth/clerk-captcha";
+import { ClerkCaptchaInSignUpCard } from "@/components/auth/clerk-captcha";
 import { getClerkAppearance } from "@/lib/clerk/appearance";
 import { persistSignupShareIntent } from "@/lib/project/share-return-onboarding";
 
@@ -30,8 +30,7 @@ export function AuthSignUpForm({ redirectUrl }: { redirectUrl: string }) {
   }, [redirectPath]);
 
   return (
-    <div className="flex w-full flex-col gap-4">
-      <ClerkCaptcha />
+    <div className="relative w-full">
       <SignUp
         routing="hash"
         signInUrl="/sign-in"
@@ -45,6 +44,7 @@ export function AuthSignUpForm({ redirectUrl }: { redirectUrl: string }) {
         fallbackRedirectUrl={redirectPath}
         forceRedirectUrl={redirectPath}
       />
+      <ClerkCaptchaInSignUpCard />
     </div>
   );
 }
