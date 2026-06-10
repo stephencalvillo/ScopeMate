@@ -80,10 +80,9 @@ async function main() {
     "Project page rendered client fallback error state."
   );
 
-  const setupPage = await request(
-    `/projects/${projectId}/setup?share=1&guest_token=${encodeURIComponent(guestToken)}`,
-    { headers: { cookie } }
-  );
+  const setupPage = await request(`/projects/${projectId}/setup`, {
+    headers: { cookie },
+  });
   assert(
     setupPage.response.ok,
     `Setup page failed to render (${setupPage.response.status}).`

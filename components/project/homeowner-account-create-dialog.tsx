@@ -14,7 +14,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { persistGuestProjectToken } from "@/lib/auth/guest-project-session";
-import { buildShareClaimReturnUrl } from "@/lib/project/share-return-onboarding";
+import {
+  buildShareClaimReturnUrl,
+  persistSignupShareIntent,
+} from "@/lib/project/share-return-onboarding";
 
 export function HomeownerAccountCreateDialog({
   projectId,
@@ -39,6 +42,7 @@ export function HomeownerAccountCreateDialog({
 
   useEffect(() => {
     if (!open) return;
+    persistSignupShareIntent(projectId);
 
     void (async () => {
       const response = await fetch(`/api/projects/${projectId}/guest-token`);
@@ -50,9 +54,6 @@ export function HomeownerAccountCreateDialog({
       const data = await response.json();
       if (typeof data.guest_access_token === "string") {
         persistGuestProjectToken(projectId, data.guest_access_token);
-        setReturnUrl(
-          buildShareClaimReturnUrl(projectId, data.guest_access_token)
-        );
       }
       setReturnUrlReady(true);
     })();

@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
         },
       }
     : {}),
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        "scopebuddy.ai",
+        "www.scopebuddy.ai",
+        "myscopemate.ai",
+        "localhost:3000",
+      ],
+    },
+  },
   async redirects() {
     return [
       {

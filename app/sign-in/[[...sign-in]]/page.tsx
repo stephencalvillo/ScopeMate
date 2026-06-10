@@ -1,7 +1,7 @@
 import { SignIn } from "@clerk/nextjs";
 import { AuthClerkForm } from "@/components/auth/auth-clerk-form";
 import { AuthPageLayout } from "@/components/auth/auth-page-layout";
-import { getClerkAppearance } from "@/lib/clerk/appearance";
+import { AuthSignInForm } from "@/components/auth/auth-sign-in-form";
 
 export default async function SignInPage({
   searchParams,
@@ -11,20 +11,13 @@ export default async function SignInPage({
   const { redirect_url: redirectUrl } = await searchParams;
   const safeRedirect =
     redirectUrl?.startsWith("/") && !redirectUrl.startsWith("//")
-      ? redirectUrl
+      ? redirectUrl.split("?")[0] || "/projects"
       : "/projects";
 
   return (
     <AuthPageLayout>
       <AuthClerkForm>
-        <SignIn
-          routing="path"
-          path="/sign-in"
-          signUpUrl="/sign-up"
-          appearance={getClerkAppearance()}
-          fallbackRedirectUrl={safeRedirect}
-          forceRedirectUrl={safeRedirect}
-        />
+        <AuthSignInForm redirectUrl={safeRedirect} />
       </AuthClerkForm>
     </AuthPageLayout>
   );

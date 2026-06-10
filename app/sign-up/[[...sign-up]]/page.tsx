@@ -10,7 +10,7 @@ export default async function SignUpPage({
   const { redirect_url: redirectUrl } = await searchParams;
   const safeRedirect =
     redirectUrl?.startsWith("/") && !redirectUrl.startsWith("//")
-      ? redirectUrl
+      ? redirectUrl.split("?")[0] || "/projects"
       : "/projects";
 
   return (

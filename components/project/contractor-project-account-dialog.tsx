@@ -15,10 +15,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { persistContractorProjectReturn } from "@/lib/contractor/contractor-project-onboarding";
-
-function contractorProjectReturnUrl(projectId: string) {
-  return `/projects/${projectId}?claim=1&share=1`;
-}
+import {
+  buildShareClaimReturnUrl,
+  persistSignupShareIntent,
+} from "@/lib/project/share-return-onboarding";
 
 export function ContractorProjectAccountDialog({
   projectId,
@@ -35,11 +35,12 @@ export function ContractorProjectAccountDialog({
   const [continuing, setContinuing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(
-    contractorProjectReturnUrl(projectId)
+    buildShareClaimReturnUrl(projectId)
   )}`;
 
   useEffect(() => {
     if (!open) return;
+    persistSignupShareIntent(projectId);
     persistContractorProjectReturn(projectId);
   }, [open, projectId]);
 

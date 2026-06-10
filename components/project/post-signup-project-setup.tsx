@@ -10,7 +10,12 @@ import {
   ensureGuestProjectClaimed,
   fetchProjectWithScopeClient,
 } from "@/lib/project/load-project-client";
-import { persistPendingShareDialog } from "@/lib/project/share-return-onboarding";
+import {
+  clearSignupShareIntent,
+  persistPendingShareDialog,
+  persistSignupShareIntent,
+  readSignupShareIntent,
+} from "@/lib/project/share-return-onboarding";
 
 type SetupStep = "session" | "claim" | "load" | "redirect" | "error";
 
@@ -55,6 +60,9 @@ export function PostSignupProjectSetup({
     if (!isLoaded || started.current) return;
     started.current = true;
 
+    const shouldOpenShare =
+      openShare || readSignupShareIntent(projectId);
+
     if (guestToken) {
       persistGuestProjectToken(projectId, guestToken);
     }
@@ -68,8 +76,9 @@ export function PostSignupProjectSetup({
         setStep("load");
         await fetchProjectWithScopeClient(projectId, getToken);
 
-        if (openShare) {
+        if (shouldOpenShare) {
           persistPendingShareDialog(projectId);
+          clearSignupShareIntent();
         }
 
         setStep("redirect");
