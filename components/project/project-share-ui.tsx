@@ -95,11 +95,9 @@ function ProjectShareReturnHandler({
 
 function ProjectSharePendingHandler({
   projectId,
-  isGuestProject,
   onOpenShareLink,
 }: {
   projectId: string;
-  isGuestProject: boolean;
   onOpenShareLink: () => void;
 }) {
   const { isLoaded, isSignedIn } = useAuth();
@@ -110,21 +108,10 @@ function ProjectSharePendingHandler({
     if (!isLoaded || !isSignedIn) return;
     if (!readPendingShareDialog(projectId)) return;
 
-    function openPendingShareDialog() {
-      if (opened.current) return;
-      opened.current = true;
-      clearPendingShareDialog();
-      onOpenShareLink();
-    }
-
-    if (!isGuestProject) {
-      openPendingShareDialog();
-      return;
-    }
-
-    const timeout = window.setTimeout(openPendingShareDialog, 800);
-    return () => window.clearTimeout(timeout);
-  }, [isGuestProject, isLoaded, isSignedIn, onOpenShareLink, projectId]);
+    opened.current = true;
+    clearPendingShareDialog();
+    onOpenShareLink();
+  }, [isLoaded, isSignedIn, onOpenShareLink, projectId]);
 
   return null;
 }
@@ -151,6 +138,7 @@ export function ProjectShareProvider({
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
+  const [isClaimingProject, setIsClaimingProject] = useState(false);
   const [animation, setAnimation] = useState<DockAnimation>(null);
 
   const hasObserved = headerObserved || sectionObserved;
@@ -161,7 +149,12 @@ export function ProjectShareProvider({
       : "header";
 
   const claimProject = useCallback(async () => {
-    await claimGuestProjectClient(project.id, getToken);
+    setIsClaimingProject(true);
+    try {
+      await claimGuestProjectClient(project.id, getToken);
+    } finally {
+      setIsClaimingProject(false);
+    }
   }, [getToken, project.id]);
 
   const cleanShareReturnUrl = useCallback(() => {
@@ -171,11 +164,10 @@ export function ProjectShareProvider({
     router.replace(`/projects/${project.id}`, { scroll: false });
   }, [project.id, router]);
 
-  const scheduleShareDialogAfterRefresh = useCallback(() => {
+  const navigateToClaimedProject = useCallback(() => {
     persistPendingShareDialog(project.id);
-    router.replace(`/projects/${project.id}`, { scroll: false });
-    router.refresh();
-  }, [project.id, router]);
+    window.location.assign(`/projects/${project.id}`);
+  }, [project.id]);
 
   const openShareLinkDialog = useCallback(() => {
     setShareDialogOpen(true);
@@ -186,7 +178,7 @@ export function ProjectShareProvider({
 
     if (isGuestProject) {
       await claimProject();
-      scheduleShareDialogAfterRefresh();
+      navigateToClaimedProject();
       return;
     }
 
@@ -196,8 +188,8 @@ export function ProjectShareProvider({
     claimProject,
     cleanShareReturnUrl,
     isGuestProject,
+    navigateToClaimedProject,
     openShareLinkDialog,
-    scheduleShareDialogAfterRefresh,
   ]);
 
   const openShareDialog = useCallback(async () => {
@@ -211,7 +203,7 @@ export function ProjectShareProvider({
       }
 
       await claimProject();
-      scheduleShareDialogAfterRefresh();
+      navigateToClaimedProject();
       return;
     }
 
@@ -223,24 +215,19 @@ export function ProjectShareProvider({
     isGuestProject,
     isLoaded,
     isSignedIn,
+    navigateToClaimedProject,
     openShareLinkDialog,
-    scheduleShareDialogAfterRefresh,
   ]);
 
   const handleAccountReady = useCallback(async () => {
     if (isGuestProject) {
       await claimProject();
-      scheduleShareDialogAfterRefresh();
+      navigateToClaimedProject();
       return;
     }
 
     openShareLinkDialog();
-  }, [
-    claimProject,
-    isGuestProject,
-    openShareLinkDialog,
-    scheduleShareDialogAfterRefresh,
-  ]);
+  }, [claimProject, isGuestProject, navigateToClaimedProject, openShareLinkDialog]);
 
   const completeShareReturnRef = useCallback(() => {
     return completeShareReturn().catch((error) => {
@@ -328,13 +315,18 @@ export function ProjectShareProvider({
         </div>
       ) : null}
 
+      {isClaimingProject ? (
+        <div className="rounded-[8px] border border-neutral-200 bg-white px-4 py-3 text-sm text-[var(--muted)]">
+          Saving this project to your account...
+        </div>
+      ) : null}
+
       {children}
 
       <Suspense fallback={null}>
         <ProjectShareReturnHandler onCompleteShareReturn={completeShareReturnRef} />
         <ProjectSharePendingHandler
           projectId={project.id}
-          isGuestProject={isGuestProject}
           onOpenShareLink={openShareLinkDialog}
         />
       </Suspense>

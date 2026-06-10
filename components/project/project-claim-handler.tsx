@@ -1,20 +1,18 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { claimGuestProjectClient } from "@/lib/project/claim-guest-project-client";
+import { persistPendingShareDialog } from "@/lib/project/share-return-onboarding";
 
 export function ProjectClaimHandler({
   projectId,
   isGuestProject,
-  onClaimed,
 }: {
   projectId: string;
   isGuestProject: boolean;
-  onClaimed?: () => void | Promise<void>;
 }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const claimStarted = useRef(false);
@@ -41,24 +39,12 @@ export function ProjectClaimHandler({
       }
 
       if (searchParams.get("share") === "1") {
-        await onClaimed?.();
-        router.replace(`/projects/${projectId}`);
-        return;
+        persistPendingShareDialog(projectId);
       }
 
-      router.replace(`/projects/${projectId}`);
-      router.refresh();
+      window.location.assign(`/projects/${projectId}`);
     })();
-  }, [
-    getToken,
-    isGuestProject,
-    isLoaded,
-    isSignedIn,
-    onClaimed,
-    projectId,
-    router,
-    searchParams,
-  ]);
+  }, [getToken, isGuestProject, isLoaded, isSignedIn, projectId, searchParams]);
 
   return null;
 }
