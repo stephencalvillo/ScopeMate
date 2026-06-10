@@ -8,11 +8,15 @@ export default async function ProjectDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ generate?: string; tab?: string }>;
+  searchParams: Promise<{
+    generate?: string;
+    tab?: string;
+    guest_token?: string;
+  }>;
 }) {
   const { id } = await params;
-  const { generate } = await searchParams;
-  const project = await getAccessibleProjectWithScope(id);
+  const { generate, guest_token: guestToken } = await searchParams;
+  const project = await getAccessibleProjectWithScope(id, { guestToken });
 
   if (!project) {
     notFound();

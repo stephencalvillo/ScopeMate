@@ -71,7 +71,7 @@ export function ShareLinkTriggerButton({
 function ProjectShareReturnHandler({
   onCompleteShareReturn,
 }: {
-  onCompleteShareReturn: () => void | Promise<void>;
+  onCompleteShareReturn: () => Promise<void>;
 }) {
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
@@ -160,25 +160,32 @@ export function ProjectShareProvider({
   const cleanShareReturnUrl = useCallback(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    if (!params.has("share") && !params.has("claim")) return;
+    if (
+      !params.has("share") &&
+      !params.has("claim") &&
+      !params.has("guest_token")
+    ) {
+      return;
+    }
     router.replace(`/projects/${project.id}`, { scroll: false });
   }, [project.id, router]);
-
-  const navigateToClaimedProject = useCallback(() => {
-    persistPendingShareDialog(project.id);
-    window.location.assign(`/projects/${project.id}`);
-  }, [project.id]);
 
   const openShareLinkDialog = useCallback(() => {
     setShareDialogOpen(true);
   }, []);
+
+  const finishGuestShareOnboarding = useCallback(() => {
+    persistPendingShareDialog(project.id);
+    cleanShareReturnUrl();
+    openShareLinkDialog();
+  }, [cleanShareReturnUrl, openShareLinkDialog, project.id]);
 
   const completeShareReturn = useCallback(async () => {
     setShareError(null);
 
     if (isGuestProject) {
       await claimProject();
-      navigateToClaimedProject();
+      finishGuestShareOnboarding();
       return;
     }
 
@@ -187,8 +194,8 @@ export function ProjectShareProvider({
   }, [
     claimProject,
     cleanShareReturnUrl,
+    finishGuestShareOnboarding,
     isGuestProject,
-    navigateToClaimedProject,
     openShareLinkDialog,
   ]);
 
@@ -203,7 +210,7 @@ export function ProjectShareProvider({
       }
 
       await claimProject();
-      navigateToClaimedProject();
+      finishGuestShareOnboarding();
       return;
     }
 
@@ -212,24 +219,24 @@ export function ProjectShareProvider({
   }, [
     claimProject,
     cleanShareReturnUrl,
+    finishGuestShareOnboarding,
     isGuestProject,
     isLoaded,
     isSignedIn,
-    navigateToClaimedProject,
     openShareLinkDialog,
   ]);
 
   const handleAccountReady = useCallback(async () => {
     if (isGuestProject) {
       await claimProject();
-      navigateToClaimedProject();
+      finishGuestShareOnboarding();
       return;
     }
 
     openShareLinkDialog();
-  }, [claimProject, isGuestProject, navigateToClaimedProject, openShareLinkDialog]);
+  }, [claimProject, finishGuestShareOnboarding, isGuestProject, openShareLinkDialog]);
 
-  const completeShareReturnRef = useCallback(() => {
+  const completeShareReturnRef = useCallback((): Promise<void> => {
     return completeShareReturn().catch((error) => {
       setShareError(
         error instanceof Error

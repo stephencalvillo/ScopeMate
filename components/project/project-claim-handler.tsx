@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { claimGuestProjectClient } from "@/lib/project/claim-guest-project-client";
 import { persistPendingShareDialog } from "@/lib/project/share-return-onboarding";
@@ -13,6 +13,7 @@ export function ProjectClaimHandler({
   projectId: string;
   isGuestProject: boolean;
 }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const claimStarted = useRef(false);
@@ -42,9 +43,9 @@ export function ProjectClaimHandler({
         persistPendingShareDialog(projectId);
       }
 
-      window.location.assign(`/projects/${projectId}`);
+      router.replace(`/projects/${projectId}`);
     })();
-  }, [getToken, isGuestProject, isLoaded, isSignedIn, projectId, searchParams]);
+  }, [getToken, isGuestProject, isLoaded, isSignedIn, projectId, router, searchParams]);
 
   return null;
 }

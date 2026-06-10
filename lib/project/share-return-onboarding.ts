@@ -1,5 +1,21 @@
 const PENDING_SHARE_DIALOG_KEY = "scopemate-pending-share-dialog";
 
+export function buildShareClaimReturnUrl(
+  projectId: string,
+  guestToken?: string | null
+) {
+  const params = new URLSearchParams({
+    claim: "1",
+    share: "1",
+  });
+
+  if (guestToken) {
+    params.set("guest_token", guestToken);
+  }
+
+  return `/projects/${projectId}?${params.toString()}`;
+}
+
 export function persistPendingShareDialog(projectId: string) {
   if (typeof window === "undefined") return;
   sessionStorage.setItem(PENDING_SHARE_DIALOG_KEY, projectId);

@@ -1,7 +1,33 @@
 import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
 import { getAuthorizedParties } from "@/lib/auth/authorized-parties";
 import { createServiceClient } from "@/lib/db/supabase";
 import type { User } from "@/types";
+
+export async function resolveClerkUserIdFromHeaders(): Promise<string | null> {
+  const headersList = await headers();
+  const cookie = headersList.get("cookie");
+
+  if (!cookie) {
+    const { userId } = await auth();
+    return userId ?? null;
+  }
+
+  const host =
+    headersList.get("x-forwarded-host") ?? headersList.get("host") ?? "";
+  const proto = headersList.get("x-forwarded-proto") ?? "https";
+
+  if (!host) {
+    const { userId } = await auth();
+    return userId ?? null;
+  }
+
+  const request = new Request(`${proto}://${host}/`, {
+    headers: { cookie },
+  });
+
+  return resolveClerkUserId(request);
+}
 
 export async function resolveClerkUserId(
   request?: Request

@@ -14,10 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { persistGuestProjectToken } from "@/lib/auth/guest-project-session";
-
-function projectReturnUrl(projectId: string) {
-  return `/projects/${projectId}?claim=1&share=1`;
-}
+import { buildShareClaimReturnUrl } from "@/lib/project/share-return-onboarding";
 
 export function HomeownerAccountCreateDialog({
   projectId,
@@ -33,7 +30,9 @@ export function HomeownerAccountCreateDialog({
   const { isLoaded, isSignedIn } = useAuth();
   const [continuing, setContinuing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const returnUrl = projectReturnUrl(projectId);
+  const [returnUrl, setReturnUrl] = useState(() =>
+    buildShareClaimReturnUrl(projectId)
+  );
   const signUpHref = `/sign-up?redirect_url=${encodeURIComponent(returnUrl)}`;
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
 
@@ -47,6 +46,9 @@ export function HomeownerAccountCreateDialog({
       const data = await response.json();
       if (typeof data.guest_access_token === "string") {
         persistGuestProjectToken(projectId, data.guest_access_token);
+        setReturnUrl(
+          buildShareClaimReturnUrl(projectId, data.guest_access_token)
+        );
       }
     })();
   }, [open, projectId]);

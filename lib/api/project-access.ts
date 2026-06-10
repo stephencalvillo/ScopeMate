@@ -1,9 +1,9 @@
-import { auth } from "@clerk/nextjs/server";
 import {
   AuthError,
   ensureUserRecord,
   ForbiddenError,
   NotFoundError,
+  resolveClerkUserIdFromHeaders,
 } from "@/lib/auth/clerk";
 import { getGuestProjectCookie } from "@/lib/auth/guest-project";
 import { createServiceClient } from "@/lib/db/supabase";
@@ -89,8 +89,23 @@ async function resolveGuestProjectForClaim(
   throw new ForbiddenError("You do not have access to this project.");
 }
 
-export async function getAccessibleProject(projectId: string): Promise<Project> {
-  const { userId } = await auth();
+function guestTokenMatchesProject(
+  project: Project,
+  guestToken: string | null | undefined
+) {
+  return (
+    Boolean(guestToken) &&
+    Boolean(project.guest_access_token) &&
+    project.guest_access_token === guestToken
+  );
+}
+
+export async function getAccessibleProject(
+  projectId: string,
+  options?: { guestToken?: string | null }
+): Promise<Project> {
+  const guestToken = options?.guestToken?.trim() || null;
+  const userId = await resolveClerkUserIdFromHeaders();
 
   if (userId) {
     const project = await fetchProject(projectId);
@@ -115,17 +130,25 @@ export async function getAccessibleProject(projectId: string): Promise<Project> 
       ) {
         return project;
       }
+
+      if (guestTokenMatchesProject(project, guestToken)) {
+        return project;
+      }
     }
 
     throw new ForbiddenError("You do not have access to this project.");
   }
 
   const guest = await getGuestProjectCookie();
-  if (!guest || guest.projectId !== projectId) {
-    throw new AuthError("You need to sign in to continue.");
+  if (guest?.projectId === projectId) {
+    return verifyGuestProjectAccess(projectId, guest.token);
   }
 
-  return verifyGuestProjectAccess(projectId, guest.token);
+  if (guestToken) {
+    return verifyGuestProjectAccess(projectId, guestToken);
+  }
+
+  throw new AuthError("You need to sign in to continue.");
 }
 
 export async function getOwnedProject(
