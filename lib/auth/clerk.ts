@@ -5,12 +5,16 @@ import { createServiceClient } from "@/lib/db/supabase";
 import type { User } from "@/types";
 
 export async function resolveClerkUserIdFromHeaders(): Promise<string | null> {
+  const { userId } = await auth();
+  if (userId) {
+    return userId;
+  }
+
   const headersList = await headers();
   const cookie = headersList.get("cookie");
 
   if (!cookie) {
-    const { userId } = await auth();
-    return userId ?? null;
+    return null;
   }
 
   const host =
@@ -18,8 +22,7 @@ export async function resolveClerkUserIdFromHeaders(): Promise<string | null> {
   const proto = headersList.get("x-forwarded-proto") ?? "https";
 
   if (!host) {
-    const { userId } = await auth();
-    return userId ?? null;
+    return null;
   }
 
   const request = new Request(`${proto}://${host}/`, {

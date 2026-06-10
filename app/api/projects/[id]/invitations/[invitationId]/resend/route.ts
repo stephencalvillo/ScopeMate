@@ -8,7 +8,7 @@ import {
 } from "@/lib/contractor/invitations";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string; invitationId: string }> }
 ) {
   try {

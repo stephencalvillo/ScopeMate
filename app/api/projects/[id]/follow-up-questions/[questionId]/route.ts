@@ -13,7 +13,7 @@ export async function PATCH(
 ) {
   try {
     const { id, questionId } = await context.params;
-    const project = await getAccessibleProject(id);
+    const project = await getAccessibleProject(id, { request });
 
     const body = followUpAnswerSchema.parse(await request.json());
     const supabase = createServiceClient();

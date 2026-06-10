@@ -4,12 +4,12 @@ import { getAccessibleProject } from "@/lib/api/project-access";
 import { syncAllFollowUpAnswersToScope } from "@/lib/follow-up/to-scope-item";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
-    const project = await getAccessibleProject(id);
+    const project = await getAccessibleProject(id, { request });
 
     const scopeItems = await syncAllFollowUpAnswersToScope(
       id,

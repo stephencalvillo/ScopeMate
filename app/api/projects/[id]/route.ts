@@ -6,12 +6,12 @@ import { getAccessibleProjectWithScope } from "@/lib/db/projects";
 import { updateProjectSchema } from "@/lib/validators/project";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
-    const project = await getAccessibleProjectWithScope(id);
+    const project = await getAccessibleProjectWithScope(id, { request });
 
     if (!project) {
       return NextResponse.json({ error: "Project not found." }, { status: 404 });
@@ -29,7 +29,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await context.params;
-    await getAccessibleProject(id);
+    await getAccessibleProject(id, { request });
     const body = await request.json();
     const input = updateProjectSchema.parse(body);
     const supabase = createServiceClient();
@@ -49,7 +49,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {

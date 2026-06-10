@@ -4,7 +4,7 @@ import { getOwnedProject } from "@/lib/api/project-access";
 import { revokeContractorInvitation } from "@/lib/contractor/invitations";
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string; invitationId: string }> }
 ) {
   try {

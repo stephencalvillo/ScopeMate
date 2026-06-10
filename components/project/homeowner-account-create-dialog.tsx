@@ -33,6 +33,7 @@ export function HomeownerAccountCreateDialog({
   const [returnUrl, setReturnUrl] = useState(() =>
     buildShareClaimReturnUrl(projectId)
   );
+  const [returnUrlReady, setReturnUrlReady] = useState(false);
   const signUpHref = `/sign-up?redirect_url=${encodeURIComponent(returnUrl)}`;
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
 
@@ -41,7 +42,10 @@ export function HomeownerAccountCreateDialog({
 
     void (async () => {
       const response = await fetch(`/api/projects/${projectId}/guest-token`);
-      if (!response.ok) return;
+      if (!response.ok) {
+        setReturnUrlReady(true);
+        return;
+      }
 
       const data = await response.json();
       if (typeof data.guest_access_token === "string") {
@@ -50,6 +54,7 @@ export function HomeownerAccountCreateDialog({
           buildShareClaimReturnUrl(projectId, data.guest_access_token)
         );
       }
+      setReturnUrlReady(true);
     })();
   }, [open, projectId]);
 
@@ -118,12 +123,25 @@ export function HomeownerAccountCreateDialog({
           </>
         ) : (
           <div className="mt-4 flex flex-col gap-2">
-            <Button type="button" className="w-full" asChild>
-              <Link href={signUpHref}>Sign up</Link>
-            </Button>
-            <Button type="button" variant="outline" className="w-full" asChild>
-              <Link href={signInHref}>Sign in with existing account</Link>
-            </Button>
+            {returnUrlReady ? (
+              <Button type="button" className="w-full" asChild>
+                <Link href={signUpHref}>Sign up</Link>
+              </Button>
+            ) : (
+              <Button type="button" className="w-full" disabled>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Preparing sign up…
+              </Button>
+            )}
+            {returnUrlReady ? (
+              <Button type="button" variant="outline" className="w-full" asChild>
+                <Link href={signInHref}>Sign in with existing account</Link>
+              </Button>
+            ) : (
+              <Button type="button" variant="outline" className="w-full" disabled>
+                Preparing sign in…
+              </Button>
+            )}
           </div>
         )}
       </DialogContent>

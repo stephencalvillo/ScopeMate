@@ -5,7 +5,7 @@ import { ensureUserRecord } from "@/lib/auth/clerk";
 import { acceptSuggestion } from "@/lib/contractor/suggestions";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string; suggestionId: string }> }
 ) {
   try {

@@ -5,7 +5,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import type { AiRun } from "@/types";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {

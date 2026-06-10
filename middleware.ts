@@ -16,7 +16,10 @@ const isPublicRoute = createRouteMatcher([
   "/api/projects/guest",
 ]);
 
-const isProjectDetailRoute = createRouteMatcher(["/projects/:id"]);
+const isProjectDetailRoute = createRouteMatcher([
+  "/projects/:id",
+  "/projects/:id/setup",
+]);
 
 const isAdminPanelRoute = createRouteMatcher(["/adminpanel(.*)"]);
 

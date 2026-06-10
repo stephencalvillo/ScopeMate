@@ -6,12 +6,12 @@ import { deleteProjectPhoto } from "@/lib/storage/photos";
 import type { ProjectPhoto } from "@/types";
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string; photoId: string }> }
 ) {
   try {
     const { id, photoId } = await context.params;
-    await getAccessibleProject(id);
+    await getAccessibleProject(id, { request });
 
     const supabase = createServiceClient();
     const { data, error } = await supabase

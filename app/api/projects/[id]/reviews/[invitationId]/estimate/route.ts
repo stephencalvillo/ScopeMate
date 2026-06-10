@@ -4,7 +4,7 @@ import { getOwnedProject } from "@/lib/api/project-access";
 import { getSubmittedEstimateForInvitation } from "@/lib/estimates/estimates";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string; invitationId: string }> }
 ) {
   try {

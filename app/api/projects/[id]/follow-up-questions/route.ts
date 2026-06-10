@@ -7,12 +7,12 @@ import { dedupeFollowUpQuestionsForDisplay } from "@/lib/follow-up/dedupe-questi
 import { normalizeFollowUpQuestion } from "@/lib/follow-up/normalize";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
-    const project = await getAccessibleProject(id);
+    const project = await getAccessibleProject(id, { request });
     const questions = await generateFollowUpQuestionsForProject(project);
 
     return NextResponse.json({

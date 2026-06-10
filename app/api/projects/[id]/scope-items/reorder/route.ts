@@ -10,7 +10,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await context.params;
-    await getAccessibleProject(id);
+    await getAccessibleProject(id, { request });
     const body = await request.json();
     const input = reorderScopeItemsSchema.parse(body);
     const supabase = createServiceClient();

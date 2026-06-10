@@ -4,7 +4,7 @@ import { getOwnedProject } from "@/lib/api/project-access";
 import { listProjectActivity } from "@/lib/contractor/activity";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {

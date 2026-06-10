@@ -5,6 +5,22 @@ export function buildShareClaimReturnUrl(
   guestToken?: string | null
 ) {
   const params = new URLSearchParams({
+    share: "1",
+  });
+
+  if (guestToken) {
+    params.set("guest_token", guestToken);
+  }
+
+  return `/projects/${projectId}/setup?${params.toString()}`;
+}
+
+/** @deprecated Legacy return URL — prefer buildShareClaimReturnUrl (setup page). */
+export function buildLegacyShareClaimReturnUrl(
+  projectId: string,
+  guestToken?: string | null
+) {
+  const params = new URLSearchParams({
     claim: "1",
     share: "1",
   });

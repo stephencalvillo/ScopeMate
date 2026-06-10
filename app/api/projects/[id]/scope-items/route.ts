@@ -5,12 +5,12 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { createScopeItemSchema } from "@/lib/validators/scope";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
-    await getAccessibleProject(id);
+    await getAccessibleProject(id, { request });
     const supabase = createServiceClient();
 
     const { data, error } = await supabase
@@ -33,7 +33,7 @@ export async function POST(
 ) {
   try {
     const { id } = await context.params;
-    await getAccessibleProject(id);
+    await getAccessibleProject(id, { request });
     const body = await request.json();
     const input = createScopeItemSchema.parse(body);
     const supabase = createServiceClient();

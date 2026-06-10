@@ -15,7 +15,7 @@ export async function POST(
 ) {
   try {
     const { id } = await context.params;
-    const project = await getAccessibleProject(id);
+    const project = await getAccessibleProject(id, { request });
     const rateLimitKey = project.homeowner_id ?? `guest:${project.id}`;
 
     if (!checkScopeGenerationLimit(rateLimitKey)) {

@@ -10,7 +10,7 @@ export async function PATCH(
 ) {
   try {
     const { id, itemId } = await context.params;
-    await getAccessibleProject(id);
+    await getAccessibleProject(id, { request });
     const body = await request.json();
     const input = updateScopeItemSchema.parse(body);
     const supabase = createServiceClient();
@@ -35,12 +35,12 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string; itemId: string }> }
 ) {
   try {
     const { id, itemId } = await context.params;
-    await getAccessibleProject(id);
+    await getAccessibleProject(id, { request });
     const supabase = createServiceClient();
 
     const { data, error } = await supabase

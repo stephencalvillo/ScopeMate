@@ -3,6 +3,7 @@ import {
   ensureUserRecord,
   ForbiddenError,
   NotFoundError,
+  resolveClerkUserId,
   resolveClerkUserIdFromHeaders,
 } from "@/lib/auth/clerk";
 import { getGuestProjectCookie } from "@/lib/auth/guest-project";
@@ -100,12 +101,25 @@ function guestTokenMatchesProject(
   );
 }
 
+async function resolveProjectAccessUserId(options?: {
+  request?: Request;
+}): Promise<string | null> {
+  if (options?.request) {
+    const userId = await resolveClerkUserId(options.request);
+    if (userId) {
+      return userId;
+    }
+  }
+
+  return resolveClerkUserIdFromHeaders();
+}
+
 export async function getAccessibleProject(
   projectId: string,
-  options?: { guestToken?: string | null }
+  options?: { guestToken?: string | null; request?: Request }
 ): Promise<Project> {
   const guestToken = options?.guestToken?.trim() || null;
-  const userId = await resolveClerkUserIdFromHeaders();
+  const userId = await resolveProjectAccessUserId(options);
 
   if (userId) {
     const project = await fetchProject(projectId);

@@ -4,7 +4,7 @@ import { getOwnedProject } from "@/lib/api/project-access";
 import { listHomeownerSuggestions } from "@/lib/contractor/suggestions";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {

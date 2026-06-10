@@ -12,10 +12,32 @@ export type ProjectPhotoWithUrl = {
   url: string;
 };
 
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
+
+async function projectFetch(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  getToken?: () => Promise<string | null>
+) {
+  if (getToken) {
+    return authenticatedFetch(getToken, input, init);
+  }
+
+  return fetch(input, {
+    ...init,
+    credentials: "include",
+  });
+}
+
 export async function fetchPhotos(
-  projectId: string
+  projectId: string,
+  getToken?: () => Promise<string | null>
 ): Promise<ProjectPhotoWithUrl[]> {
-  const response = await fetch(`/api/projects/${projectId}/photos`);
+  const response = await projectFetch(
+    `/api/projects/${projectId}/photos`,
+    undefined,
+    getToken
+  );
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.error ?? "Could not load photos.");
@@ -25,15 +47,20 @@ export async function fetchPhotos(
 
 export async function uploadPhoto(
   projectId: string,
-  file: File
+  file: File,
+  getToken?: () => Promise<string | null>
 ): Promise<ProjectPhotoWithUrl> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`/api/projects/${projectId}/photos`, {
-    method: "POST",
-    body: formData,
-  });
+  const response = await projectFetch(
+    `/api/projects/${projectId}/photos`,
+    {
+      method: "POST",
+      body: formData,
+    },
+    getToken
+  );
 
   const data = await response.json();
   if (!response.ok) {
@@ -44,11 +71,13 @@ export async function uploadPhoto(
 
 export async function deletePhoto(
   projectId: string,
-  photoId: string
+  photoId: string,
+  getToken?: () => Promise<string | null>
 ): Promise<void> {
-  const response = await fetch(
+  const response = await projectFetch(
     `/api/projects/${projectId}/photos/${photoId}`,
-    { method: "DELETE" }
+    { method: "DELETE" },
+    getToken
   );
 
   if (!response.ok) {

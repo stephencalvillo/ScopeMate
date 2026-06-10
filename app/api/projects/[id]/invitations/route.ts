@@ -9,7 +9,7 @@ import {
 import { createInvitationSchema } from "@/lib/validators/invitation";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {

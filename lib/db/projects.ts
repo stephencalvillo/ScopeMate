@@ -83,7 +83,7 @@ export async function getProjectForUser(
 
 export async function getAccessibleProjectWithScope(
   projectId: string,
-  options?: { guestToken?: string | null }
+  options?: { guestToken?: string | null; request?: Request }
 ): Promise<ProjectWithScope | null> {
   try {
     const project = await getAccessibleProject(projectId, options);

@@ -14,12 +14,12 @@ import {
 } from "@/lib/storage/photos";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
-    await getAccessibleProject(id);
+    await getAccessibleProject(id, { request });
     const photos = await listProjectPhotosWithUrls(id);
     return NextResponse.json({ photos });
   } catch (error) {
@@ -36,7 +36,7 @@ export async function POST(
 ) {
   try {
     const { id } = await context.params;
-    const project = await getAccessibleProject(id);
+    const project = await getAccessibleProject(id, { request });
     const formData = await request.formData();
     const file = formData.get("file");
 

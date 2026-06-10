@@ -4,7 +4,7 @@ import { getOwnedProject } from "@/lib/api/project-access";
 import { listReviewedScopesForProject } from "@/lib/contractor/reviewed-scopes";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {

@@ -5,7 +5,7 @@ import { createServiceClient } from "@/lib/db/supabase";
 import { NotFoundError } from "@/lib/auth/clerk";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {

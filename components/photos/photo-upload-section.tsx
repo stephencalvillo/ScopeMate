@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { ImagePlus, Loader2, Plus, X } from "lucide-react";
 import { PhotoLightbox } from "@/components/share/shared-photo-gallery";
 import {
@@ -125,6 +126,7 @@ function toSharedPhotos(photos: ProjectPhotoWithUrl[]): SharedPhoto[] {
 }
 
 export function PhotoUploadSection({ projectId }: { projectId: string }) {
+  const { getToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photos, setPhotos] = useState<ProjectPhotoWithUrl[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,14 +139,14 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
 
   const loadPhotos = useCallback(async () => {
     try {
-      const result = await fetchPhotos(projectId);
+      const result = await fetchPhotos(projectId, getToken);
       setPhotos(result);
     } catch {
       setPhotos([]);
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [getToken, projectId]);
 
   useEffect(() => {
     loadPhotos();
@@ -161,7 +163,7 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
 
     try {
       for (const file of imageFiles) {
-        const photo = await uploadPhoto(projectId, file);
+        const photo = await uploadPhoto(projectId, file, getToken);
         setPhotos((current) => [...current, photo]);
       }
     } catch (err) {
@@ -178,7 +180,7 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
     setError(null);
 
     try {
-      await deletePhoto(projectId, photoId);
+      await deletePhoto(projectId, photoId, getToken);
       const deletedIndex = photos.findIndex((photo) => photo.id === photoId);
       const nextPhotos = photos.filter((photo) => photo.id !== photoId);
       setPhotos(nextPhotos);
