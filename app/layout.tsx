@@ -50,6 +50,7 @@ export default function RootLayout({
     <ClerkProvider
       appearance={getClerkAppearance()}
       localization={clerkLocalization}
+      afterSignOutUrl="/"
     >
       <html
         lang="en"

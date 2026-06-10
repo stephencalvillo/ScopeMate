@@ -27,6 +27,13 @@ function isGuestAccessibleProjectApi(request: NextRequest) {
   return guestProjectApiPattern.test(request.nextUrl.pathname);
 }
 
+function isServerActionRequest(request: NextRequest) {
+  return (
+    request.method === "POST" &&
+    (request.headers.has("Next-Action") || request.headers.has("next-action"))
+  );
+}
+
 function shouldProxyClerkFrontendApi(url: URL) {
   return (
     url.hostname === "scopebuddy.ai" ||
@@ -42,7 +49,8 @@ export default clerkMiddleware(
     if (
       isPublicRoute(request) ||
       isProjectDetailRoute(request) ||
-      isGuestAccessibleProjectApi(request)
+      isGuestAccessibleProjectApi(request) ||
+      isServerActionRequest(request)
     ) {
       return;
     }
@@ -63,7 +71,10 @@ export default clerkMiddleware(
       return;
     }
 
-    await auth.protect();
+    const { userId, redirectToSignIn } = await auth();
+    if (!userId) {
+      return redirectToSignIn();
+    }
   },
   {
     frontendApiProxy: {
