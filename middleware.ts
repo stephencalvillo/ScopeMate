@@ -1,5 +1,4 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
@@ -46,13 +45,8 @@ export default clerkMiddleware(
     }
 
     if (request.nextUrl.pathname.startsWith("/api/")) {
-      const { userId } = await auth();
-      if (!userId) {
-        return NextResponse.json(
-          { error: "Unauthorized" },
-          { status: 401, headers: { "Cache-Control": "no-store" } }
-        );
-      }
+      // Route handlers authenticate with auth() directly. Middleware auth()
+      // does not reliably see Clerk sessions for API requests on scopebuddy.ai.
       return;
     }
 
