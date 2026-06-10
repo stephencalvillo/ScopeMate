@@ -1,5 +1,5 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { ForbiddenError } from "@/lib/auth/clerk";
+import { clerkClient } from "@clerk/nextjs/server";
+import { ForbiddenError, resolveClerkUserId } from "@/lib/auth/clerk";
 import {
   hasClerkAdminMetadata,
   isAdminConfigured,
@@ -21,23 +21,23 @@ export async function isAdminUser(userId: string, email?: string | null) {
   return false;
 }
 
-export async function requireAdmin() {
-  const { userId } = await auth();
+export async function requireAdmin(request?: Request) {
+  const userId = await resolveClerkUserId(request);
 
   if (!userId) {
     throw new ForbiddenError("You need to sign in to access the admin panel.");
   }
 
-  const clerkUser = await currentUser();
+  const clerkUser = await (await clerkClient()).users.getUser(userId);
   const email =
-    clerkUser?.emailAddresses.find(
+    clerkUser.emailAddresses.find(
       (entry) => entry.id === clerkUser.primaryEmailAddressId
     )?.emailAddress ??
-    clerkUser?.emailAddresses[0]?.emailAddress ??
+    clerkUser.emailAddresses[0]?.emailAddress ??
     null;
 
   const allowed =
-    hasClerkAdminMetadata(clerkUser?.publicMetadata) ||
+    hasClerkAdminMetadata(clerkUser.publicMetadata) ||
     (await isAdminUser(userId, email));
 
   if (!allowed) {

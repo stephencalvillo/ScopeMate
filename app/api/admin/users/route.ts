@@ -14,7 +14,7 @@ const deleteUsersSchema = z.object({
 const noStoreHeaders = { "Cache-Control": "no-store" };
 
 async function handleDeleteUsers(request: Request) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin(request);
   const body = deleteUsersSchema.parse(await request.json());
 
   if (body.userIds.includes(admin.userId)) {

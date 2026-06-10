@@ -1,8 +1,10 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { deleteAdminUsers } from "@/lib/admin/delete-users-action";
+import type { DeleteUsersResult } from "@/lib/admin/delete-users";
 import type { AdminAccountType, AdminUserRow } from "@/lib/admin/stats";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +49,7 @@ export function AdminUsersTable({
   currentAdminUserId: string;
 }) {
   const router = useRouter();
+  const { getToken } = useAuth();
   const [, startTransition] = useTransition();
   const selectAllRef = useRef<HTMLInputElement>(null);
   const lastSelectedIndexRef = useRef<number | null>(null);
@@ -132,7 +135,21 @@ export function AdminUsersTable({
     setIsDeleting(true);
 
     try {
-      const result = await deleteAdminUsers(selectedIds);
+      const response = await authenticatedFetch(getToken, "/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userIds: selectedIds }),
+      });
+
+      const payload = (await response.json()) as DeleteUsersResult & {
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Failed to delete users.");
+      }
+
+      const result = payload;
       const deletedCount = result.deleted.length;
       const failedCount = result.failed.length;
 
