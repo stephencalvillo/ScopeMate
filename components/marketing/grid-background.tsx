@@ -93,35 +93,37 @@ export function GridBackground({
       return;
     }
 
+    const gridEl = grid;
+    const sectionEl = section;
     let frameId = 0;
 
     function updateHoverPosition(clientX: number, clientY: number) {
-      const rect = section.getBoundingClientRect();
-      grid.style.setProperty("--grid-hover-x", `${clientX - rect.left}px`);
-      grid.style.setProperty("--grid-hover-y", `${clientY - rect.top}px`);
+      const rect = sectionEl.getBoundingClientRect();
+      gridEl.style.setProperty("--grid-hover-x", `${clientX - rect.left}px`);
+      gridEl.style.setProperty("--grid-hover-y", `${clientY - rect.top}px`);
     }
 
     function handleMouseMove(event: MouseEvent) {
       cancelAnimationFrame(frameId);
       frameId = requestAnimationFrame(() => {
         updateHoverPosition(event.clientX, event.clientY);
-        grid.classList.add("marketing-hero-grid--hovering");
+        gridEl.classList.add("marketing-hero-grid--hovering");
       });
     }
 
     function handleMouseLeave() {
       cancelAnimationFrame(frameId);
-      grid.classList.remove("marketing-hero-grid--hovering");
+      gridEl.classList.remove("marketing-hero-grid--hovering");
     }
 
-    section.addEventListener("mousemove", handleMouseMove);
-    section.addEventListener("mouseleave", handleMouseLeave);
+    sectionEl.addEventListener("mousemove", handleMouseMove);
+    sectionEl.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
       cancelAnimationFrame(frameId);
-      section.removeEventListener("mousemove", handleMouseMove);
-      section.removeEventListener("mouseleave", handleMouseLeave);
-      grid.classList.remove("marketing-hero-grid--hovering");
+      sectionEl.removeEventListener("mousemove", handleMouseMove);
+      sectionEl.removeEventListener("mouseleave", handleMouseLeave);
+      gridEl.classList.remove("marketing-hero-grid--hovering");
     };
   }, []);
 
