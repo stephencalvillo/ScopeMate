@@ -21,6 +21,11 @@ import { SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
 import { getProjectShareCopy } from "@/lib/project/share-copy";
 import { claimGuestProjectClient } from "@/lib/project/claim-guest-project-client";
+import {
+  clearPendingShareDialog,
+  persistPendingShareDialog,
+  readPendingShareDialog,
+} from "@/lib/project/share-return-onboarding";
 import { cn, mobileFullWidthCtaClassName } from "@/lib/utils";
 import type { Project } from "@/types";
 
@@ -64,28 +69,62 @@ export function ShareLinkTriggerButton({
 }
 
 function ProjectShareReturnHandler({
-  projectId,
-  onOpenShare,
+  onCompleteShareReturn,
 }: {
-  projectId: string;
-  onOpenShare: () => void | Promise<void>;
+  onCompleteShareReturn: () => void | Promise<void>;
 }) {
   const searchParams = useSearchParams();
+  const { isLoaded, isSignedIn } = useAuth();
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (started.current) return;
+    if (searchParams.get("share") !== "1") return;
+    if (!isLoaded || !isSignedIn) return;
+
+    started.current = true;
+
+    void onCompleteShareReturn().catch((error) => {
+      started.current = false;
+      console.error(error);
+    });
+  }, [isLoaded, isSignedIn, onCompleteShareReturn, searchParams]);
+
+  return null;
+}
+
+function ProjectSharePendingHandler({
+  projectId,
+  isGuestProject,
+  onOpenShareLink,
+}: {
+  projectId: string;
+  isGuestProject: boolean;
+  onOpenShareLink: () => void;
+}) {
   const { isLoaded, isSignedIn } = useAuth();
   const opened = useRef(false);
 
   useEffect(() => {
     if (opened.current) return;
-    if (searchParams.get("share") !== "1") return;
     if (!isLoaded || !isSignedIn) return;
+    if (!readPendingShareDialog(projectId)) return;
 
-    opened.current = true;
+    function openPendingShareDialog() {
+      if (opened.current) return;
+      opened.current = true;
+      clearPendingShareDialog();
+      onOpenShareLink();
+    }
 
-    void onOpenShare().catch((error) => {
-      opened.current = false;
-      console.error(error);
-    });
-  }, [isLoaded, isSignedIn, onOpenShare, searchParams]);
+    if (!isGuestProject) {
+      openPendingShareDialog();
+      return;
+    }
+
+    const timeout = window.setTimeout(openPendingShareDialog, 800);
+    return () => window.clearTimeout(timeout);
+  }, [isGuestProject, isLoaded, isSignedIn, onOpenShareLink, projectId]);
 
   return null;
 }
@@ -132,13 +171,34 @@ export function ProjectShareProvider({
     router.replace(`/projects/${project.id}`, { scroll: false });
   }, [project.id, router]);
 
-  const refreshProject = useCallback(() => {
+  const scheduleShareDialogAfterRefresh = useCallback(() => {
+    persistPendingShareDialog(project.id);
+    router.replace(`/projects/${project.id}`, { scroll: false });
     router.refresh();
-  }, [router]);
+  }, [project.id, router]);
 
   const openShareLinkDialog = useCallback(() => {
     setShareDialogOpen(true);
   }, []);
+
+  const completeShareReturn = useCallback(async () => {
+    setShareError(null);
+
+    if (isGuestProject) {
+      await claimProject();
+      scheduleShareDialogAfterRefresh();
+      return;
+    }
+
+    cleanShareReturnUrl();
+    openShareLinkDialog();
+  }, [
+    claimProject,
+    cleanShareReturnUrl,
+    isGuestProject,
+    openShareLinkDialog,
+    scheduleShareDialogAfterRefresh,
+  ]);
 
   const openShareDialog = useCallback(async () => {
     setShareError(null);
@@ -151,6 +211,8 @@ export function ProjectShareProvider({
       }
 
       await claimProject();
+      scheduleShareDialogAfterRefresh();
+      return;
     }
 
     cleanShareReturnUrl();
@@ -162,21 +224,34 @@ export function ProjectShareProvider({
     isLoaded,
     isSignedIn,
     openShareLinkDialog,
+    scheduleShareDialogAfterRefresh,
   ]);
 
   const handleAccountReady = useCallback(async () => {
     if (isGuestProject) {
-      try {
-        await claimProject();
-      } catch (error) {
-        throw error instanceof Error
-          ? error
-          : new Error("Could not save this project to your account.");
-      }
+      await claimProject();
+      scheduleShareDialogAfterRefresh();
+      return;
     }
 
     openShareLinkDialog();
-  }, [claimProject, isGuestProject, openShareLinkDialog]);
+  }, [
+    claimProject,
+    isGuestProject,
+    openShareLinkDialog,
+    scheduleShareDialogAfterRefresh,
+  ]);
+
+  const completeShareReturnRef = useCallback(() => {
+    return completeShareReturn().catch((error) => {
+      setShareError(
+        error instanceof Error
+          ? error.message
+          : "Could not open the share link."
+      );
+      throw error;
+    });
+  }, [completeShareReturn]);
 
   const openShareDialogRef = useCallback(() => {
     return openShareDialog().catch((error) => {
@@ -256,9 +331,11 @@ export function ProjectShareProvider({
       {children}
 
       <Suspense fallback={null}>
-        <ProjectShareReturnHandler
+        <ProjectShareReturnHandler onCompleteShareReturn={completeShareReturnRef} />
+        <ProjectSharePendingHandler
           projectId={project.id}
-          onOpenShare={openShareDialogRef}
+          isGuestProject={isGuestProject}
+          onOpenShareLink={openShareLinkDialog}
         />
       </Suspense>
 
@@ -316,10 +393,7 @@ export function ProjectShareProvider({
         autoCreate
         onOpenChange={(open) => {
           setShareDialogOpen(open);
-          if (!open) {
-            refreshProject();
-            onActivityChange?.();
-          }
+          if (!open) onActivityChange?.();
         }}
       />
     </ProjectShareContext.Provider>
