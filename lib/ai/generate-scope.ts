@@ -7,6 +7,7 @@ import {
 } from "@/lib/ai/build-user-prompt";
 import { getAnsweredFollowUps } from "@/lib/ai/generate-follow-up";
 import { normalizeAiScopeItems } from "@/lib/ai/normalize-scope-items";
+import { sortByConstructionOrder } from "@/lib/scope/construction-order";
 import { isGenericTitle } from "@/lib/projects/title";
 import { createServiceClient } from "@/lib/db/supabase";
 import type {
@@ -175,8 +176,9 @@ export async function generateScopeForProject(
 
   if (removeAiError) throw removeAiError;
 
+  const orderedScopeItems = sortByConstructionOrder(parsed.scope_items);
   const startOrder = homeownerItems.length;
-  const aiRows = parsed.scope_items.map((item, index) => ({
+  const aiRows = orderedScopeItems.map((item, index) => ({
     project_id: project.id,
     category: item.category.toLowerCase(),
     text: item.text,

@@ -359,20 +359,22 @@ export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   archived: "Archived",
 };
 
+/** Trade categories in typical residential construction sequence. */
 export const SCOPE_CATEGORIES = [
+  "planning",
+  "permits",
   "demolition",
   "structural",
   "plumbing",
   "electrical",
   "hvac",
-  "carpentry",
   "drywall",
-  "flooring",
+  "carpentry",
   "tile",
-  "hardscape",
+  "flooring",
   "painting",
   "fixtures",
-  "permits",
+  "hardscape",
   "cleanup",
   "other",
 ] as const;

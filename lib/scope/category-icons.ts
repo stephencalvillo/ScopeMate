@@ -3,6 +3,7 @@ import {
   Building2,
   CircleEllipsis,
   ClipboardCheck,
+  ClipboardList,
   Droplets,
   Frame,
   House,
@@ -25,6 +26,8 @@ const SCOPE_CATEGORY_ICONS: Record<
   (typeof SCOPE_CATEGORIES)[number],
   LucideIcon
 > = {
+  planning: ClipboardList,
+  permits: ClipboardCheck,
   demolition: Pickaxe,
   structural: Building2,
   plumbing: Droplets,
@@ -32,12 +35,11 @@ const SCOPE_CATEGORY_ICONS: Record<
   hvac: AirVent,
   carpentry: Ruler,
   drywall: Layers,
-  flooring: LayoutGrid,
   tile: SquareStack,
-  hardscape: LandPlot,
+  flooring: LayoutGrid,
   painting: Paintbrush,
   fixtures: Lamp,
-  permits: ClipboardCheck,
+  hardscape: LandPlot,
   cleanup: Trash2,
   other: House,
 };
