@@ -46,6 +46,10 @@ export function isContractorProfileReady(profile: ContractorProfile | null) {
   );
 }
 
+export function hasShareLinkClaimProfile(profile: ContractorProfile | null) {
+  return Boolean(profile?.company_name.trim() && profile.contact_name.trim());
+}
+
 function normalizeReview(
   review: ContractorReview | ContractorReview[] | null | undefined
 ): ContractorReview | null {
@@ -328,7 +332,6 @@ function profileInputFromPrefill(prefill?: {
   return {
     company_name: companyName,
     contact_name: contactName,
-    complete_onboarding: true as const,
   };
 }
 

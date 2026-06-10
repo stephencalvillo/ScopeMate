@@ -13,7 +13,9 @@ import { HomeownerReviewEntryPrompt } from "@/components/review/homeowner-review
 import { ReviewExpiredNotice } from "@/components/review/review-expired-notice";
 import { ReviewSubmittedDialog } from "@/components/review/review-submitted-dialog";
 import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
+import { finishContractorAccountSetup } from "@/lib/contractor/complete-signup";
 import {
+  clearShareLinkOnboardingDeferral,
   isShareLinkOnboardingDeferred,
   persistShareLinkReturn,
 } from "@/lib/contractor/share-link-onboarding";
@@ -53,15 +55,22 @@ export function ContractorReviewPage({ token }: { token: string }) {
   const [showSubmittedDialog, setShowSubmittedDialog] = useState(false);
   const [showShareLinkDialog, setShowShareLinkDialog] = useState(false);
   const [shareLinkSignupOnly, setShareLinkSignupOnly] = useState(false);
+  const [linkingShareReview, setLinkingShareReview] = useState(false);
+  const [linkShareReviewError, setLinkShareReviewError] = useState<string | null>(
+    null
+  );
 
   const loadReview = useCallback(
-    async (options?: { silent?: boolean }) => {
+    async (options?: { silent?: boolean; authenticated?: boolean }) => {
       if (!options?.silent) {
         setLoading(true);
       }
 
       try {
-        const response = await fetch(`/api/review/${token}`);
+        const useAuthHeader = options?.authenticated ?? isSignedIn;
+        const response = useAuthHeader
+          ? await authenticatedFetch(getToken, `/api/review/${token}`)
+          : await fetch(`/api/review/${token}`);
         const data = await response.json();
         if (!response.ok) {
           setUnavailable(true);
@@ -77,12 +86,13 @@ export function ContractorReviewPage({ token }: { token: string }) {
         }
       }
     },
-    [token]
+    [getToken, isSignedIn, token]
   );
 
   useEffect(() => {
-    loadReview();
-  }, [loadReview]);
+    if (!isLoaded) return;
+    void loadReview({ authenticated: isSignedIn });
+  }, [isLoaded, isSignedIn, loadReview]);
 
   const isHomeownerShareRecipient =
     payload?.is_share_link && payload?.is_contractor_client_project;
@@ -91,45 +101,98 @@ export function ContractorReviewPage({ token }: { token: string }) {
     if (!payload?.is_share_link || payload.can_edit) return;
     if (payload.review.status === "submitted") return;
     if (isHomeownerShareRecipient) return;
-    if (!isLoaded) return;
+    if (!isLoaded || isSignedIn) return;
 
     persistShareLinkReturn(token);
 
     if (!isShareLinkOnboardingDeferred(token)) {
       setShowShareLinkDialog(true);
     }
-  }, [isHomeownerShareRecipient, isLoaded, payload, token]);
+  }, [isHomeownerShareRecipient, isLoaded, isSignedIn, payload, token]);
 
   useEffect(() => {
-    if (!isSignedIn || !payload?.is_share_link || payload.can_edit) return;
+    if (!isLoaded || !isSignedIn || !payload?.is_share_link || payload.can_edit) {
+      return;
+    }
+    if (isHomeownerShareRecipient) return;
 
     let cancelled = false;
 
     void (async () => {
-      if (isHomeownerShareRecipient) {
-        const claimResponse = await fetch(`/api/review/${token}/homeowner-claim`, {
-          method: "POST",
-        });
+      setLinkingShareReview(true);
+      setLinkShareReviewError(null);
 
-        if (!claimResponse.ok || cancelled) return;
+      try {
+        await finishContractorAccountSetup(getToken);
 
-        const redirectResponse = await fetch(
-          `/api/review/${token}/homeowner-redirect`
+        const response = await authenticatedFetch(
+          getToken,
+          `/api/review/${token}/claim`,
+          { method: "POST" }
         );
-        const redirectData = await redirectResponse.json();
 
-        if (!cancelled && redirectData.redirect) {
-          window.location.assign(redirectData.redirect);
+        if (!response.ok || cancelled) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(
+            typeof data.error === "string"
+              ? data.error
+              : "Could not link your account to this project."
+          );
         }
-        return;
-      }
 
-      const response = await authenticatedFetch(getToken, `/api/review/${token}/claim`, {
+        clearShareLinkOnboardingDeferral(token);
+        await loadReview({ silent: true, authenticated: true });
+      } catch (linkError) {
+        if (cancelled) return;
+        setLinkShareReviewError(
+          linkError instanceof Error
+            ? linkError.message
+            : "Could not link your account to this project."
+        );
+      } finally {
+        if (!cancelled) {
+          setLinkingShareReview(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    getToken,
+    isHomeownerShareRecipient,
+    isLoaded,
+    isSignedIn,
+    loadReview,
+    payload?.can_edit,
+    payload?.is_share_link,
+    token,
+  ]);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !payload?.is_share_link || payload.can_edit) {
+      return;
+    }
+    if (!isHomeownerShareRecipient) return;
+
+    let cancelled = false;
+
+    void (async () => {
+      const claimResponse = await fetch(`/api/review/${token}/homeowner-claim`, {
         method: "POST",
       });
 
-      if (!response.ok || cancelled) return;
-      await loadReview({ silent: true });
+      if (!claimResponse.ok || cancelled) return;
+
+      const redirectResponse = await fetch(
+        `/api/review/${token}/homeowner-redirect`
+      );
+      const redirectData = await redirectResponse.json();
+
+      if (!cancelled && redirectData.redirect) {
+        window.location.assign(redirectData.redirect);
+      }
     })();
 
     return () => {
@@ -137,19 +200,18 @@ export function ContractorReviewPage({ token }: { token: string }) {
     };
   }, [
     isHomeownerShareRecipient,
+    isLoaded,
     isSignedIn,
-    getToken,
-    loadReview,
     payload?.can_edit,
     payload?.is_share_link,
     token,
   ]);
 
   const handleReviewSubmitted = useCallback(async () => {
-    await loadReview({ silent: true });
+    await loadReview({ silent: true, authenticated: isSignedIn });
     window.scrollTo({ top: 0, behavior: "instant" });
     setShowSubmittedDialog(true);
-  }, [loadReview]);
+  }, [isSignedIn, loadReview]);
 
   if (loading) {
     return (
@@ -169,6 +231,15 @@ export function ContractorReviewPage({ token }: { token: string }) {
     !payload.is_contractor_client_project &&
     !payload.can_edit &&
     payload.review.status !== "submitted";
+
+  if (linkingShareReview) {
+    return (
+      <div className="flex items-center gap-2 py-16 text-sm text-[var(--muted)]">
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+        Linking your account to this project
+      </div>
+    );
+  }
 
   if (!payload.invitation.accepted_at && !payload.is_share_link) {
     return (
@@ -223,24 +294,29 @@ export function ContractorReviewPage({ token }: { token: string }) {
         <div className="mb-6">
           <ContractorReviewUnlock
             token={token}
-            onUnlocked={() => loadReview({ silent: true })}
+            onUnlocked={() => loadReview({ silent: true, authenticated: isSignedIn })}
           />
         </div>
+      ) : null}
+
+      {linkShareReviewError ? (
+        <p className="mb-4 text-sm text-red-600">{linkShareReviewError}</p>
       ) : null}
 
       <ContractorReviewWorkspace
         token={token}
         payload={payload}
-        onRefresh={() => loadReview({ silent: true })}
+        onRefresh={() => loadReview({ silent: true, authenticated: isSignedIn })}
         onReviewSubmitted={handleReviewSubmitted}
-        requireAccountForEstimate={requiresShareLinkAccount}
+        requireAccountForEstimate={requiresShareLinkAccount && !isSignedIn}
         onRequestAccount={() => {
+          if (isSignedIn) return;
           setShareLinkSignupOnly(true);
           setShowShareLinkDialog(true);
         }}
       />
 
-      {requiresShareLinkAccount ? (
+      {requiresShareLinkAccount && !isSignedIn ? (
         <ContractorShareLinkOnboardingDialog
           open={showShareLinkDialog}
           onOpenChange={(nextOpen) => {

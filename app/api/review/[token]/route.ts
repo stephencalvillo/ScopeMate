@@ -11,7 +11,7 @@ import { loadProjectReadinessSummary } from "@/lib/project/readiness-summary";
 import { listProjectPhotosWithUrls } from "@/lib/storage/photos";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ token: string }> }
 ) {
   try {
@@ -39,7 +39,7 @@ export async function GET(
       review
     );
     const estimate = await getEstimateForReview(review.id);
-    const can_edit = await canEditReview(token, invitation);
+    const can_edit = await canEditReview(token, invitation, request);
     const is_share_link = isShareLinkInvitation(invitation, project);
     const is_contractor_client_project = isContractorCreatedProject(project);
 

@@ -1,6 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
-import { ForbiddenError } from "@/lib/auth/clerk";
+import { ForbiddenError, resolveClerkUserId, resolveClerkUserIdFromHeaders } from "@/lib/auth/clerk";
 import { REVIEW_SESSION_COOKIE } from "@/lib/contractor/constants";
 import { getInvitationByToken } from "@/lib/contractor/invitations";
 import { verifyReviewSessionValue } from "@/lib/contractor/review-session";
@@ -8,10 +7,13 @@ import type { ContractorInvitation } from "@/types";
 
 export async function canEditReview(
   token: string,
-  invitation?: Pick<ContractorInvitation, "contractor_user_id">
+  invitation?: Pick<ContractorInvitation, "contractor_user_id">,
+  request?: Request
 ) {
   const resolvedInvitation = invitation ?? (await getInvitationByToken(token));
-  const { userId } = await auth();
+  const userId = request
+    ? await resolveClerkUserId(request)
+    : await resolveClerkUserIdFromHeaders();
 
   if (
     userId &&

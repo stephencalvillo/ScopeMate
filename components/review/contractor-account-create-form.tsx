@@ -112,16 +112,21 @@ export function ContractorAccountCreateForm({
     if (shareReturn?.startsWith("/review/")) {
       try {
         await finishContractorAccountSetup(getToken);
-        const token = shareReturn.replace("/review/", "");
-        await authenticatedFetch(getToken, `/api/review/${token}/claim`, {
+      } catch {
+        // Review page will retry setup and claim after redirect.
+      }
+
+      try {
+        const reviewToken = shareReturn.replace("/review/", "");
+        await authenticatedFetch(getToken, `/api/review/${reviewToken}/claim`, {
           method: "POST",
         });
-        window.location.assign(shareReturn);
-        return;
       } catch {
-        window.location.assign("/contractor/complete-setup");
-        return;
+        // Review page will retry claim after redirect.
       }
+
+      window.location.assign(shareReturn);
+      return;
     }
 
     window.location.assign("/contractor/complete-setup");

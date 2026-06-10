@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { ScopeBuddyLogo } from "@/components/layout/scopemate-logo";
 import { ContractorAccountCreateForm } from "@/components/review/contractor-account-create-form";
 import { Button } from "@/components/ui/button";
@@ -54,7 +53,6 @@ export function ContractorShareLinkOnboardingDialog({
   invitation: ContractorInvitation;
   signupOnly?: boolean;
 }) {
-  const { isSignedIn } = useAuth();
   const displayHomeownerName = formatShareLinkHomeownerName(homeownerName);
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(
     `/review/${token}?as=contractor`
@@ -150,31 +148,7 @@ export function ContractorShareLinkOnboardingDialog({
           <ScopeBuddyLogo className="h-7 text-neutral-900" />
         </div>
 
-        {isSignedIn ? (
-          <div className="space-y-3">
-            <DialogHeader className="mb-0 text-center">
-              <DialogTitle className="font-display text-lg font-normal tracking-tight text-balance break-words sm:text-xl">
-                Finish your contractor profile
-              </DialogTitle>
-              <DialogDescription className="text-[var(--muted)]">
-                {displayHomeownerName} shared a project with you. Add your
-                business details to start estimating and manage all your projects
-                in one place.
-              </DialogDescription>
-            </DialogHeader>
-            <Button type="button" className="w-full" asChild>
-              <Link href="/contractor/complete-setup">Continue setup</Link>
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={handleDefer}
-            >
-              I&apos;ll do this later
-            </Button>
-          </div>
-        ) : step === "intro" ? (
+        {step === "intro" ? (
           <div className="space-y-3">
             <DialogHeader className="mb-0 text-center">
               <DialogTitle className="font-display text-lg font-normal tracking-tight text-balance break-words sm:text-xl">

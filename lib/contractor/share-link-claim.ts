@@ -1,5 +1,8 @@
 import { ForbiddenError } from "@/lib/auth/clerk";
-import { getContractorProfile } from "@/lib/contractor/profile";
+import {
+  getContractorProfile,
+  hasShareLinkClaimProfile,
+} from "@/lib/contractor/profile";
 import {
   getInvitationByToken,
   getReviewProjectByInvitationToken,
@@ -33,9 +36,9 @@ export async function claimShareLinkInvitation(
   }
 
   const profile = await getContractorProfile(user.id);
-  if (!profile?.onboarding_completed_at) {
+  if (!hasShareLinkClaimProfile(profile)) {
     throw new ForbiddenError(
-      "Finish contractor profile setup before claiming this review."
+      "Add your contractor name and company before claiming this review."
     );
   }
 
@@ -74,7 +77,7 @@ export async function claimShareLinkInvitationIfReady(
   user: User
 ) {
   const profile = await getContractorProfile(user.id);
-  if (!profile?.onboarding_completed_at) {
+  if (!hasShareLinkClaimProfile(profile)) {
     return null;
   }
 
