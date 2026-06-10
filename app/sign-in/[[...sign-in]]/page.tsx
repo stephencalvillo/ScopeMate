@@ -18,6 +18,9 @@ export default async function SignInPage({
     <AuthPageLayout>
       <AuthClerkForm>
         <SignIn
+          routing="path"
+          path="/sign-in"
+          signUpUrl="/sign-up"
           appearance={getClerkAppearance()}
           fallbackRedirectUrl={safeRedirect}
           forceRedirectUrl={safeRedirect}

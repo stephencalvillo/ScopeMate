@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useSignUp } from "@clerk/nextjs";
+import { ClerkCaptcha } from "@/components/auth/clerk-captcha";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -301,7 +302,7 @@ export function ContractorAccountCreateForm({
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-        <div id="clerk-captcha" />
+        <ClerkCaptcha />
 
         <Button
           type="submit"

@@ -1,7 +1,6 @@
-import { SignUp } from "@clerk/nextjs";
 import { AuthClerkForm } from "@/components/auth/auth-clerk-form";
 import { AuthPageLayout } from "@/components/auth/auth-page-layout";
-import { getClerkAppearance } from "@/lib/clerk/appearance";
+import { AuthSignUpForm } from "@/components/auth/auth-sign-up-form";
 
 export default async function SignUpPage({
   searchParams,
@@ -17,11 +16,7 @@ export default async function SignUpPage({
   return (
     <AuthPageLayout>
       <AuthClerkForm>
-        <SignUp
-          appearance={getClerkAppearance()}
-          fallbackRedirectUrl={safeRedirect}
-          forceRedirectUrl={safeRedirect}
-        />
+        <AuthSignUpForm redirectUrl={safeRedirect} />
       </AuthClerkForm>
     </AuthPageLayout>
   );

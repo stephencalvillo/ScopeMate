@@ -48,7 +48,13 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider
-      appearance={getClerkAppearance()}
+      appearance={{
+        ...getClerkAppearance(),
+        captcha: {
+          theme: "light",
+          size: "flexible",
+        },
+      }}
       localization={clerkLocalization}
       afterSignOutUrl="/"
     >
