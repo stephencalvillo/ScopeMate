@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
+import { isAdminEmail } from "@/lib/auth/admin-config";
+import { grantClerkAdminIfAllowed } from "@/lib/auth/grant-clerk-admin";
 import { createServiceClient } from "@/lib/db/supabase";
 
 type ClerkEmailAddress = {
@@ -74,12 +76,26 @@ export async function POST(request: Request) {
       [event.data.first_name, event.data.last_name].filter(Boolean).join(" ") ||
       null;
 
+    const isAdmin = isAdminEmail(email);
+
+    if (isAdmin) {
+      try {
+        await grantClerkAdminIfAllowed(event.data.id, email);
+      } catch (error) {
+        console.error("Clerk admin metadata sync failed:", {
+          clerkUserId: event.data.id,
+          email,
+          error,
+        });
+      }
+    }
+
     const { error } = await supabase.from("users").upsert(
       {
         id: event.data.id,
         email,
         name,
-        role: "homeowner",
+        role: isAdmin ? "admin" : "homeowner",
       },
       { onConflict: "id" }
     );
