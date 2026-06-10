@@ -13,24 +13,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { deleteAdminUsers } from "@/lib/admin/delete-users-action";
 import type { AdminAccountType, AdminUserRow } from "@/lib/admin/stats";
-import type { DeleteUsersResult } from "@/lib/admin/delete-users";
 import { cn } from "@/lib/utils";
-
-async function parseDeleteResponse(response: Response) {
-  const contentType = response.headers.get("content-type") ?? "";
-
-  if (contentType.includes("application/json")) {
-    return (await response.json()) as DeleteUsersResult & { error?: string };
-  }
-
-  const text = await response.text();
-  throw new Error(
-    text.includes("<!DOCTYPE")
-      ? "Delete request failed. Refresh the page and try again."
-      : text || "Delete request failed. Please try again."
-  );
-}
 
 function accountTypeLabel(type: AdminAccountType) {
   switch (type) {
@@ -149,22 +134,9 @@ export function AdminUsersTable({
     setIsDeleting(true);
 
     try {
-      const response = await fetch("/api/admin/users", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userIds: selectedIds }),
-        cache: "no-store",
-      });
-
-      const payload = await parseDeleteResponse(response);
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Failed to delete users.");
-      }
-
-      const deletedCount = payload.deleted?.length ?? 0;
-      const failedCount = payload.failed?.length ?? 0;
+      const result = await deleteAdminUsers(selectedIds);
+      const deletedCount = result.deleted.length;
+      const failedCount = result.failed.length;
 
       if (deletedCount > 0) {
         toast.success(
