@@ -408,18 +408,22 @@ export async function completeContractorReview({
 
   if (inviteError) throw inviteError;
 
-  await sendReviewCompleteEmail({
-    to: homeowner.email,
-    homeownerName: homeowner.name ?? homeowner.email,
-    contractorName: invitation.contractor_name,
-    projectTitle: project.title,
-    projectId: project.id,
-    invitationId: invitation.id,
-    suggestionCount: drafts.length,
-    proposalMinTotal: hasProposalRange ? proposalRange!.minTotal : null,
-    proposalMaxTotal: hasProposalRange ? proposalRange!.maxTotal : null,
-    request,
-  });
+  try {
+    await sendReviewCompleteEmail({
+      to: homeowner.email,
+      homeownerName: homeowner.name ?? homeowner.email,
+      contractorName: invitation.contractor_name,
+      projectTitle: project.title,
+      projectId: project.id,
+      invitationId: invitation.id,
+      suggestionCount: drafts.length,
+      proposalMinTotal: hasProposalRange ? proposalRange!.minTotal : null,
+      proposalMaxTotal: hasProposalRange ? proposalRange!.maxTotal : null,
+      request,
+    });
+  } catch (emailError) {
+    console.error("Review submitted but notification email failed:", emailError);
+  }
 
   return { submitted_count: drafts.length };
 }

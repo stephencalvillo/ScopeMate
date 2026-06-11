@@ -26,7 +26,24 @@ export function getResendClient() {
 }
 
 export function getEmailFrom() {
-  return process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+  const configured = process.env.EMAIL_FROM?.trim();
+  if (configured) {
+    return configured;
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (appUrl) {
+    try {
+      const hostname = new URL(appUrl).hostname.replace(/^www\./, "");
+      if (hostname === "scopebuddy.ai") {
+        return "ScopeBuddy <hello@scopebuddy.ai>";
+      }
+    } catch {
+      // Ignore invalid app URL values.
+    }
+  }
+
+  return "onboarding@resend.dev";
 }
 
 export async function sendResendEmail(payload: CreateEmailOptions) {
