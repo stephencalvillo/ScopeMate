@@ -1,6 +1,6 @@
 import { clerkClient, currentUser } from "@clerk/nextjs/server";
 import { getClerkSecretKeyError } from "@/lib/auth/clerk-config";
-import { ForbiddenError, resolveClerkUserId } from "@/lib/auth/clerk";
+import { ForbiddenError, resolveClerkUserId, resolveClerkUserIdFromHeaders } from "@/lib/auth/clerk";
 import {
   hasClerkAdminMetadata,
   isAdminConfigured,
@@ -59,7 +59,9 @@ export async function isAdminUser(userId: string, email?: string | null) {
 }
 
 export async function requireAdmin(request?: Request) {
-  const userId = await resolveClerkUserId(request);
+  const userId =
+    (await resolveClerkUserId(request)) ??
+    (await resolveClerkUserIdFromHeaders());
 
   if (!userId) {
     throw new ForbiddenError("You need to sign in to access the admin panel.");

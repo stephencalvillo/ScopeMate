@@ -114,7 +114,12 @@ export function AdminDashboard({
 
         <div className="grid gap-4 sm:grid-cols-2">
           {(["homeowner", "contractor"] as ScreenAudience[]).map((audience) => (
-            <Link key={audience} href={`/adminpanel/screens/${audience}`}>
+            <Link
+              key={audience}
+              href={`/adminpanel/screens/${audience}`}
+              prefetch={false}
+              className="block h-full"
+            >
               <Card className="h-full transition hover:border-neutral-300">
                 <CardHeader className="pb-2">
                   <CardDescription>

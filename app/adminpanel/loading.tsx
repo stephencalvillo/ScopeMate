@@ -10,7 +10,7 @@ export default function AdminPanelLoading() {
               ScopeBuddy Admin
             </p>
             <h1 className="font-display text-2xl tracking-tight text-neutral-900">
-              Control dashboard
+              Loading…
             </h1>
           </div>
         </div>
@@ -21,7 +21,7 @@ export default function AdminPanelLoading() {
           className="h-8 w-8 animate-spin text-neutral-900"
           aria-hidden
         />
-        <p className="mt-4 text-sm text-[var(--muted)]">Loading admin dashboard…</p>
+        <p className="mt-4 text-sm text-[var(--muted)]">Loading admin view…</p>
       </main>
     </div>
   );

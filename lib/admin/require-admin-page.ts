@@ -1,13 +1,30 @@
+import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { ForbiddenError } from "@/lib/auth/clerk";
+import { ForbiddenError, resolveClerkUserIdFromHeaders } from "@/lib/auth/clerk";
 import { isAdminConfigured, requireAdmin } from "@/lib/auth/admin";
 
+async function resolveAdminUserId() {
+  const { userId: authUserId } = await auth();
+  return authUserId ?? (await resolveClerkUserIdFromHeaders());
+}
+
+async function redirectToAdminSignIn() {
+  const headersList = await headers();
+  const adminPath = headersList.get("x-adminpanel-path");
+  const redirectPath =
+    adminPath && adminPath.startsWith("/adminpanel") ? adminPath : "/adminpanel";
+
+  redirect(
+    `/sign-in?redirect_url=${encodeURIComponent(redirectPath)}`
+  );
+}
+
 export async function requireAdminPage() {
-  const { userId } = await auth();
+  const userId = await resolveAdminUserId();
 
   if (!userId) {
-    redirect("/sign-in?redirect_url=/adminpanel");
+    await redirectToAdminSignIn();
   }
 
   if (!isAdminConfigured()) {

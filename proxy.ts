@@ -65,10 +65,22 @@ export default clerkMiddleware(
         authUserId ?? (await resolveClerkUserIdFromRequest(request));
       if (!userId) {
         const signInUrl = new URL("/sign-in", request.url);
-        signInUrl.searchParams.set("redirect_url", "/adminpanel");
+        signInUrl.searchParams.set(
+          "redirect_url",
+          `${request.nextUrl.pathname}${request.nextUrl.search}`
+        );
         return NextResponse.redirect(signInUrl);
       }
-      return;
+
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set(
+        "x-adminpanel-path",
+        `${request.nextUrl.pathname}${request.nextUrl.search}`
+      );
+
+      return NextResponse.next({
+        request: { headers: requestHeaders },
+      });
     }
 
     if (request.nextUrl.pathname.startsWith("/api/")) {
