@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProjectShareSection } from "@/components/project/project-share-section";
 import { ProjectActivitySection } from "@/components/project/project-activity-section";
@@ -12,6 +13,7 @@ import {
   ProjectTabNav,
   type ProjectTabId,
 } from "@/components/project/project-tab-nav";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import type { ProjectWithScope } from "@/types";
 
 export function ProjectDetailTabs({
@@ -27,6 +29,7 @@ export function ProjectDetailTabs({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const activeTab = parseProjectTab(searchParams.get("tab"));
   const [counts, setCounts] = useState({
     reviewedScopes: 0,
@@ -38,9 +41,14 @@ export function ProjectDetailTabs({
     activityRefreshKeyProp ?? internalActivityRefreshKey;
 
   const loadTabCounts = useCallback(async () => {
+    const fetchProjectApi = (path: string) =>
+      isSignedIn
+        ? authenticatedFetch(getToken, path)
+        : fetch(path);
+
     const [reviewedResponse, suggestionsResponse] = await Promise.all([
-      fetch(`/api/projects/${project.id}/reviewed-scopes`),
-      fetch(`/api/projects/${project.id}/suggestions`),
+      fetchProjectApi(`/api/projects/${project.id}/reviewed-scopes`),
+      fetchProjectApi(`/api/projects/${project.id}/suggestions`),
     ]);
 
     const [reviewedData, suggestionsData] = await Promise.all([
@@ -67,12 +75,12 @@ export function ProjectDetailTabs({
 
       return { reviewedScopes, needsAttention };
     });
-  }, [project.id]);
+  }, [getToken, isSignedIn, project.id]);
 
   useEffect(() => {
-    if (!showTabs) return;
-    loadTabCounts();
-  }, [loadTabCounts, showTabs]);
+    if (!showTabs || !isLoaded) return;
+    void loadTabCounts();
+  }, [isLoaded, loadTabCounts, showTabs]);
 
   function setTab(tab: ProjectTabId) {
     const params = new URLSearchParams(searchParams.toString());

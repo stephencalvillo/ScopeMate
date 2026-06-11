@@ -30,11 +30,16 @@ import type { ContractorInvitation } from "@/types";
 
 type DialogStep = "intro" | "signup";
 
-function hasIdentityPrefill(contactName: string, companyName: string) {
+function hasShareLinkProfilePrefill(
+  contactName: string,
+  companyName: string,
+  serviceArea: string
+) {
   return (
     contactName.trim().length > 0 &&
     contactName.trim() !== SHARE_LINK_PLACEHOLDER_NAME &&
-    companyName.trim().length > 0
+    companyName.trim().length > 0 &&
+    serviceArea.trim().length > 0
   );
 }
 
@@ -69,6 +74,7 @@ export function ContractorShareLinkOnboardingDialog({
   const [companyName, setCompanyName] = useState(
     storedPrefill?.companyName || invitation.contractor_company || ""
   );
+  const [serviceArea, setServiceArea] = useState(storedPrefill?.serviceArea ?? "");
   const [introError, setIntroError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -82,12 +88,16 @@ export function ContractorShareLinkOnboardingDialog({
     if (prefill?.companyName) {
       setCompanyName((current) => current || prefill.companyName || "");
     }
+    if (prefill?.serviceArea) {
+      setServiceArea((current) => current || prefill.serviceArea || "");
+    }
 
     if (signupOnly) {
       const contact = prefill?.contactName || contactName;
       const company = prefill?.companyName || companyName;
+      const area = prefill?.serviceArea || serviceArea;
       setStep(
-        hasIdentityPrefill(contact, company) ? "signup" : "intro"
+        hasShareLinkProfilePrefill(contact, company, area) ? "signup" : "intro"
       );
       return;
     }
@@ -100,6 +110,7 @@ export function ContractorShareLinkOnboardingDialog({
       email: "",
       contactName: contactName.trim(),
       companyName: companyName.trim(),
+      serviceArea: serviceArea.trim(),
     });
   }
 
@@ -124,8 +135,8 @@ export function ContractorShareLinkOnboardingDialog({
     event.preventDefault();
     setIntroError(null);
 
-    if (!contactName.trim() || !companyName.trim()) {
-      setIntroError("Enter your name and company to continue.");
+    if (!contactName.trim() || !companyName.trim() || !serviceArea.trim()) {
+      setIntroError("Enter your name, company, and service area to continue.");
       return;
     }
 
@@ -155,8 +166,8 @@ export function ContractorShareLinkOnboardingDialog({
                 {displayHomeownerName} shared a project with you
               </DialogTitle>
               <DialogDescription className="text-[var(--muted)]">
-                Tell us who you are, then create an account when you&apos;re
-                ready to estimate and submit your proposal.
+                Tell us about your business, then create an account when
+                you&apos;re ready to estimate and submit your proposal.
               </DialogDescription>
             </DialogHeader>
 
@@ -179,6 +190,17 @@ export function ContractorShareLinkOnboardingDialog({
                   value={companyName}
                   onChange={(event) => setCompanyName(event.target.value)}
                   placeholder="Your company"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="share_link_service_area">Service area</Label>
+                <Input
+                  id="share_link_service_area"
+                  value={serviceArea}
+                  onChange={(event) => setServiceArea(event.target.value)}
+                  placeholder="e.g. Los Angeles area"
                   required
                 />
               </div>
@@ -217,6 +239,7 @@ export function ContractorShareLinkOnboardingDialog({
                 email: "",
                 contactName: contactName.trim(),
                 companyName: companyName.trim(),
+                serviceArea: serviceArea.trim(),
               }}
               emailEditable
               onComplete={handleAccountComplete}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import {
 import type { ReviewedScopeSummary } from "@/lib/contractor/reviewed-scopes";
 import { SHARE_LINK_PLACEHOLDER_EMAIL } from "@/lib/contractor/project-share";
 import { formatProposalRange } from "@/lib/estimates/money";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { CONTRACTOR_INVITATION_STATUS_LABELS } from "@/types";
 
 function ReviewedScopeCard({
@@ -114,10 +116,16 @@ export function ReviewedProjectScopesSection({
 }) {
   const [scopes, setScopes] = useState<ReviewedScopeSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const { getToken, isLoaded, isSignedIn } = useAuth();
 
   const loadScopes = useCallback(async () => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/reviewed-scopes`);
+      const response = isSignedIn
+        ? await authenticatedFetch(
+            getToken,
+            `/api/projects/${projectId}/reviewed-scopes`
+          )
+        : await fetch(`/api/projects/${projectId}/reviewed-scopes`);
       const data = await response.json();
       if (response.ok) {
         setScopes(data.reviewed_scopes ?? []);
@@ -125,11 +133,12 @@ export function ReviewedProjectScopesSection({
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [getToken, isSignedIn, projectId]);
 
   useEffect(() => {
-    loadScopes();
-  }, [loadScopes]);
+    if (!isLoaded) return;
+    void loadScopes();
+  }, [isLoaded, loadScopes]);
 
   const onCountChangeRef = useRef(onCountChange);
   onCountChangeRef.current = onCountChange;

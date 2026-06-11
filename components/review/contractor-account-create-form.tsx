@@ -18,6 +18,7 @@ type SignupPrefill = {
   email?: string;
   contactName?: string;
   companyName?: string;
+  serviceArea?: string;
 };
 
 function clerkErrorMessage(error: unknown) {
@@ -101,6 +102,7 @@ export function ContractorAccountCreateForm({
     persistContractorSignupPrefill({
       companyName: prefill?.companyName ?? "",
       contactName: prefill?.contactName ?? "",
+      serviceArea: prefill?.serviceArea ?? "",
       email: email.trim(),
     });
   }

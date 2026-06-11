@@ -48,6 +48,7 @@ export async function finishContractorAccountSetup(getToken: GetToken) {
           ? {
               contactName: prefill.contactName,
               companyName: prefill.companyName,
+              serviceArea: prefill.serviceArea,
             }
           : undefined,
       }),

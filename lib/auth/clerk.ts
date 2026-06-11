@@ -58,7 +58,9 @@ export async function resolveClerkUserId(
 }
 
 export async function requireAuth(request?: Request) {
-  const userId = await resolveClerkUserId(request);
+  const userId =
+    (await resolveClerkUserId(request)) ??
+    (await resolveClerkUserIdFromHeaders());
   if (!userId) {
     throw new AuthError("You need to sign in to continue.");
   }
@@ -122,7 +124,9 @@ function resolveClerkEmailFromUser(clerkUser: {
 }
 
 export async function ensureUserRecord(request?: Request): Promise<User> {
-  const userId = await resolveClerkUserId(request);
+  const userId =
+    (await resolveClerkUserId(request)) ??
+    (await resolveClerkUserIdFromHeaders());
   if (!userId) {
     throw new AuthError("You need to sign in to continue.");
   }

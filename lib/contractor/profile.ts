@@ -316,17 +316,30 @@ async function listInvitationIdentityForUser(user: Pick<User, "id" | "email">) {
 function profileInputFromPrefill(prefill?: {
   contactName?: string;
   companyName?: string;
+  serviceArea?: string;
 }) {
   if (!prefill) return null;
 
   const contactName = prefill.contactName?.trim() ?? "";
   const companyName = prefill.companyName?.trim() ?? "";
+  const serviceArea = prefill.serviceArea?.trim() ?? "";
 
-  if (!canAutoCompleteContractorProfile({
-    contact_name: contactName,
-    company_name: companyName,
-  })) {
+  if (
+    !canAutoCompleteContractorProfile({
+      contact_name: contactName,
+      company_name: companyName,
+    })
+  ) {
     return null;
+  }
+
+  if (serviceArea) {
+    return {
+      company_name: companyName,
+      contact_name: contactName,
+      service_area: serviceArea,
+      complete_onboarding: true,
+    };
   }
 
   return {
@@ -341,6 +354,7 @@ export async function completeContractorSetupIfReady(
     prefill?: {
       contactName?: string;
       companyName?: string;
+      serviceArea?: string;
     };
   }
 ): Promise<{ profile: ContractorProfile | null; ready: boolean }> {
@@ -350,6 +364,15 @@ export async function completeContractorSetupIfReady(
   }
 
   await linkInvitationsToContractor(user);
+
+  const prefillInput = profileInputFromPrefill(options?.prefill);
+  if (prefillInput?.complete_onboarding) {
+    const profile = await upsertContractorProfile(user, {
+      ...prefillInput,
+      complete_onboarding: true,
+    });
+    return { profile, ready: isContractorProfileReady(profile) };
+  }
 
   for (const invitation of await listInvitationIdentityForUser(user)) {
     if (
@@ -370,11 +393,10 @@ export async function completeContractorSetupIfReady(
     return { profile, ready: isContractorProfileReady(profile) };
   }
 
-  const prefillInput = profileInputFromPrefill(options?.prefill);
   if (prefillInput) {
     const profile = await upsertContractorProfile(user, {
       ...prefillInput,
-      complete_onboarding: false,
+      complete_onboarding: prefillInput.complete_onboarding ?? false,
     });
     return { profile, ready: isContractorProfileReady(profile) };
   }

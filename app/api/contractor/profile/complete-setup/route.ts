@@ -18,6 +18,10 @@ export async function POST(request: Request) {
               typeof body.prefill.companyName === "string"
                 ? body.prefill.companyName
                 : undefined,
+            serviceArea:
+              typeof body.prefill.serviceArea === "string"
+                ? body.prefill.serviceArea
+                : undefined,
           }
         : undefined;
 

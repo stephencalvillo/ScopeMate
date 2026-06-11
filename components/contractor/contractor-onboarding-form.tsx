@@ -42,6 +42,7 @@ export function ContractorOnboardingForm({
 
     setCompanyName((current) => current || prefill.companyName || "");
     setContactName((current) => current || prefill.contactName || "");
+    setServiceArea((current) => current || prefill.serviceArea || "");
   }, []);
 
   async function handleSubmit(event: React.FormEvent) {
