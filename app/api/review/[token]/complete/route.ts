@@ -14,7 +14,7 @@ export async function POST(
   try {
     const { token } = await context.params;
     await assertReviewEditor(token, request);
-    const { project } = await getReviewProjectByInvitationToken(token);
+    const { project } = await getReviewProjectByInvitationToken(token, request);
     const homeowner = await getHomeownerForProject(project.id);
     const result = await completeContractorReview({
       token,

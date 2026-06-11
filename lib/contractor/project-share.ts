@@ -24,13 +24,13 @@ export function isShareLinkInvitation(
 }
 
 export function shareLinkInvitationIsActive(
-  invitation: Pick<ContractorInvitation, "invitation_token">,
+  invitation: Pick<ContractorInvitation, "invitation_token" | "contractor_email">,
   project: Pick<Project, "share_enabled" | "share_token">
 ) {
   return (
     project.share_enabled &&
     Boolean(project.share_token) &&
-    invitation.invitation_token === project.share_token
+    isShareLinkInvitation(invitation, project)
   );
 }
 
@@ -75,7 +75,6 @@ export async function ensureProjectShareInvitation({
         .from("contractor_invitations")
         .update({
           expires_at: expiresAt.toISOString(),
-          status: "pending",
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id)

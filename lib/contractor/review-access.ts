@@ -7,10 +7,11 @@ import type { ContractorInvitation } from "@/types";
 
 export async function canEditReview(
   token: string,
-  invitation?: Pick<ContractorInvitation, "contractor_user_id">,
+  invitation?: Pick<ContractorInvitation, "contractor_user_id" | "invitation_token">,
   request?: Request
 ) {
-  const resolvedInvitation = invitation ?? (await getInvitationByToken(token));
+  const resolvedInvitation =
+    invitation ?? (await getInvitationByToken(token, request));
   const userId = request
     ? await resolveClerkUserId(request)
     : await resolveClerkUserIdFromHeaders();
@@ -27,11 +28,14 @@ export async function canEditReview(
   const session = cookieStore.get(REVIEW_SESSION_COOKIE)?.value;
   if (!session) return false;
 
-  return verifyReviewSessionValue(session, token);
+  return verifyReviewSessionValue(
+    session,
+    resolvedInvitation.invitation_token
+  );
 }
 
 export async function assertReviewEditor(token: string, request?: Request) {
-  const invitation = await getInvitationByToken(token);
+  const invitation = await getInvitationByToken(token, request);
   if (!(await canEditReview(token, invitation, request))) {
     throw new ForbiddenError(
       "Only the invited contractor can edit this review. Use the browser where you confirmed your details, or verify your email to continue."
@@ -43,11 +47,13 @@ export async function assertReviewEditor(token: string, request?: Request) {
 export async function assertReviewEmailUnlock({
   token,
   contractorEmail,
+  request,
 }: {
   token: string;
   contractorEmail: string;
+  request?: Request;
 }) {
-  const invitation = await getInvitationByToken(token);
+  const invitation = await getInvitationByToken(token, request);
   if (!invitation.accepted_at) {
     throw new ForbiddenError("Complete the identity step before verifying email.");
   }

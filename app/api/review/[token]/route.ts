@@ -17,7 +17,7 @@ export async function GET(
   try {
     const { token } = await context.params;
     const { invitation, review, project } =
-      await getReviewProjectByInvitationToken(token);
+      await getReviewProjectByInvitationToken(token, request);
     const photos = await listProjectPhotosWithUrls(project.id).then((rows) =>
       rows.map((photo) => ({
         id: photo.id,

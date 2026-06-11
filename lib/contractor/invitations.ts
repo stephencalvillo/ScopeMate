@@ -7,6 +7,7 @@ import {
   isShareLinkPlaceholder,
   shareLinkInvitationIsActive,
 } from "@/lib/contractor/project-share";
+import { resolveShareLinkInvitationForViewer } from "@/lib/contractor/share-link-resolve";
 export { isShareLinkPlaceholder };
 import { buildReviewUrl } from "@/lib/contractor/urls";
 import { parseReviewScopeSnapshot } from "@/lib/contractor/review-scope-snapshot";
@@ -208,22 +209,41 @@ export async function resendContractorInvitation({
 }
 
 export async function getInvitationByToken(
-  token: string
+  token: string,
+  request?: Request
 ): Promise<ContractorInvitation> {
   const supabase = createServiceClient();
 
-  const { data, error } = await supabase
-    .from("contractor_invitations")
+  const { data: shareProject, error: shareProjectError } = await supabase
+    .from("projects")
     .select("*")
-    .eq("invitation_token", token)
+    .eq("share_token", token)
+    .eq("share_enabled", true)
     .maybeSingle();
 
-  if (error) throw error;
+  if (shareProjectError) throw shareProjectError;
 
-  let invitation = data as ContractorInvitation | null;
+  let invitation: ContractorInvitation | null = null;
 
-  if (!invitation) {
-    invitation = await ensureShareInvitationForToken(token);
+  if (shareProject) {
+    invitation = await resolveShareLinkInvitationForViewer(
+      shareProject as Project,
+      token,
+      request
+    );
+  } else {
+    const { data, error } = await supabase
+      .from("contractor_invitations")
+      .select("*")
+      .eq("invitation_token", token)
+      .maybeSingle();
+
+    if (error) throw error;
+    invitation = data as ContractorInvitation | null;
+
+    if (!invitation) {
+      invitation = await ensureShareInvitationForToken(token);
+    }
   }
 
   if (!invitation) {
@@ -261,13 +281,14 @@ export async function getInvitationByToken(
 }
 
 export async function getReviewProjectByInvitationToken(
-  token: string
+  token: string,
+  request?: Request
 ): Promise<{
   invitation: ContractorInvitation;
   review: ContractorReview;
   project: ProjectWithScope;
 }> {
-  const invitation = await getInvitationByToken(token);
+  const invitation = await getInvitationByToken(token, request);
   const supabase = createServiceClient();
 
   const { data: review, error: reviewError } = await supabase
@@ -344,13 +365,15 @@ export async function completeContractorIdentity({
   contractorName,
   contractorEmail,
   contractorCompany,
+  request,
 }: {
   token: string;
   contractorName: string;
   contractorEmail: string;
   contractorCompany?: string;
+  request?: Request;
 }) {
-  const invitation = await getInvitationByToken(token);
+  const invitation = await getInvitationByToken(token, request);
   const normalizedEmail = contractorEmail.trim().toLowerCase();
 
   if (

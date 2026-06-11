@@ -10,7 +10,7 @@ export async function POST(
   try {
     const { token } = await context.params;
     const user = await ensureUserRecord(request);
-    const invitation = await claimShareLinkInvitation(token, user);
+    const invitation = await claimShareLinkInvitation(token, user, request);
 
     return NextResponse.json({ invitation });
   } catch (error) {

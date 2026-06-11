@@ -16,9 +16,13 @@ import type { ContractorInvitation, User } from "@/types";
 
 export async function claimShareLinkInvitation(
   token: string,
-  user: User
+  user: User,
+  request?: Request
 ): Promise<ContractorInvitation> {
-  const { invitation, project } = await getReviewProjectByInvitationToken(token);
+  const { invitation, project } = await getReviewProjectByInvitationToken(
+    token,
+    request
+  );
 
   if (!isShareLinkInvitation(invitation, project)) {
     throw new ForbiddenError(
@@ -74,7 +78,8 @@ export async function claimShareLinkInvitation(
 
 export async function claimShareLinkInvitationIfReady(
   token: string,
-  user: User
+  user: User,
+  request?: Request
 ) {
   const profile = await getContractorProfile(user.id);
   if (!hasShareLinkClaimProfile(profile)) {
@@ -82,8 +87,8 @@ export async function claimShareLinkInvitationIfReady(
   }
 
   try {
-    const invitation = await getInvitationByToken(token);
-    const { project } = await getReviewProjectByInvitationToken(token);
+    const invitation = await getInvitationByToken(token, request);
+    const { project } = await getReviewProjectByInvitationToken(token, request);
 
     if (!isShareLinkInvitation(invitation, project)) {
       return null;
@@ -93,7 +98,7 @@ export async function claimShareLinkInvitationIfReady(
       return invitation;
     }
 
-    return await claimShareLinkInvitation(token, user);
+    return await claimShareLinkInvitation(token, user, request);
   } catch {
     return null;
   }

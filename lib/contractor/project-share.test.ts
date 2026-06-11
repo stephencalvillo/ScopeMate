@@ -40,11 +40,30 @@ describe("share link invitation access", () => {
     ).toBe(false);
   });
 
-  it("requires the current enabled share token for share-link access", () => {
+  it("allows forked share-link invitations while project share is enabled", () => {
     expect(
       shareLinkInvitationIsActive(
-        { invitation_token: "old-token" },
-        { share_enabled: true, share_token: "new-token" }
+        {
+          contractor_email: SHARE_LINK_PLACEHOLDER_EMAIL,
+          invitation_token: "fork-token",
+        },
+        { share_enabled: true, share_token: "share-token" }
+      )
+    ).toBe(true);
+
+    expect(
+      shareLinkInvitationIsActive(
+        { contractor_email: "maria@example.com", invitation_token: "fork-token" },
+        { share_enabled: true, share_token: "share-token" }
+      )
+    ).toBe(false);
+  });
+
+  it("requires the project share link to stay enabled", () => {
+    expect(
+      shareLinkInvitationIsActive(
+        { contractor_email: SHARE_LINK_PLACEHOLDER_EMAIL, invitation_token: "new-token" },
+        { share_enabled: false, share_token: "new-token" }
       )
     ).toBe(false);
 
@@ -54,12 +73,5 @@ describe("share link invitation access", () => {
         { share_enabled: true, share_token: "new-token" }
       )
     ).toBe(true);
-
-    expect(
-      shareLinkInvitationIsActive(
-        { invitation_token: "new-token" },
-        { share_enabled: false, share_token: "new-token" }
-      )
-    ).toBe(false);
   });
 });

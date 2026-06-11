@@ -18,10 +18,11 @@ export async function POST(
       contractorName: input.contractor_name,
       contractorEmail: input.contractor_email,
       contractorCompany: input.contractor_company,
+      request,
     });
 
     const response = NextResponse.json({ invitation });
-    response.cookies.set(reviewSessionCookie(token));
+    response.cookies.set(reviewSessionCookie(invitation.invitation_token));
     return response;
   } catch (error) {
     return jsonError(error);

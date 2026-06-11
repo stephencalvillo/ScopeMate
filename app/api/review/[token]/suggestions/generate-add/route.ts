@@ -15,7 +15,7 @@ export async function POST(
     await assertReviewEditor(token, request);
     const body = await request.json();
     const input = generateAddSuggestionSchema.parse(body);
-    const { project } = await getReviewProjectByInvitationToken(token);
+    const { project } = await getReviewProjectByInvitationToken(token, request);
 
     const parsed = await parseContractorScopeAddition({
       category: input.category,

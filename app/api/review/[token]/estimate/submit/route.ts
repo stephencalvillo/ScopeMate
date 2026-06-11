@@ -12,7 +12,7 @@ export async function POST(
   try {
     const { token } = await context.params;
     await assertReviewEditor(token, request);
-    const { review } = await getReviewProjectByInvitationToken(token);
+    const { review } = await getReviewProjectByInvitationToken(token, request);
     if (review.status !== "in_progress") {
       throw new ForbiddenError("This review is no longer editable.");
     }

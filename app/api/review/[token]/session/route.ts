@@ -13,13 +13,14 @@ export async function POST(
     const body = await request.json();
     const input = contractorEmailUnlockSchema.parse(body);
 
-    await assertReviewEmailUnlock({
+    const invitation = await assertReviewEmailUnlock({
       token,
       contractorEmail: input.contractor_email,
+      request,
     });
 
     const response = NextResponse.json({ ok: true });
-    response.cookies.set(reviewSessionCookie(token));
+    response.cookies.set(reviewSessionCookie(invitation.invitation_token));
     return response;
   } catch (error) {
     return jsonError(error);
