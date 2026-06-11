@@ -15,6 +15,7 @@ import {
 } from "@/components/project/project-tab-nav";
 import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { useProjectDetailPath } from "@/lib/project/use-project-detail-path";
+import type { ProjectPreviewContext } from "@/lib/admin/preview-context";
 import type { ProjectWithScope } from "@/types";
 
 export function ProjectDetailTabs({
@@ -22,14 +23,17 @@ export function ProjectDetailTabs({
   autoGenerate = false,
   activityRefreshKey: activityRefreshKeyProp,
   showTabs = true,
+  previewContext,
 }: {
   project: ProjectWithScope;
   autoGenerate?: boolean;
   activityRefreshKey?: number;
   showTabs?: boolean;
+  previewContext?: ProjectPreviewContext;
 }) {
   const router = useRouter();
-  const projectPath = useProjectDetailPath(project.id);
+  const projectPathFromHook = useProjectDetailPath(project.id);
+  const projectPath = previewContext?.detailPath ?? projectPathFromHook;
   const searchParams = useSearchParams();
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const activeTab = parseProjectTab(searchParams.get("tab"));
@@ -43,14 +47,16 @@ export function ProjectDetailTabs({
     activityRefreshKeyProp ?? internalActivityRefreshKey;
 
   const loadTabCounts = useCallback(async () => {
+    const apiBase =
+      previewContext?.apiBasePath ?? `/api/projects/${project.id}`;
     const fetchProjectApi = (path: string) =>
       isSignedIn
         ? authenticatedFetch(getToken, path)
         : fetch(path);
 
     const [reviewedResponse, suggestionsResponse] = await Promise.all([
-      fetchProjectApi(`/api/projects/${project.id}/reviewed-scopes`),
-      fetchProjectApi(`/api/projects/${project.id}/suggestions`),
+      fetchProjectApi(`${apiBase}/reviewed-scopes`),
+      fetchProjectApi(`${apiBase}/suggestions`),
     ]);
 
     const [reviewedData, suggestionsData] = await Promise.all([
@@ -77,7 +83,7 @@ export function ProjectDetailTabs({
 
       return { reviewedScopes, needsAttention };
     });
-  }, [getToken, isSignedIn, project.id]);
+  }, [getToken, isSignedIn, previewContext?.apiBasePath, project.id]);
 
   useEffect(() => {
     if (!showTabs || !isLoaded) return;
@@ -138,6 +144,7 @@ export function ProjectDetailTabs({
           projectId={project.id}
           refreshKey={activityRefreshKey}
           embedded
+          previewApiBase={previewContext?.apiBasePath}
         />
       ) : null}
 
@@ -146,6 +153,7 @@ export function ProjectDetailTabs({
           projectId={project.id}
           embedded
           onCountChange={handleReviewedScopesCount}
+          previewApiBase={previewContext?.apiBasePath}
         />
       ) : null}
 
@@ -154,6 +162,7 @@ export function ProjectDetailTabs({
           projectId={project.id}
           onCountChange={handleNeedsAttentionCount}
           onSuggestionsUpdated={loadTabCounts}
+          previewApiBase={previewContext?.apiBasePath}
         />
       ) : null}
     </div>

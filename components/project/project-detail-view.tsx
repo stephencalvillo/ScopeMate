@@ -20,6 +20,7 @@ import { formatProjectLocation } from "@/lib/location/parse";
 import { projectStatusBadgeProps } from "@/lib/project-status";
 import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision-types";
 import { formatProjectTypeLabel, type ProjectWithScope } from "@/types";
+import type { ProjectPreviewContext } from "@/lib/admin/preview-context";
 
 function ProjectHeaderMeta({
   project,
@@ -58,12 +59,14 @@ export function ProjectDetailView({
   acceptedProposal = null,
   isGuestProject = false,
   projectsBreadcrumbHref,
+  previewContext,
 }: {
   project: ProjectWithScope;
   autoGenerate: boolean;
   acceptedProposal?: ProjectAcceptedProposalSummary | null;
   isGuestProject?: boolean;
   projectsBreadcrumbHref?: "/projects" | "/contractor" | null;
+  previewContext?: ProjectPreviewContext;
 }) {
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const handleActivityChange = useCallback(() => {
@@ -151,6 +154,7 @@ export function ProjectDetailView({
             autoGenerate={autoGenerate}
             activityRefreshKey={activityRefreshKey}
             showTabs={!isGuestProject}
+            previewContext={previewContext}
           />
         </Suspense>
       </div>

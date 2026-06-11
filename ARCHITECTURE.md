@@ -1,8 +1,8 @@
-# ScopeMate  -  Architecture
+# ScopeBuddy — Architecture
 
 ## Overview
 
-ScopeMate is a Next.js full-stack application that helps homeowners define construction projects and share contractor-ready scopes.
+ScopeBuddy is a Next.js full-stack application that helps homeowners define construction projects and share contractor-ready scopes.
 
 | Layer | Technology |
 |---|---|
@@ -22,6 +22,10 @@ ScopeMate is a Next.js full-stack application that helps homeowners define const
 | `homeowner` | Authenticated account; creates and manages projects |
 | `contractor` | Level 02 access *(Phase 3+)*; Phase 1 is read-only via share link |
 | `admin` | Internal operations |
+
+### Admin screen catalog
+
+Admins can browse and iframe-preview homeowner and contractor pages with mock data at `/adminpanel/screens`. When adding a new user-facing page under `(dashboard)/`, `(contractor)/`, or `review/`, update the catalog — see [docs/ADMIN_SCREEN_CATALOG.md](./docs/ADMIN_SCREEN_CATALOG.md). CI enforces sync via `npm run check:screen-catalog`.
 
 ### Contractor Access Levels *(Phase 3+)*
 
@@ -431,7 +435,7 @@ All routes validate input with Zod, authenticate via Clerk (except public share)
 
 // Response 200
 {
-  "share_url": "https://scopemate.app/share/H7xK9qLm4T",
+  "share_url": "https://scopebuddy.com/share/H7xK9qLm4T",
   "share_enabled": true,
   "share_expires_at": "2026-07-05T00:00:00Z"
 }

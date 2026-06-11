@@ -12,10 +12,12 @@ export function NeedsAttentionPanel({
   projectId,
   onCountChange,
   onSuggestionsUpdated,
+  previewApiBase,
 }: {
   projectId: string;
   onCountChange?: (count: number) => void;
   onSuggestionsUpdated?: () => void;
+  previewApiBase?: string;
 }) {
   const router = useRouter();
   const [suggestions, setSuggestions] = useState<ScopeSuggestionWithMeta[]>([]);
@@ -23,7 +25,10 @@ export function NeedsAttentionPanel({
 
   const loadSuggestions = useCallback(async () => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/suggestions`);
+      const suggestionsPath = previewApiBase
+        ? `${previewApiBase}/suggestions`
+        : `/api/projects/${projectId}/suggestions`;
+      const response = await fetch(suggestionsPath);
       const data = await response.json();
       if (response.ok) {
         setSuggestions(data.suggestions ?? []);
@@ -31,7 +36,7 @@ export function NeedsAttentionPanel({
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [previewApiBase, projectId]);
 
   useEffect(() => {
     loadSuggestions();

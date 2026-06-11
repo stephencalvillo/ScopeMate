@@ -1,0 +1,19 @@
+---
+description: Update the admin screen catalog when adding or removing homeowner/contractor pages
+globs: app/(dashboard)/**/page.tsx,app/(contractor)/**/page.tsx,app/review/**/page.tsx
+alwaysApply: false
+---
+
+# Admin screen catalog
+
+When you **add, remove, or rename** a user-facing page under the homeowner dashboard, contractor portal, or `/review` flow:
+
+1. Update `lib/admin/screen-catalog.ts` (one entry per page, not per tab).
+2. Add fixtures and a preview case in `components/admin/preview/admin-preview-screen.tsx` when the page should appear in the admin iframe gallery.
+3. Run `npm run check:screen-catalog` and fix any reported gaps before finishing.
+
+Do **not** catalog: `design-system/`, marketing (`/homeowners`, `/contractors`), auth, admin, or redirect-only routes.
+
+At the end of the task, if a new `page.tsx` was created in scope above, remind the project owner whether the catalog was updated or still needs preview/fixture work.
+
+See `docs/ADMIN_SCREEN_CATALOG.md` for the full checklist.

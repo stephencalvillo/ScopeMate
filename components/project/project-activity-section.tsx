@@ -49,10 +49,12 @@ export function ProjectActivitySection({
   projectId,
   refreshKey = 0,
   embedded = false,
+  previewApiBase,
 }: {
   projectId: string;
   refreshKey?: number;
   embedded?: boolean;
+  previewApiBase?: string;
 }) {
   const { getToken, isSignedIn } = useAuth();
   const [activity, setActivity] = useState<ProjectActivityItem[]>([]);
@@ -66,13 +68,13 @@ export function ProjectActivitySection({
   const loadActivity = useCallback(async () => {
     setLoading(true);
     setError(null);
+    const activityPath = previewApiBase
+      ? `${previewApiBase}/activity`
+      : `/api/projects/${projectId}/activity`;
     try {
       const response = isSignedIn
-        ? await authenticatedFetch(
-            getToken,
-            `/api/projects/${projectId}/activity`
-          )
-        : await fetch(`/api/projects/${projectId}/activity`, {
+        ? await authenticatedFetch(getToken, activityPath)
+        : await fetch(activityPath, {
             credentials: "include",
           });
       const data = await response.json();
@@ -96,7 +98,7 @@ export function ProjectActivitySection({
     } finally {
       setLoading(false);
     }
-  }, [getToken, isSignedIn, projectId]);
+  }, [getToken, isSignedIn, previewApiBase, projectId]);
 
   useEffect(() => {
     loadActivity();

@@ -7,7 +7,12 @@ import {
 } from "@/components/ui/card";
 import { AdminUsersTable } from "@/components/admin/admin-users-table";
 import type { AdminStats } from "@/lib/admin/stats";
+import {
+  countScreensByAudience,
+  type ScreenAudience,
+} from "@/lib/admin/screen-catalog";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 function StatCard({
   label,
@@ -95,6 +100,46 @@ export function AdminDashboard({
           users={stats.users.list}
           currentAdminUserId={currentAdminUserId}
         />
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="font-display text-xl tracking-tight text-neutral-900">
+            Screen catalog
+          </h2>
+          <p className="text-sm text-[var(--muted)]">
+            Preview homeowner and contractor pages with mock data.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {(["homeowner", "contractor"] as ScreenAudience[]).map((audience) => (
+            <Link key={audience} href={`/adminpanel/screens/${audience}`}>
+              <Card className="h-full transition hover:border-neutral-300">
+                <CardHeader className="pb-2">
+                  <CardDescription>
+                    {countScreensByAudience(audience)} screens
+                  </CardDescription>
+                  <CardTitle className="capitalize">{audience} views</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-[var(--muted)]">
+                    Browse thumbnails and open interactive previews.
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+
+        <div>
+          <Link
+            href="/adminpanel/screens"
+            className="text-sm text-neutral-700 underline-offset-4 hover:underline"
+          >
+            Open full screen catalog
+          </Link>
+        </div>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">

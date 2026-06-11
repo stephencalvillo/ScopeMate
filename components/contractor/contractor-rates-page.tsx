@@ -48,7 +48,11 @@ function parseDraftValue(value: string) {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
 }
 
-export function ContractorRatesPage() {
+export function ContractorRatesPage({
+  ratesApiPath = "/api/contractor/rates",
+}: {
+  ratesApiPath?: string;
+}) {
   const [drafts, setDrafts] = useState<RateDraft[]>(() =>
     SCOPE_CATEGORIES.map(emptyDraft)
   );
@@ -62,7 +66,7 @@ export function ContractorRatesPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/contractor/rates");
+      const response = await fetch(ratesApiPath);
       const data = await response.json();
 
       if (!response.ok) {
@@ -79,7 +83,7 @@ export function ContractorRatesPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [ratesApiPath]);
 
   useEffect(() => {
     void loadRates();

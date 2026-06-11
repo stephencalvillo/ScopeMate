@@ -21,6 +21,19 @@ const nextConfig: NextConfig = {
       ],
     },
   },
+  async headers() {
+    return [
+      {
+        source: "/adminpanel/preview/:path*",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       {

@@ -109,10 +109,12 @@ export function ReviewedProjectScopesSection({
   projectId,
   embedded = false,
   onCountChange,
+  previewApiBase,
 }: {
   projectId: string;
   embedded?: boolean;
   onCountChange?: (count: number) => void;
+  previewApiBase?: string;
 }) {
   const [scopes, setScopes] = useState<ReviewedScopeSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,12 +122,12 @@ export function ReviewedProjectScopesSection({
 
   const loadScopes = useCallback(async () => {
     try {
+      const scopesPath = previewApiBase
+        ? `${previewApiBase}/reviewed-scopes`
+        : `/api/projects/${projectId}/reviewed-scopes`;
       const response = isSignedIn
-        ? await authenticatedFetch(
-            getToken,
-            `/api/projects/${projectId}/reviewed-scopes`
-          )
-        : await fetch(`/api/projects/${projectId}/reviewed-scopes`);
+        ? await authenticatedFetch(getToken, scopesPath)
+        : await fetch(scopesPath);
       const data = await response.json();
       if (response.ok) {
         setScopes(data.reviewed_scopes ?? []);
@@ -133,7 +135,7 @@ export function ReviewedProjectScopesSection({
     } finally {
       setLoading(false);
     }
-  }, [getToken, isSignedIn, projectId]);
+  }, [getToken, isSignedIn, previewApiBase, projectId]);
 
   useEffect(() => {
     if (!isLoaded) return;
