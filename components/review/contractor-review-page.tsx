@@ -266,15 +266,15 @@ export function ContractorReviewPage({ token }: { token: string }) {
     !linkShareReviewError &&
     !payload?.can_edit &&
     (pendingShareLinkUnlock ||
-      linkingShareReview ||
-      expectingShareLinkAccess ||
-      Boolean(requiresShareLinkAccount) ||
-      (loading && (pendingShareLinkUnlock || expectingShareLinkAccess || isSignedIn))) &&
+      (isSignedIn &&
+        (linkingShareReview ||
+          expectingShareLinkAccess ||
+          Boolean(requiresShareLinkAccount)))) &&
     (payload
       ? payload.is_share_link &&
         !payload.is_contractor_client_project &&
         payload.review.status !== "submitted"
-      : pendingShareLinkUnlock || expectingShareLinkAccess);
+      : pendingShareLinkUnlock);
 
   if (showShareLinkTransition) {
     return (
