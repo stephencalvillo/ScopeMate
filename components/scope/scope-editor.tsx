@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProjectDetailPath } from "@/lib/project/use-project-detail-path";
-import { AddMoreToScopeSection } from "@/components/scope/add-more-to-scope-section";
 import { GenerateScopeButton } from "@/components/scope/generate-scope-button";
 import { FollowUpQuestionsPanel } from "@/components/follow-up/follow-up-questions-panel";
 import { PhotoUploadSection } from "@/components/photos/photo-upload-section";
@@ -13,12 +12,15 @@ import {
   SectionSurface,
 } from "@/components/layout/page-section";
 import {
-  ADD_MORE_STEPS,
   ScopeGeneratingLoader,
+  UPDATE_SCOPE_STEPS,
 } from "@/components/scope/scope-generating-loader";
 import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
 import { ScopeItemRow } from "@/components/scope/scope-item-row";
 import { ScopeSummary } from "@/components/scope/scope-summary";
+import { UpdateProjectScopeDialog } from "@/components/scope/update-project-scope-dialog";
+import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 import { groupScopeItemsByCategory } from "@/lib/scope/group-by-category";
 import type { ProjectWithScope, ScopeItem } from "@/types";
 
@@ -36,7 +38,8 @@ export function ScopeEditor({
   const [isGenerating, setIsGenerating] = useState(
     autoGenerate && project.scope_items.length === 0 && !project.ai_summary
   );
-  const [additionalNotes, setAdditionalNotes] = useState<string | undefined>();
+  const [updatedSummary, setUpdatedSummary] = useState<string | undefined>();
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState("all");
 
@@ -62,14 +65,14 @@ export function ScopeEditor({
   }, [categoriesInScope, categoryFilter]);
 
   const hasScope = items.length > 0 || Boolean(summary);
-  const isAddingMore = Boolean(additionalNotes);
+  const isUpdatingScope = Boolean(updatedSummary);
 
   const handleGenerated = useCallback(
     (payload: { ai_summary: string; scope_items: ScopeItem[] }) => {
       setSummary(payload.ai_summary);
       setItems(payload.scope_items);
       setIsGenerating(false);
-      setAdditionalNotes(undefined);
+      setUpdatedSummary(undefined);
       setGenerateError(null);
       router.replace(projectPath);
       router.refresh();
@@ -80,16 +83,16 @@ export function ScopeEditor({
   const handleGenerateError = useCallback(
     (message: string) => {
       setIsGenerating(false);
-      setAdditionalNotes(undefined);
+      setUpdatedSummary(undefined);
       setGenerateError(message);
       router.replace(projectPath);
     },
     [projectPath, router]
   );
 
-  const handleAddMore = useCallback((notes: string) => {
+  const handleUpdateScope = useCallback((nextSummary: string) => {
     setGenerateError(null);
-    setAdditionalNotes(notes);
+    setUpdatedSummary(nextSummary);
     setIsGenerating(true);
   }, []);
 
@@ -97,11 +100,11 @@ export function ScopeEditor({
     return (
       <ScopeGeneratingLoader
         projectId={project.id}
-        additionalNotes={additionalNotes}
-        steps={isAddingMore ? ADD_MORE_STEPS : undefined}
+        updatedSummary={updatedSummary}
+        steps={isUpdatingScope ? UPDATE_SCOPE_STEPS : undefined}
         helperText={
-          isAddingMore
-            ? "ScopeBuddy is weaving your new details into the scope."
+          isUpdatingScope
+            ? "ScopeBuddy is updating your scope list from your summary."
             : undefined
         }
         onComplete={handleGenerated}
@@ -114,12 +117,28 @@ export function ScopeEditor({
     <div className="space-y-8">
       <ScopeSummary
         summary={summary}
-        action={
+        headerAction={
           hasScope ? (
-            <AddMoreToScopeSection onSubmit={handleAddMore} />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setUpdateDialogOpen(true)}
+            >
+              <Sparkles className="h-4 w-4" />
+              Update project scope
+            </Button>
           ) : undefined
         }
       />
+
+      {summary ? (
+        <UpdateProjectScopeDialog
+          summary={summary}
+          open={updateDialogOpen}
+          onOpenChange={setUpdateDialogOpen}
+          onUpdate={handleUpdateScope}
+        />
+      ) : null}
 
       <FollowUpQuestionsPanel
         projectId={project.id}

@@ -29,10 +29,13 @@ export async function POST(
     }
 
     const rawBody = await request.json().catch(() => ({}));
-    const { additional_notes: additionalNotes } =
+    const { additional_notes: additionalNotes, updated_summary: updatedSummary } =
       generateScopeSchema.parse(rawBody);
 
-    const result = await generateScopeForProject(project, { additionalNotes });
+    const result = await generateScopeForProject(project, {
+      additionalNotes,
+      updatedSummary,
+    });
 
     let scopeItems = result.scope_items;
 

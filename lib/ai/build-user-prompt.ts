@@ -11,6 +11,7 @@ export function buildUserPrompt(
   options?: {
     followUps?: FollowUpQuestion[];
     additionalNotes?: string;
+    updatedSummary?: string;
     existingScopeItems?: ScopeItem[];
   }
 ): string {
@@ -41,7 +42,15 @@ export function buildUserPrompt(
     }
   }
 
-  if (options?.additionalNotes) {
+  if (options?.updatedSummary) {
+    lines.push(
+      "",
+      "Updated project summary from the homeowner:",
+      options.updatedSummary,
+      "",
+      "Regenerate the scope items and summary to reflect this updated project description. Keep existing work that still applies unless it conflicts with the updated summary."
+    );
+  } else if (options?.additionalNotes) {
     lines.push(
       "",
       "Homeowner wants to add or change:",

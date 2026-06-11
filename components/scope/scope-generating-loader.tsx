@@ -21,6 +21,12 @@ const ADD_MORE_STEPS = [
   "Finishing touches...",
 ] as const;
 
+const UPDATE_SCOPE_STEPS = [
+  "Reading your summary...",
+  "Updating your scope list",
+  "Finishing touches...",
+] as const;
+
 const STEP_DURATION_MS = 2000;
 
 export function ScopeGeneratingLoader({
@@ -28,6 +34,7 @@ export function ScopeGeneratingLoader({
   onComplete,
   onError,
   additionalNotes,
+  updatedSummary,
   steps = DEFAULT_STEPS,
   helperText = "ScopeBuddy is turning your notes into contractor-ready work items.",
 }: {
@@ -35,6 +42,7 @@ export function ScopeGeneratingLoader({
   onComplete: (result: GenerateScopeResult) => void;
   onError: (message: string) => void;
   additionalNotes?: string;
+  updatedSummary?: string;
   steps?: readonly string[];
   helperText?: string;
 }) {
@@ -54,7 +62,10 @@ export function ScopeGeneratingLoader({
     async function run() {
       const generationPromise = generateScopeClient(
         projectId,
-        { additional_notes: additionalNotes },
+        {
+          additional_notes: additionalNotes,
+          updated_summary: updatedSummary,
+        },
         isSignedIn ? getToken : undefined
       ).catch((error) => {
         throw error instanceof Error
@@ -94,7 +105,7 @@ export function ScopeGeneratingLoader({
     return () => {
       cancelled = true;
     };
-  }, [additionalNotes, getToken, isSignedIn, projectId]);
+  }, [additionalNotes, getToken, isSignedIn, projectId, updatedSummary]);
 
   return (
     <GridLoadingCard
@@ -106,4 +117,4 @@ export function ScopeGeneratingLoader({
   );
 }
 
-export { ADD_MORE_STEPS, DEFAULT_STEPS };
+export { ADD_MORE_STEPS, DEFAULT_STEPS, UPDATE_SCOPE_STEPS };

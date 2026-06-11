@@ -26,4 +26,10 @@ export const generateScopeSchema = z.object({
     .min(1, "Describe what you want to add")
     .max(4000)
     .optional(),
+  updated_summary: z
+    .string()
+    .trim()
+    .min(1, "Project summary cannot be empty")
+    .max(4000)
+    .optional(),
 });

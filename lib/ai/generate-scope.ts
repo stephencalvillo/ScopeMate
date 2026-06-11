@@ -62,7 +62,7 @@ function getOpenAIClient() {
 
 export async function generateScopeForProject(
   project: Project,
-  options?: { additionalNotes?: string }
+  options?: { additionalNotes?: string; updatedSummary?: string }
 ): Promise<GenerateScopeResult> {
   const openai = getOpenAIClient();
   const systemPrompt = await loadSystemPrompt();
@@ -81,11 +81,15 @@ export async function generateScopeForProject(
 
   const activeScopeItems = (existingItems ?? []) as ScopeItem[];
 
+  const isScopeUpdate =
+    Boolean(options?.additionalNotes) || Boolean(options?.updatedSummary);
+
   const userPrompt = buildUserPrompt(project, {
     followUps,
     additionalNotes: options?.additionalNotes,
+    updatedSummary: options?.updatedSummary,
     existingScopeItems:
-      options?.additionalNotes && activeScopeItems.length > 0
+      isScopeUpdate && activeScopeItems.length > 0
         ? activeScopeItems
         : undefined,
   });

@@ -5,20 +5,19 @@ import {
 
 export function ScopeSummary({
   summary,
-  action,
+  headerAction,
 }: {
   summary: string | null;
-  action?: React.ReactNode;
+  headerAction?: React.ReactNode;
 }) {
-  if (!summary && !action) return null;
+  if (!summary && !headerAction) return null;
 
   return (
-    <PageSection title="Project summary">
-      <SectionSurface className="space-y-4">
+    <PageSection title="Project summary" action={headerAction}>
+      <SectionSurface>
         {summary ? (
           <p className="text-sm leading-6 text-neutral-800">{summary}</p>
         ) : null}
-        {action}
       </SectionSurface>
     </PageSection>
   );

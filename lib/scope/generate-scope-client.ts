@@ -3,7 +3,7 @@ import type { GenerateScopeResult } from "@/types";
 
 export async function generateScopeClient(
   projectId: string,
-  options?: { additional_notes?: string },
+  options?: { additional_notes?: string; updated_summary?: string },
   getToken?: () => Promise<string | null>
 ): Promise<GenerateScopeResult> {
   const requestInit: RequestInit = {
