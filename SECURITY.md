@@ -6,6 +6,7 @@
 - Homeowners can only access their own projects.
 - Contractors can only access invited projects. *(Phase 3)*
 - Implement role-based access (`homeowner`, `contractor`, `admin`).
+- On production (`scopebuddy.ai`), do not rely on `auth()` alone — use `requireAuth` / `resolveClerkUserId` patterns documented in [CONTRACTOR_FLOWS.md](./CONTRACTOR_FLOWS.md).
 
 ## Database Security
 

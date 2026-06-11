@@ -1,0 +1,38 @@
+---
+description: Auth, share-link, and contractor portal patterns — avoid production-only regressions
+globs: "{app/review/**,app/(contractor)/**,app/api/review/**,app/api/contractor/**,lib/contractor/**,lib/auth/**,middleware.ts,components/review/**,components/contractor/**}"
+alwaysApply: false
+---
+
+# Contractor auth & share links
+
+Read `CONTRACTOR_FLOWS.md` before non-trivial changes in this area.
+
+## Auth (scopebuddy.ai / Clerk proxy)
+
+- **Never use `auth()` alone** for access decisions in middleware, API routes, or server components.
+- **API routes:** `requireAuth(request)` or `resolveClerkUserId(request)` with `resolveClerkUserIdFromHeaders()` fallback.
+- **Server components:** `(await auth()).userId ?? await resolveClerkUserIdFromHeaders()`.
+- **Client data loads:** use `authenticatedFetch(getToken, ...)` when the user is signed in.
+
+## Share links
+
+- Public URL is `/review/{project.share_token}`; invitations may be **forked** per contractor.
+- **Always** pass `request` to `getInvitationByToken(token, request)` when resolving viewer-specific invitations.
+- Review session cookies are bound to the **resolved** invitation token.
+
+## Profile gates
+
+- `hasShareLinkClaimProfile` — claim on share link (name + company).
+- `isContractorProfileReady` — contractor portal (adds service area + onboarding completed).
+- Do not gate portal on fields that share-link signup never collects.
+
+## UI shells & navigation
+
+- Owned review + signed-in contractor → `ContractorShell`, not `PublicShell`.
+- `/review` stays a public middleware route; handle logged-in behavior inside the page.
+- Clear `scopemate-share-link-return` and related sessionStorage when entering `/contractor`.
+
+## Before merging
+
+Walk the checklist in `CONTRACTOR_FLOWS.md`: auth fallback, invitation resolution with request, both profile tiers, shell choice, sessionStorage cleanup, signed-in + anonymous + second-contractor scenarios.

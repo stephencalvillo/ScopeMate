@@ -53,6 +53,7 @@ npm run dev
 
 ## Documentation
 
+- [CONTRACTOR_FLOWS.md](./CONTRACTOR_FLOWS.md) — share-link & contractor portal retro, auth patterns, change checklist
 - [PROJECT_BRIEF.md](./PROJECT_BRIEF.md)
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
 - [ROADMAP.md](./ROADMAP.md)
