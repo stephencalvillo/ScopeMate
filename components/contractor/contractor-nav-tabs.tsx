@@ -13,7 +13,8 @@ const TABS = [
     isActive: (pathname: string) =>
       pathname === "/contractor" ||
       pathname.startsWith("/contractor/bids/") ||
-      pathname.startsWith("/contractor/projects/"),
+      pathname.startsWith("/contractor/projects/") ||
+      pathname.startsWith("/review/"),
   },
   {
     href: "/contractor/rates",

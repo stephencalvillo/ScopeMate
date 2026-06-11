@@ -7,7 +7,10 @@ import { Loader2 } from "lucide-react";
 import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { finishContractorAccountSetup } from "@/lib/contractor/complete-signup";
 import { readContractorProjectReturn } from "@/lib/contractor/contractor-project-onboarding";
-import { readShareLinkReturn } from "@/lib/contractor/share-link-onboarding";
+import {
+  clearShareLinkReturn,
+  readShareLinkReturn,
+} from "@/lib/contractor/share-link-onboarding";
 
 export function ContractorCompleteSetupPage() {
   const router = useRouter();
@@ -25,6 +28,25 @@ export function ContractorCompleteSetupPage() {
         const shareReturn = readShareLinkReturn();
         if (shareReturn?.startsWith("/review/")) {
           const token = shareReturn.replace("/review/", "");
+          clearShareLinkReturn();
+
+          const reviewResponse = await authenticatedFetch(
+            getToken,
+            `/api/review/${token}`
+          );
+          if (reviewResponse.ok) {
+            const reviewData = (await reviewResponse.json()) as {
+              can_edit?: boolean;
+            };
+            if (reviewData.can_edit) {
+              router.replace(
+                result.ready ? "/contractor" : "/contractor/onboarding"
+              );
+              router.refresh();
+              return;
+            }
+          }
+
           await authenticatedFetch(getToken, `/api/review/${token}/claim`, {
             method: "POST",
           });

@@ -6,7 +6,6 @@ import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { completeContractorSignup } from "@/lib/contractor/complete-signup";
 import {
   clearContractorSignupPrefill,
@@ -18,7 +17,6 @@ import {
 } from "@/lib/contractor/contractor-project-onboarding";
 import {
   clearShareLinkReturn,
-  readShareLinkReturn,
 } from "@/lib/contractor/share-link-onboarding";
 
 export function ContractorOnboardingForm({
@@ -62,18 +60,7 @@ export function ContractorOnboardingForm({
         getToken
       );
       clearContractorSignupPrefill();
-
-      const shareLinkReturn = readShareLinkReturn();
-      if (shareLinkReturn?.startsWith("/review/")) {
-        const token = shareLinkReturn.replace("/review/", "");
-        await authenticatedFetch(getToken, `/api/review/${token}/claim`, {
-          method: "POST",
-        });
-        clearShareLinkReturn();
-        router.push(shareLinkReturn);
-        router.refresh();
-        return;
-      }
+      clearShareLinkReturn();
 
       const projectReturn = readContractorProjectReturn();
       if (projectReturn?.startsWith("/projects/")) {

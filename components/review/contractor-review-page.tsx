@@ -21,6 +21,7 @@ import { finishContractorAccountSetup } from "@/lib/contractor/complete-signup";
 import {
   clearShareLinkOnboardingDeferral,
   clearShareLinkPendingUnlock,
+  clearShareLinkReturn,
   isShareLinkOnboardingDeferred,
   persistShareLinkReturn,
   readShareLinkPendingUnlock,
@@ -109,6 +110,7 @@ export function ContractorReviewPage({ token }: { token: string }) {
           setExpectingShareLinkAccess(false);
           setPendingShareLinkUnlock(false);
           clearShareLinkPendingUnlock();
+          clearShareLinkReturn();
         }
       } catch {
         setUnavailable(true);
