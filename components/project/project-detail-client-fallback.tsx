@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { ProjectDetailView } from "@/components/project/project-detail-view";
@@ -75,7 +76,7 @@ export function ProjectDetailClientFallback({
             Try again
           </Button>
           <Button type="button" variant="outline" asChild>
-            <a href="/projects">My projects</a>
+            <Link href="/projects">My projects</Link>
           </Button>
         </div>
       </div>

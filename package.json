@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "check:screen-catalog": "node scripts/check-screen-catalog.mjs",
     "screen-catalog:scaffold": "node scripts/check-screen-catalog.mjs --scaffold",
     "db:setup": "node scripts/setup-db.mjs",

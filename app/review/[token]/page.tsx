@@ -26,7 +26,7 @@ async function reviewPageRequest() {
   });
 }
 
-async function useContractorShellForReview(token: string) {
+async function shouldUseContractorShellForReview(token: string) {
   const { userId: authUserId } = await auth();
   const userId = authUserId ?? (await resolveClerkUserIdFromHeaders());
   if (!userId) {
@@ -68,7 +68,7 @@ export default async function ReviewPage({
     </>
   );
 
-  if (await useContractorShellForReview(token)) {
+  if (await shouldUseContractorShellForReview(token)) {
     return <ContractorShell>{content}</ContractorShell>;
   }
 

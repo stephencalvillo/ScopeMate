@@ -1,14 +1,20 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [...compat.extends("next/core-web-vitals", "next/typescript")];
+const eslintConfig = [
+  {
+    ignores: [".next/**", ".vercel/**", "node_modules/**", "out/**"],
+  },
+  ...nextCoreWebVitals,
+  {
+    rules: {
+      // React Hooks v7 added stricter rules; ScopeBuddy predates this migration.
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/refs": "off",
+      "react-hooks/preserve-manual-memoization": "off",
+      "react-hooks/error-boundaries": "off",
+      "react-hooks/static-components": "off",
+    },
+  },
+];
 
 export default eslintConfig;
