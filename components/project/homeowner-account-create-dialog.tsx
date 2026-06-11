@@ -24,11 +24,13 @@ export function HomeownerAccountCreateDialog({
   open,
   onOpenChange,
   onAccountReady,
+  shareOnComplete = true,
 }: {
   projectId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAccountReady: () => void | Promise<void>;
+  shareOnComplete?: boolean;
 }) {
   const { isLoaded, isSignedIn } = useAuth();
   const [continuing, setContinuing] = useState(false);
@@ -42,7 +44,9 @@ export function HomeownerAccountCreateDialog({
 
   useEffect(() => {
     if (!open) return;
-    persistSignupShareIntent(projectId);
+    if (shareOnComplete) {
+      persistSignupShareIntent(projectId);
+    }
 
     void (async () => {
       const response = await fetch(`/api/projects/${projectId}/guest-token`);
@@ -57,7 +61,7 @@ export function HomeownerAccountCreateDialog({
       }
       setReturnUrlReady(true);
     })();
-  }, [open, projectId]);
+  }, [open, projectId, shareOnComplete]);
 
   useEffect(() => {
     if (!open || !isLoaded || !isSignedIn) return;
@@ -77,7 +81,9 @@ export function HomeownerAccountCreateDialog({
           setError(
             continueError instanceof Error
               ? continueError.message
-              : "Could not continue to share link."
+              : shareOnComplete
+                ? "Could not continue to share link."
+                : "Could not save this project."
           );
         }
       } finally {
@@ -117,8 +123,10 @@ export function HomeownerAccountCreateDialog({
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Continuing...
                 </>
-              ) : (
+              ) : shareOnComplete ? (
                 "Preparing your share link..."
+              ) : (
+                "Saving your project..."
               )}
             </div>
           </>

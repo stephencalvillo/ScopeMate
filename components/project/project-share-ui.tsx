@@ -38,7 +38,9 @@ type ProjectShareContextValue = {
   animation: DockAnimation;
   shareSectionTitle: string;
   shareDescription: string;
+  isGuestProject: boolean;
   openShareDialog: () => void;
+  openSaveProjectDialog: () => void;
   headerSentinelRef: (node: HTMLDivElement | null) => void;
   setSectionInView: (inView: boolean) => void;
   setSectionObserved: () => void;
@@ -66,6 +68,52 @@ export function ShareLinkTriggerButton({
       <Link2 className="h-4 w-4" aria-hidden />
       Create share link
     </Button>
+  );
+}
+
+function SaveProjectTriggerButton({
+  onClick,
+  className,
+}: {
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <Button type="button" variant="secondary" onClick={onClick} className={className}>
+      Save project
+    </Button>
+  );
+}
+
+function ProjectSharePrimaryActions({
+  onShare,
+  onSave,
+  isGuestProject,
+  className,
+  fullWidthOnMobile = true,
+}: {
+  onShare: () => void;
+  onSave: () => void;
+  isGuestProject: boolean;
+  className?: string;
+  fullWidthOnMobile?: boolean;
+}) {
+  const buttonClassName = fullWidthOnMobile ? mobileFullWidthCtaClassName : undefined;
+
+  if (!isGuestProject) {
+    return (
+      <ShareLinkTriggerButton
+        onClick={onShare}
+        className={cn(buttonClassName, className)}
+      />
+    );
+  }
+
+  return (
+    <div className={cn("flex flex-col gap-2 sm:flex-row sm:items-center", className)}>
+      <ShareLinkTriggerButton onClick={onShare} className={buttonClassName} />
+      <SaveProjectTriggerButton onClick={onSave} className={buttonClassName} />
+    </div>
   );
 }
 
@@ -138,6 +186,7 @@ export function ProjectShareProvider({
   const [sectionInView, setSectionInView] = useState(false);
   const [sectionObserved, setSectionObserved] = useState(false);
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
+  const [accountDialogShareIntent, setAccountDialogShareIntent] = useState(true);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
   const [isClaimingProject, setIsClaimingProject] = useState(false);
@@ -174,6 +223,11 @@ export function ProjectShareProvider({
     });
   }, [pathname, project.id, router]);
 
+  const openAccountDialog = useCallback((shareIntent: boolean) => {
+    setAccountDialogShareIntent(shareIntent);
+    setAccountDialogOpen(true);
+  }, []);
+
   const openShareLinkDialog = useCallback(() => {
     setShareDialogOpen(true);
   }, []);
@@ -209,7 +263,7 @@ export function ProjectShareProvider({
     if (isGuestProject) {
       if (!isLoaded || !isSignedIn) {
         if (!isLoaded) return;
-        setAccountDialogOpen(true);
+        openAccountDialog(true);
         return;
       }
 
@@ -227,18 +281,57 @@ export function ProjectShareProvider({
     isGuestProject,
     isLoaded,
     isSignedIn,
+    openAccountDialog,
     openShareLinkDialog,
+  ]);
+
+  const openSaveProjectDialog = useCallback(async () => {
+    setShareError(null);
+
+    if (isGuestProject) {
+      if (!isLoaded || !isSignedIn) {
+        if (!isLoaded) return;
+        openAccountDialog(false);
+        return;
+      }
+
+      await claimProject();
+      cleanShareReturnUrl();
+      router.refresh();
+      return;
+    }
+  }, [
+    claimProject,
+    cleanShareReturnUrl,
+    isGuestProject,
+    isLoaded,
+    isSignedIn,
+    openAccountDialog,
+    router,
   ]);
 
   const handleAccountReady = useCallback(async () => {
     if (isGuestProject) {
       await claimProject();
-      finishGuestShareOnboarding();
+      if (accountDialogShareIntent) {
+        finishGuestShareOnboarding();
+      } else {
+        cleanShareReturnUrl();
+        router.refresh();
+      }
       return;
     }
 
     openShareLinkDialog();
-  }, [claimProject, finishGuestShareOnboarding, isGuestProject, openShareLinkDialog]);
+  }, [
+    accountDialogShareIntent,
+    claimProject,
+    cleanShareReturnUrl,
+    finishGuestShareOnboarding,
+    isGuestProject,
+    openShareLinkDialog,
+    router,
+  ]);
 
   const completeShareReturnRef = useCallback((): Promise<void> => {
     return completeShareReturn().catch((error) => {
@@ -250,6 +343,17 @@ export function ProjectShareProvider({
       throw error;
     });
   }, [completeShareReturn]);
+
+  const openSaveProjectDialogRef = useCallback(() => {
+    return openSaveProjectDialog().catch((error) => {
+      setShareError(
+        error instanceof Error
+          ? error.message
+          : "Could not save this project."
+      );
+      throw error;
+    });
+  }, [openSaveProjectDialog]);
 
   const openShareDialogRef = useCallback(() => {
     return openShareDialog().catch((error) => {
@@ -314,7 +418,9 @@ export function ProjectShareProvider({
         animation,
         shareSectionTitle: shareCopy.sectionTitle,
         shareDescription: shareCopy.description,
+        isGuestProject,
         openShareDialog: openShareDialogRef,
+        openSaveProjectDialog: openSaveProjectDialogRef,
         headerSentinelRef,
         setSectionInView,
         setSectionObserved: markSectionObserved,
@@ -360,9 +466,10 @@ export function ProjectShareProvider({
                     {shareCopy.description}
                   </p>
                 </div>
-                <ShareLinkTriggerButton
-                  onClick={openShareDialogRef}
-                  className={mobileFullWidthCtaClassName}
+                <ProjectSharePrimaryActions
+                  onShare={openShareDialogRef}
+                  onSave={openSaveProjectDialogRef}
+                  isGuestProject={isGuestProject}
                 />
               </div>
             </SectionSurface>
@@ -375,6 +482,7 @@ export function ProjectShareProvider({
           projectId={project.id}
           open={accountDialogOpen}
           onOpenChange={setAccountDialogOpen}
+          shareOnComplete={accountDialogShareIntent}
           onAccountReady={() => {
             void handleAccountReady();
           }}
@@ -384,6 +492,7 @@ export function ProjectShareProvider({
           projectId={project.id}
           open={accountDialogOpen}
           onOpenChange={setAccountDialogOpen}
+          shareOnComplete={accountDialogShareIntent}
           onAccountReady={() => {
             void handleAccountReady();
           }}
@@ -421,12 +530,18 @@ export function ProjectShareHeaderActions({
 }: {
   children?: ReactNode;
 }) {
-  const { mode, openShareDialog } = useProjectShare();
+  const { mode, openShareDialog, openSaveProjectDialog, isGuestProject } =
+    useProjectShare();
 
   return (
     <div className="flex items-center gap-2">
       {mode === "header" ? (
-        <ShareLinkTriggerButton onClick={openShareDialog} />
+        <ProjectSharePrimaryActions
+          onShare={openShareDialog}
+          onSave={openSaveProjectDialog}
+          isGuestProject={isGuestProject}
+          fullWidthOnMobile={false}
+        />
       ) : null}
       {children}
     </div>
@@ -434,15 +549,17 @@ export function ProjectShareHeaderActions({
 }
 
 export function ProjectShareInlineDock() {
-  const { mode, animation, openShareDialog } = useProjectShare();
+  const { mode, animation, openShareDialog, openSaveProjectDialog, isGuestProject } =
+    useProjectShare();
 
   if (mode !== "inline") return null;
 
   return (
     <div className={cn(animation === "inline" && "share-dock-inline-enter")}>
-      <ShareLinkTriggerButton
-        onClick={openShareDialog}
-        className={mobileFullWidthCtaClassName}
+      <ProjectSharePrimaryActions
+        onShare={openShareDialog}
+        onSave={openSaveProjectDialog}
+        isGuestProject={isGuestProject}
       />
     </div>
   );

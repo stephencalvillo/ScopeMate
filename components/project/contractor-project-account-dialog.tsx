@@ -25,11 +25,13 @@ export function ContractorProjectAccountDialog({
   open,
   onOpenChange,
   onAccountReady,
+  shareOnComplete = true,
 }: {
   projectId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAccountReady: () => void | Promise<void>;
+  shareOnComplete?: boolean;
 }) {
   const { isLoaded, isSignedIn } = useAuth();
   const [continuing, setContinuing] = useState(false);
@@ -40,9 +42,11 @@ export function ContractorProjectAccountDialog({
 
   useEffect(() => {
     if (!open) return;
-    persistSignupShareIntent(projectId);
+    if (shareOnComplete) {
+      persistSignupShareIntent(projectId);
+    }
     persistContractorProjectReturn(projectId);
-  }, [open, projectId]);
+  }, [open, projectId, shareOnComplete]);
 
   useEffect(() => {
     if (!open || !isLoaded || !isSignedIn) return;
