@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    await getOwnedProject(id);
+    await getOwnedProject(id, request);
     const activity = await listProjectActivity(id);
     return NextResponse.json({ activity });
   } catch (error) {

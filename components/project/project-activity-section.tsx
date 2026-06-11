@@ -1,6 +1,8 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import {
   CheckCircle2,
   Eye,
@@ -52,6 +54,7 @@ export function ProjectActivitySection({
   refreshKey?: number;
   embedded?: boolean;
 }) {
+  const { getToken, isSignedIn } = useAuth();
   const [activity, setActivity] = useState<ProjectActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +67,14 @@ export function ProjectActivitySection({
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/projects/${projectId}/activity`);
+      const response = isSignedIn
+        ? await authenticatedFetch(
+            getToken,
+            `/api/projects/${projectId}/activity`
+          )
+        : await fetch(`/api/projects/${projectId}/activity`, {
+            credentials: "include",
+          });
       const data = await response.json();
       if (response.ok) {
         const items = (data.activity ?? []) as ProjectActivityItem[];
@@ -86,7 +96,7 @@ export function ProjectActivitySection({
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [getToken, isSignedIn, projectId]);
 
   useEffect(() => {
     loadActivity();
