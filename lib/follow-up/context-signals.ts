@@ -94,22 +94,30 @@ export function detectRoomsInText(text: string): DetectedRoom[] {
   return found;
 }
 
-export function detectPrimaryRoom(input: FollowUpContextInput): DetectedRoom | null {
+export function detectRoomsNeedingDimensions(
+  input: FollowUpContextInput
+): DetectedRoom[] {
   const text = collectContextText(input);
   const rooms = detectRoomsInText(text);
 
-  if (rooms.length === 0) return null;
+  if (rooms.length === 0) return [];
+
+  const needingDimensions: DetectedRoom[] = [];
 
   for (const signal of ROOM_SIGNALS) {
     const match = rooms.find((room) => room.key === signal.key);
     if (!match) continue;
 
     if (!roomHasDimensionInfo(text, match)) {
-      return match;
+      needingDimensions.push(match);
     }
   }
 
-  return null;
+  return needingDimensions;
+}
+
+export function detectPrimaryRoom(input: FollowUpContextInput): DetectedRoom | null {
+  return detectRoomsNeedingDimensions(input)[0] ?? null;
 }
 
 function escapeRegExp(value: string) {
@@ -145,8 +153,7 @@ export function buildInjectedContextQuestions(
 ): AiFollowUpQuestion[] {
   const injected: AiFollowUpQuestion[] = [];
 
-  const room = detectPrimaryRoom(input);
-  if (room) {
+  for (const room of detectRoomsNeedingDimensions(input)) {
     injected.push(buildRoomDimensionQuestion(room));
   }
 

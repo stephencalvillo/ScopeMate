@@ -27,7 +27,10 @@ export function hasInjectedFollowUp(
 ): boolean {
   return existing.some((question) => {
     if (injected.category === "dimensions") {
-      return isDimensionFollowUp(question);
+      return (
+        isDimensionFollowUp(question) &&
+        question.question.trim() === injected.question.trim()
+      );
     }
 
     if (injected.category === "trade_scope") {

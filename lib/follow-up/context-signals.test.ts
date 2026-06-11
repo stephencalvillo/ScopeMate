@@ -4,6 +4,7 @@ import {
   buildInjectedContextQuestions,
   detectCabinetWork,
   detectPrimaryRoom,
+  detectRoomsNeedingDimensions,
   hasCabinetQuantityInText,
   hasDimensionInfoInText,
 } from "./context-signals";
@@ -33,6 +34,18 @@ test("detectPrimaryRoom returns kitchen for multi-room remodel", () => {
   });
 
   assert.equal(room?.key, "kitchen");
+});
+
+test("detectRoomsNeedingDimensions returns each room without size info", () => {
+  const rooms = detectRoomsNeedingDimensions({
+    description: "We want to remodel the kitchen and update the bathroom.",
+    scopeItems: [],
+  });
+
+  assert.deepEqual(
+    rooms.map((room) => room.key),
+    ["kitchen", "bathroom"]
+  );
 });
 
 test("detectPrimaryRoom skips room when dimensions are already provided", () => {
@@ -84,6 +97,19 @@ test("buildInjectedContextQuestions returns room and cabinet questions", () => {
   assert.match(questions[0]?.question ?? "", /kitchen/i);
   assert.equal(questions[1]?.question_type, "choice");
   assert.match(questions[1]?.question ?? "", /cabinet/i);
+});
+
+test("buildInjectedContextQuestions asks size for each room without dimensions", () => {
+  const questions = buildInjectedContextQuestions({
+    description: "Remodel the kitchen and update the bathroom.",
+    scopeItems: [],
+  });
+
+  assert.equal(questions.length, 2);
+  assert.match(questions[0]?.question ?? "", /kitchen/i);
+  assert.match(questions[1]?.question ?? "", /bathroom/i);
+  assert.equal(questions[0]?.question_type, "dimension_estimate");
+  assert.equal(questions[1]?.question_type, "dimension_estimate");
 });
 
 test("dimension and cabinet quantity helpers recognize common phrasing", () => {

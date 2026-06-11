@@ -5,7 +5,7 @@ import type { AiFollowUpQuestion, FollowUpQuestion } from "@/types";
 export const FINISH_LEVEL_QUESTION = "What finish level are you targeting?";
 
 export const FINISH_LEVEL_CHOICES = [
-  "Builder grade",
+  "Budget friendly",
   "Elevated",
   "High-end",
   "Not sure",

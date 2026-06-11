@@ -70,13 +70,14 @@ export function dedupeFollowUpQuestionsForDisplay(
   questions: FollowUpQuestion[]
 ): FollowUpQuestion[] {
   const seenCategories = new Set<string>();
-  let seenDimensionQuestion = false;
+  const seenDimensionQuestions = new Set<string>();
   const deduped: FollowUpQuestion[] = [];
 
   for (const question of questions) {
     if (isDimensionQuestion(question)) {
-      if (seenDimensionQuestion) continue;
-      seenDimensionQuestion = true;
+      const dimensionKey = question.question.trim();
+      if (seenDimensionQuestions.has(dimensionKey)) continue;
+      seenDimensionQuestions.add(dimensionKey);
       seenCategories.add("dimensions");
       deduped.push(question);
       continue;

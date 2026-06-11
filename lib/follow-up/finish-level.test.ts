@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  FINISH_LEVEL_CHOICES,
   FINISH_LEVEL_QUESTION,
   hasPartialFollowUpSet,
 } from "./finish-level";
@@ -25,6 +26,10 @@ function makeQuestion(
     ...overrides,
   };
 }
+
+test("finish level choices use homeowner-friendly budget label", () => {
+  assert.equal(FINISH_LEVEL_CHOICES[0], "Budget friendly");
+});
 
 test("hasPartialFollowUpSet detects finish-only follow-up sets", () => {
   assert.equal(hasPartialFollowUpSet([makeQuestion()]), true);

@@ -45,7 +45,7 @@ test("needsFollowUpBackfill detects finish-only projects", () => {
     needsFollowUpBackfill(existing, { description, scopeItems: [] }),
     true
   );
-  assert.equal(getMissingInjectedQuestions(existing, { description, scopeItems: [] }).length, 2);
+  assert.equal(getMissingInjectedQuestions(existing, { description, scopeItems: [] }).length, 3);
 });
 
 test("needsFollowUpBackfill still works when finish category was stored as other", () => {
@@ -63,6 +63,29 @@ test("needsFollowUpBackfill still works when finish category was stored as other
   );
 });
 
+test("getMissingInjectedQuestions returns bathroom size when kitchen is already asked", () => {
+  const existing = [
+    makeQuestion({
+      question: FINISH_LEVEL_QUESTION,
+      category: "materials",
+    }),
+    makeQuestion({
+      id: "question-2",
+      question: "Roughly how big is the kitchen?",
+      category: "dimensions",
+      question_type: "dimension_estimate",
+    }),
+  ];
+
+  const missing = getMissingInjectedQuestions(existing, {
+    description: "Remodel the kitchen and update the bathroom.",
+    scopeItems: [],
+  });
+
+  assert.equal(missing.length, 1);
+  assert.match(missing[0]?.question ?? "", /bathroom/i);
+});
+
 test("needsFollowUpBackfill stops once injected and ai-gap questions exist", () => {
   const existing = [
     makeQuestion({
@@ -77,11 +100,17 @@ test("needsFollowUpBackfill stops once injected and ai-gap questions exist", () 
     }),
     makeQuestion({
       id: "question-3",
+      question: "Roughly how big is the garage?",
+      category: "dimensions",
+      question_type: "dimension_estimate",
+    }),
+    makeQuestion({
+      id: "question-4",
       question: "About how many cabinet doors or faces?",
       category: "trade_scope",
     }),
     makeQuestion({
-      id: "question-4",
+      id: "question-5",
       question: "When do you want work to start?",
       category: "timeline",
     }),
