@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useProjectDetailPath } from "@/lib/project/use-project-detail-path";
 import { AddMoreToScopeSection } from "@/components/scope/add-more-to-scope-section";
 import { GenerateScopeButton } from "@/components/scope/generate-scope-button";
 import { FollowUpQuestionsPanel } from "@/components/follow-up/follow-up-questions-panel";
@@ -29,6 +30,7 @@ export function ScopeEditor({
   autoGenerate?: boolean;
 }) {
   const router = useRouter();
+  const projectPath = useProjectDetailPath(project.id);
   const [summary, setSummary] = useState(project.ai_summary);
   const [items, setItems] = useState(project.scope_items);
   const [isGenerating, setIsGenerating] = useState(
@@ -69,10 +71,10 @@ export function ScopeEditor({
       setIsGenerating(false);
       setAdditionalNotes(undefined);
       setGenerateError(null);
-      router.replace(`/projects/${project.id}`);
+      router.replace(projectPath);
       router.refresh();
     },
-    [project.id, router]
+    [projectPath, router]
   );
 
   const handleGenerateError = useCallback(
@@ -80,9 +82,9 @@ export function ScopeEditor({
       setIsGenerating(false);
       setAdditionalNotes(undefined);
       setGenerateError(message);
-      router.replace(`/projects/${project.id}`);
+      router.replace(projectPath);
     },
-    [project.id, router]
+    [projectPath, router]
   );
 
   const handleAddMore = useCallback((notes: string) => {

@@ -11,7 +11,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { Link2 } from "lucide-react";
 import { ContractorProjectAccountDialog } from "@/components/project/contractor-project-account-dialog";
@@ -26,6 +26,7 @@ import {
   persistPendingShareDialog,
   readPendingShareDialog,
 } from "@/lib/project/share-return-onboarding";
+import { resolveProjectDetailPath } from "@/lib/project/project-detail-path";
 import { cn, mobileFullWidthCtaClassName } from "@/lib/utils";
 import type { Project } from "@/types";
 
@@ -126,6 +127,7 @@ export function ProjectShareProvider({
   children: ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const isGuestProject = project.homeowner_id === null;
   const isContractorProject = project.creator_role === "contractor";
@@ -167,8 +169,10 @@ export function ProjectShareProvider({
     ) {
       return;
     }
-    router.replace(`/projects/${project.id}`, { scroll: false });
-  }, [project.id, router]);
+    router.replace(resolveProjectDetailPath(pathname, project.id), {
+      scroll: false,
+    });
+  }, [pathname, project.id, router]);
 
   const openShareLinkDialog = useCallback(() => {
     setShareDialogOpen(true);

@@ -5,6 +5,7 @@ import {
   isShareLinkPlaceholder,
   SHARE_LINK_PLACEHOLDER_NAME,
 } from "@/lib/contractor/project-share";
+import { isKnownServiceArea, normalizeServiceArea } from "@/lib/location/service-areas";
 import { createServiceClient } from "@/lib/db/supabase";
 import {
   formatProposalRange,
@@ -95,7 +96,11 @@ export async function upsertContractorProfile(
   const now = new Date().toISOString();
   const companyName = input.company_name.trim();
   const contactName = input.contact_name.trim() || user.name || "";
-  const serviceArea = input.service_area?.trim() || null;
+  const rawServiceArea = input.service_area?.trim() || null;
+  const serviceArea =
+    rawServiceArea && isKnownServiceArea(rawServiceArea)
+      ? normalizeServiceArea(rawServiceArea)
+      : rawServiceArea;
 
   if (!companyName) {
     throw new ForbiddenError("Company name is required.");
@@ -107,6 +112,10 @@ export async function upsertContractorProfile(
 
   if (input.complete_onboarding && !serviceArea) {
     throw new ForbiddenError("Service area is required.");
+  }
+
+  if (rawServiceArea && !isKnownServiceArea(rawServiceArea)) {
+    throw new ForbiddenError("Choose your service area from the list.");
   }
 
   const existing = await getContractorProfile(user.id);

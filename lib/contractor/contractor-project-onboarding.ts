@@ -2,7 +2,10 @@ const CONTRACTOR_PROJECT_RETURN_KEY = "scopemate-contractor-project-return";
 
 export function persistContractorProjectReturn(projectId: string) {
   if (typeof window === "undefined") return;
-  sessionStorage.setItem(CONTRACTOR_PROJECT_RETURN_KEY, `/projects/${projectId}`);
+  sessionStorage.setItem(
+    CONTRACTOR_PROJECT_RETURN_KEY,
+    `/contractor/projects/${projectId}`
+  );
 }
 
 export function readContractorProjectReturn(): string | null {

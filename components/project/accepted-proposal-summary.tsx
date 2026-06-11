@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { SectionSurface } from "@/components/layout/page-section";
 import { Badge } from "@/components/ui/badge";
-import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision";
+import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision-types";
 
 export function AcceptedProposalSummary({
   projectId,

@@ -32,24 +32,35 @@ export async function resolveClerkUserIdFromHeaders(): Promise<string | null> {
   return resolveClerkUserId(request);
 }
 
+export async function resolveClerkUserIdFromRequest(
+  request: Request
+): Promise<string | null> {
+  try {
+    const client = await clerkClient();
+    const state = await client.authenticateRequest(request, {
+      authorizedParties: getAuthorizedParties(),
+    });
+
+    if (state.isAuthenticated) {
+      const authState = state.toAuth();
+      if (authState.userId) {
+        return authState.userId;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to authenticate bearer session token:", error);
+  }
+
+  return null;
+}
+
 export async function resolveClerkUserId(
   request?: Request
 ): Promise<string | null> {
   if (request) {
-    try {
-      const client = await clerkClient();
-      const state = await client.authenticateRequest(request, {
-        authorizedParties: getAuthorizedParties(),
-      });
-
-      if (state.isAuthenticated) {
-        const authState = state.toAuth();
-        if (authState.userId) {
-          return authState.userId;
-        }
-      }
-    } catch (error) {
-      console.error("Failed to authenticate bearer session token:", error);
+    const userId = await resolveClerkUserIdFromRequest(request);
+    if (userId) {
+      return userId;
     }
   }
 

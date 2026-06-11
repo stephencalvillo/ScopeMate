@@ -18,7 +18,7 @@ import { PageBreadcrumbHeader } from "@/components/layout/page-breadcrumb-header
 import { Badge } from "@/components/ui/badge";
 import { formatProjectLocation } from "@/lib/location/parse";
 import { projectStatusBadgeProps } from "@/lib/project-status";
-import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision";
+import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision-types";
 import { formatProjectTypeLabel, type ProjectWithScope } from "@/types";
 
 function ProjectHeaderMeta({
@@ -79,9 +79,15 @@ export function ProjectDetailView({
         ? (
             <MyProjectsBreadcrumb href={projectsBreadcrumbHref} />
           )
-        : isGuestProject
+        : isGuestProject && project.creator_role !== "contractor"
           ? null
-          : <MyProjectsBreadcrumb href="/projects" />;
+          : (
+              <MyProjectsBreadcrumb
+                href={
+                  project.creator_role === "contractor" ? "/contractor" : "/projects"
+                }
+              />
+            );
 
   const acceptedProposalBanner =
     acceptedProposal != null ? (

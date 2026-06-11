@@ -14,6 +14,7 @@ import {
   type ProjectTabId,
 } from "@/components/project/project-tab-nav";
 import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
+import { useProjectDetailPath } from "@/lib/project/use-project-detail-path";
 import type { ProjectWithScope } from "@/types";
 
 export function ProjectDetailTabs({
@@ -28,6 +29,7 @@ export function ProjectDetailTabs({
   showTabs?: boolean;
 }) {
   const router = useRouter();
+  const projectPath = useProjectDetailPath(project.id);
   const searchParams = useSearchParams();
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const activeTab = parseProjectTab(searchParams.get("tab"));
@@ -91,10 +93,9 @@ export function ProjectDetailTabs({
     }
 
     const query = params.toString();
-    router.replace(
-      query ? `/projects/${project.id}?${query}` : `/projects/${project.id}`,
-      { scroll: false }
-    );
+    router.replace(query ? `${projectPath}?${query}` : projectPath, {
+      scroll: false,
+    });
   }
 
   const handleReviewedScopesCount = useCallback((count: number) => {

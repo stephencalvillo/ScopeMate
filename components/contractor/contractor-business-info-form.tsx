@@ -1,35 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { ServiceAreaCombobox } from "@/components/contractor/service-area-combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { isKnownServiceArea, normalizeServiceArea } from "@/lib/location/service-areas";
-import { completeContractorSignup } from "@/lib/contractor/complete-signup";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import {
-  clearContractorSignupPrefill,
-  readContractorSignupPrefill,
-} from "@/lib/contractor/signup-prefill";
-import {
-  clearContractorProjectReturn,
-  readContractorProjectReturn,
-} from "@/lib/contractor/contractor-project-onboarding";
-import { parseContractorProjectReturnPath } from "@/lib/project/project-detail-path";
-import {
-  clearShareLinkReturn,
-} from "@/lib/contractor/share-link-onboarding";
+  isKnownServiceArea,
+  normalizeServiceArea,
+} from "@/lib/location/service-areas";
 
-export function ContractorOnboardingForm({
-  defaultCompanyName = "",
-  defaultContactName = "",
-  defaultServiceArea = "",
+export function ContractorBusinessInfoForm({
+  defaultCompanyName,
+  defaultContactName,
+  defaultServiceArea,
 }: {
-  defaultCompanyName?: string;
-  defaultContactName?: string;
-  defaultServiceArea?: string;
+  defaultCompanyName: string;
+  defaultContactName: string;
+  defaultServiceArea: string;
 }) {
   const router = useRouter();
   const { getToken } = useAuth();
@@ -38,20 +29,13 @@ export function ContractorOnboardingForm({
   const [serviceArea, setServiceArea] = useState(defaultServiceArea);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const prefill = readContractorSignupPrefill();
-    if (!prefill) return;
-
-    setCompanyName((current) => current || prefill.companyName || "");
-    setContactName((current) => current || prefill.contactName || "");
-    setServiceArea((current) => current || prefill.serviceArea || "");
-  }, []);
+  const [message, setMessage] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setMessage(null);
 
     const canonicalServiceArea = normalizeServiceArea(serviceArea);
     if (!canonicalServiceArea) {
@@ -61,37 +45,33 @@ export function ContractorOnboardingForm({
     }
 
     try {
-      await completeContractorSignup(
-        {
+      const response = await authenticatedFetch(getToken, "/api/contractor/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           company_name: companyName,
           contact_name: contactName,
           service_area: canonicalServiceArea,
-          complete_onboarding: true,
-        },
-        getToken
-      );
-      clearContractorSignupPrefill();
-      clearShareLinkReturn();
+          complete_onboarding: false,
+        }),
+      });
 
-      const projectReturn = parseContractorProjectReturnPath(
-        readContractorProjectReturn()
-      );
-      if (projectReturn) {
-        await fetch(`/api/projects/${projectReturn.projectId}/claim`, {
-          method: "POST",
-        });
-        clearContractorProjectReturn();
-        router.push(projectReturn.href);
-        router.refresh();
-        return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Could not save your business info.");
       }
 
-      router.push("/contractor");
+      setCompanyName(data.profile.company_name);
+      setContactName(data.profile.contact_name);
+      setServiceArea(data.profile.service_area ?? canonicalServiceArea);
+      setMessage("Business info saved.");
+      router.refresh();
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Could not finish setup."
+          : "Could not save your business info."
       );
     } finally {
       setLoading(false);
@@ -101,9 +81,9 @@ export function ContractorOnboardingForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="company_name">Company name</Label>
+        <Label htmlFor="business_company_name">Company name</Label>
         <Input
-          id="company_name"
+          id="business_company_name"
           value={companyName}
           onChange={(event) => setCompanyName(event.target.value)}
           placeholder="Your company"
@@ -112,9 +92,9 @@ export function ContractorOnboardingForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="contact_name">Your name</Label>
+        <Label htmlFor="business_contact_name">Your name</Label>
         <Input
-          id="contact_name"
+          id="business_contact_name"
           value={contactName}
           onChange={(event) => setContactName(event.target.value)}
           placeholder="How homeowners should address you"
@@ -123,9 +103,9 @@ export function ContractorOnboardingForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="service_area">Service area</Label>
+        <Label htmlFor="business_service_area">Service area</Label>
         <ServiceAreaCombobox
-          id="service_area"
+          id="business_service_area"
           value={serviceArea}
           onChange={setServiceArea}
           required
@@ -133,10 +113,10 @@ export function ContractorOnboardingForm({
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {message ? <p className="text-sm text-neutral-700">{message}</p> : null}
 
       <Button
         type="submit"
-        className="w-full"
         disabled={
           loading ||
           !companyName.trim() ||
@@ -144,7 +124,7 @@ export function ContractorOnboardingForm({
           !isKnownServiceArea(serviceArea)
         }
       >
-        {loading ? "Saving..." : "Continue to dashboard"}
+        {loading ? "Saving..." : "Save changes"}
       </Button>
     </form>
   );

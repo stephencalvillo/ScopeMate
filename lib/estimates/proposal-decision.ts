@@ -1,7 +1,10 @@
+import "server-only";
+
 import { ForbiddenError, NotFoundError } from "@/lib/auth/clerk";
 import { displayContractorName } from "@/lib/contractor/display-contractor";
 import { formatReviewDate } from "@/lib/contractor/review-display";
 import { getInvitationByToken } from "@/lib/contractor/invitations";
+import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision-types";
 import { createServiceClient } from "@/lib/db/supabase";
 import {
   getEstimateForReview,
@@ -17,14 +20,7 @@ import {
 } from "@/lib/email/send-contractor-emails";
 import type { ContractorEstimate, Project, User } from "@/types";
 
-export type ProjectAcceptedProposalSummary = {
-  estimate: ContractorEstimate;
-  invitationId: string;
-  contractorName: string;
-  contractorCompany: string | null;
-  rangeLabel: string;
-  acceptedAtLabel: string | null;
-};
+export type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision-types";
 
 export async function getProjectAcceptedEstimate(projectId: string) {
   const supabase = createServiceClient();

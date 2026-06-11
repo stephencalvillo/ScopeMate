@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ServiceAreaCombobox } from "@/components/contractor/service-area-combobox";
 import { ScopeBuddyLogo } from "@/components/layout/scopemate-logo";
 import { ContractorAccountCreateForm } from "@/components/review/contractor-account-create-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  isKnownServiceArea,
+  normalizeServiceArea,
+} from "@/lib/location/service-areas";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +44,7 @@ function hasShareLinkProfilePrefill(
     contactName.trim().length > 0 &&
     contactName.trim() !== SHARE_LINK_PLACEHOLDER_NAME &&
     companyName.trim().length > 0 &&
-    serviceArea.trim().length > 0
+    isKnownServiceArea(serviceArea)
   );
 }
 
@@ -106,11 +111,14 @@ export function ContractorShareLinkOnboardingDialog({
   }, [open, signupOnly, token]);
 
   function persistIdentityPrefill() {
+    const canonicalServiceArea = normalizeServiceArea(serviceArea);
+    if (!canonicalServiceArea) return;
+
     persistContractorSignupPrefill({
       email: "",
       contactName: contactName.trim(),
       companyName: companyName.trim(),
-      serviceArea: serviceArea.trim(),
+      serviceArea: canonicalServiceArea,
     });
   }
 
@@ -135,8 +143,10 @@ export function ContractorShareLinkOnboardingDialog({
     event.preventDefault();
     setIntroError(null);
 
-    if (!contactName.trim() || !companyName.trim() || !serviceArea.trim()) {
-      setIntroError("Enter your name, company, and service area to continue.");
+    if (!contactName.trim() || !companyName.trim() || !isKnownServiceArea(serviceArea)) {
+      setIntroError(
+        "Enter your name, company, and choose your service area from the list."
+      );
       return;
     }
 
@@ -196,11 +206,10 @@ export function ContractorShareLinkOnboardingDialog({
 
               <div className="space-y-2">
                 <Label htmlFor="share_link_service_area">Service area</Label>
-                <Input
+                <ServiceAreaCombobox
                   id="share_link_service_area"
                   value={serviceArea}
-                  onChange={(event) => setServiceArea(event.target.value)}
-                  placeholder="e.g. Los Angeles area"
+                  onChange={setServiceArea}
                   required
                 />
               </div>
@@ -239,7 +248,7 @@ export function ContractorShareLinkOnboardingDialog({
                 email: "",
                 contactName: contactName.trim(),
                 companyName: companyName.trim(),
-                serviceArea: serviceArea.trim(),
+                serviceArea: normalizeServiceArea(serviceArea) ?? "",
               }}
               emailEditable
               onComplete={handleAccountComplete}

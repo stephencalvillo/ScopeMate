@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { resolveClerkUserId } from "@/lib/auth/clerk";
+import { resolveClerkUserIdFromRequest } from "@/lib/auth/clerk";
 
 const isPublicRoute = createRouteMatcher([
   "/",
@@ -61,7 +61,8 @@ export default clerkMiddleware(
 
     if (isAdminPanelRoute(request)) {
       const { userId: authUserId } = await auth();
-      const userId = authUserId ?? (await resolveClerkUserId(request));
+      const userId =
+        authUserId ?? (await resolveClerkUserIdFromRequest(request));
       if (!userId) {
         const signInUrl = new URL("/sign-in", request.url);
         signInUrl.searchParams.set("redirect_url", "/adminpanel");
@@ -71,13 +72,14 @@ export default clerkMiddleware(
     }
 
     if (request.nextUrl.pathname.startsWith("/api/")) {
-      // Route handlers authenticate with auth() directly. Middleware auth()
+      // Route handlers authenticate with auth() directly. Proxy auth()
       // does not reliably see Clerk sessions for API requests on scopebuddy.ai.
       return;
     }
 
     const { userId: authUserId, redirectToSignIn } = await auth();
-    const userId = authUserId ?? (await resolveClerkUserId(request));
+    const userId =
+      authUserId ?? (await resolveClerkUserIdFromRequest(request));
     if (!userId) {
       return redirectToSignIn();
     }

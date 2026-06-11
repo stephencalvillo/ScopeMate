@@ -1,3 +1,5 @@
+import "server-only";
+
 import { ForbiddenError, NotFoundError } from "@/lib/auth/clerk";
 import { INVITATION_EXPIRY_DAYS } from "@/lib/contractor/constants";
 import { recordShareLinkView } from "@/lib/contractor/activity";
