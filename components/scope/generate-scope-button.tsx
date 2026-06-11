@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/button";
@@ -24,6 +25,7 @@ export function GenerateScopeButton({
   loadingLabel?: string;
   showSparkle?: boolean;
 }) {
+  const { getToken, isSignedIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +34,11 @@ export function GenerateScopeButton({
     setError(null);
 
     try {
-      const data = await generateScopeClient(projectId);
+      const data = await generateScopeClient(
+        projectId,
+        undefined,
+        isSignedIn ? getToken : undefined
+      );
       onGenerated(data);
     } catch (err) {
       setError(

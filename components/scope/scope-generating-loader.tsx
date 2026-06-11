@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useEffect, useRef, useState } from "react";
 import { GridLoadingCard } from "@/components/marketing/grid-loading-card";
 import {
@@ -37,6 +38,7 @@ export function ScopeGeneratingLoader({
   steps?: readonly string[];
   helperText?: string;
 }) {
+  const { getToken, isSignedIn } = useAuth();
   const [stepIndex, setStepIndex] = useState(0);
   const onCompleteRef = useRef(onComplete);
   const onErrorRef = useRef(onError);
@@ -50,9 +52,11 @@ export function ScopeGeneratingLoader({
     let cancelled = false;
 
     async function run() {
-      const generationPromise = generateScopeClient(projectId, {
-        additional_notes: additionalNotes,
-      }).catch((error) => {
+      const generationPromise = generateScopeClient(
+        projectId,
+        { additional_notes: additionalNotes },
+        isSignedIn ? getToken : undefined
+      ).catch((error) => {
         throw error instanceof Error
           ? error
           : new Error("Could not generate scope. Please try again.");
@@ -90,7 +94,7 @@ export function ScopeGeneratingLoader({
     return () => {
       cancelled = true;
     };
-  }, [projectId, additionalNotes]);
+  }, [additionalNotes, getToken, isSignedIn, projectId]);
 
   return (
     <GridLoadingCard
