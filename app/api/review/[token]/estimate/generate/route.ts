@@ -7,12 +7,12 @@ import { generateDraftEstimateForReview } from "@/lib/ai/generate-estimate";
 import { estimateIsEditable, getEstimateForReview } from "@/lib/estimates/estimates";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ token: string }> }
 ) {
   try {
     const { token } = await context.params;
-    await assertReviewEditor(token);
+    await assertReviewEditor(token, request);
     const { review, project } = await getReviewProjectByInvitationToken(token);
     if (review.status !== "in_progress") {
       throw new ForbiddenError("This review is no longer editable.");

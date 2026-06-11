@@ -10,7 +10,7 @@ export async function PUT(
 ) {
   try {
     const { token } = await context.params;
-    await assertReviewEditor(token);
+    await assertReviewEditor(token, request);
     const body = await request.json();
     const input = reviewNotesSchema.parse(body);
     const review = await updateReviewNotes(token, input.notes);

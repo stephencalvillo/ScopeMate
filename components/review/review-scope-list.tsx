@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { MessageSquare, Plus } from "lucide-react";
 import {
   CategorySectionEstimateInputs,
@@ -20,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { groupScopeItemsByCategory, compareScopeCategories } from "@/lib/scope/group-by-category";
 import { cn, hoverRevealOnDesktopClassName } from "@/lib/utils";
+import { reviewAuthenticatedFetch } from "@/lib/review/authenticated-review-fetch-client";
 import type { ScopeItem, ScopeSuggestion, SuggestionFollowUp } from "@/types";
 
 type ReviewSuggestion = ScopeSuggestion & { follow_ups?: SuggestionFollowUp[] };
@@ -84,6 +86,7 @@ export function ReviewScopeList({
   onRefresh: () => void;
   onError: (message: string) => void;
 }) {
+  const { getToken } = useAuth();
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [activeAddCategory, setActiveAddCategory] = useState<string | null>(null);
   const estimate = useOptionalContractorEstimate();
@@ -119,8 +122,10 @@ export function ReviewScopeList({
     const existing = draftForItem(suggestions, item.id);
 
     if (existing) {
-      const response = await fetch(
-        `/api/review/${token}/suggestions/${existing.id}`,
+      const response = await reviewAuthenticatedFetch(
+        getToken,
+        token,
+        `/suggestions/${existing.id}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -140,7 +145,7 @@ export function ReviewScopeList({
         )
       );
     } else {
-      const response = await fetch(`/api/review/${token}/suggestions`, {
+      const response = await reviewAuthenticatedFetch(getToken, token, "/suggestions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -161,8 +166,10 @@ export function ReviewScopeList({
   }
 
   async function removeSuggestion(suggestionId: string) {
-    const response = await fetch(
-      `/api/review/${token}/suggestions/${suggestionId}`,
+    const response = await reviewAuthenticatedFetch(
+      getToken,
+      token,
+      `/suggestions/${suggestionId}`,
       { method: "DELETE" }
     );
     if (response.ok) {
@@ -171,11 +178,16 @@ export function ReviewScopeList({
   }
 
   async function requestAddSuggestion(category: string, description: string) {
-    const response = await fetch(`/api/review/${token}/suggestions/generate-add`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ category, description }),
-    });
+    const response = await reviewAuthenticatedFetch(
+      getToken,
+      token,
+      "/suggestions/generate-add",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category, description }),
+      }
+    );
     const data = await response.json();
     if (!response.ok) {
       onError(data.error ?? "Could not add item.");
@@ -193,8 +205,10 @@ export function ReviewScopeList({
     suggestion: ReviewSuggestion,
     description: string
   ) {
-    const response = await fetch(
-      `/api/review/${token}/suggestions/${suggestion.id}`,
+    const response = await reviewAuthenticatedFetch(
+      getToken,
+      token,
+      `/suggestions/${suggestion.id}`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -329,8 +343,10 @@ export function ReviewScopeList({
                     <FollowUpReplyPanel
                       suggestion={followUp}
                       onSubmit={async (message) => {
-                        const response = await fetch(
-                          `/api/review/${token}/suggestions/${followUp.id}/follow-up`,
+                        const response = await reviewAuthenticatedFetch(
+                          getToken,
+                          token,
+                          `/suggestions/${followUp.id}/follow-up`,
                           {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -376,8 +392,10 @@ export function ReviewScopeList({
                         suggestions,
                         suggestion.id
                       )!;
-                      const response = await fetch(
-                        `/api/review/${token}/suggestions/${followUp.id}/follow-up`,
+                      const response = await reviewAuthenticatedFetch(
+                        getToken,
+                        token,
+                        `/suggestions/${followUp.id}/follow-up`,
                         {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
@@ -406,8 +424,10 @@ export function ReviewScopeList({
                   <FollowUpReplyPanel
                     suggestion={suggestion}
                     onSubmit={async (message) => {
-                      const response = await fetch(
-                        `/api/review/${token}/suggestions/${suggestion.id}/follow-up`,
+                      const response = await reviewAuthenticatedFetch(
+                        getToken,
+                        token,
+                        `/suggestions/${suggestion.id}/follow-up`,
                         {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },

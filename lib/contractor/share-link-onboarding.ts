@@ -34,3 +34,20 @@ export function clearShareLinkOnboardingDeferral(token: string) {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem(deferredKey(token));
 }
+
+const SHARE_LINK_PENDING_UNLOCK_KEY = "scopemate-share-link-pending-unlock";
+
+export function persistShareLinkPendingUnlock(token: string) {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(SHARE_LINK_PENDING_UNLOCK_KEY, token);
+}
+
+export function readShareLinkPendingUnlock(token: string) {
+  if (typeof window === "undefined") return false;
+  return sessionStorage.getItem(SHARE_LINK_PENDING_UNLOCK_KEY) === token;
+}
+
+export function clearShareLinkPendingUnlock() {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(SHARE_LINK_PENDING_UNLOCK_KEY);
+}

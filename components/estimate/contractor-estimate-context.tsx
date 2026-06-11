@@ -10,6 +10,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { reviewAuthenticatedFetch } from "@/lib/review/authenticated-review-fetch-client";
 import {
   appendDraftAddEstimateEntries,
   buildDraftEntries,
@@ -186,6 +188,7 @@ export function ContractorEstimateProvider({
   autoLoad?: boolean;
   children: ReactNode;
 }) {
+  const { getToken } = useAuth();
   const [estimate, setEstimate] = useState<ContractorEstimate | null>(
     initialEstimate
   );
@@ -278,7 +281,7 @@ export function ContractorEstimateProvider({
     setError(null);
 
     try {
-      const response = await fetch(`/api/review/${token}/estimate`);
+      const response = await reviewAuthenticatedFetch(getToken, token, "/estimate");
       const data = await response.json();
 
       if (!response.ok) {
@@ -291,7 +294,7 @@ export function ContractorEstimateProvider({
     } finally {
       setLoading(false);
     }
-  }, [applyEstimateToState, token]);
+  }, [applyEstimateToState, getToken, token]);
 
   useEffect(() => {
     if (!autoLoad || initialEstimate) return;
@@ -361,9 +364,12 @@ export function ContractorEstimateProvider({
     setError(null);
     setMessage(null);
 
-    const response = await fetch(`/api/review/${token}/estimate/generate`, {
-      method: "POST",
-    });
+    const response = await reviewAuthenticatedFetch(
+      getToken,
+      token,
+      "/estimate/generate",
+      { method: "POST" }
+    );
     const data = await response.json();
     setGenerating(false);
 
@@ -407,7 +413,7 @@ export function ContractorEstimateProvider({
         ? "Prefilled with your saved rates. Review and adjust before submitting."
         : "Draft prices prefilled from local market averages. Review and adjust before submitting."
     );
-  }, [scopeItems, token]);
+  }, [getToken, scopeItems, token]);
 
   useEffect(() => {
     if (
@@ -590,7 +596,7 @@ export function ContractorEstimateProvider({
       throw new Error("Add at least one price before saving.");
     }
 
-    const response = await fetch(`/api/review/${token}/estimate`, {
+    const response = await reviewAuthenticatedFetch(getToken, token, "/estimate", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ line_items: payload }),
@@ -633,9 +639,12 @@ export function ContractorEstimateProvider({
         await persistDraft();
       }
 
-      const response = await fetch(`/api/review/${token}/estimate/submit`, {
-        method: "POST",
-      });
+      const response = await reviewAuthenticatedFetch(
+        getToken,
+        token,
+        "/estimate/submit",
+        { method: "POST" }
+      );
       const data = await response.json();
 
       if (!response.ok) {

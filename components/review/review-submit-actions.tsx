@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useContractorEstimate } from "@/components/estimate/contractor-estimate-context";
+import { reviewAuthenticatedFetch } from "@/lib/review/authenticated-review-fetch-client";
 import { Button } from "@/components/ui/button";
 
 export function ReviewSubmitActions({
@@ -13,6 +15,7 @@ export function ReviewSubmitActions({
   notes: string;
   onSubmitted: () => void | Promise<void>;
 }) {
+  const { getToken } = useAuth();
   const {
     canEdit,
     saving,
@@ -34,7 +37,7 @@ export function ReviewSubmitActions({
     setError(null);
 
     try {
-      const notesResponse = await fetch(`/api/review/${token}/notes`, {
+      const notesResponse = await reviewAuthenticatedFetch(getToken, token, "/notes", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes }),
@@ -50,7 +53,7 @@ export function ReviewSubmitActions({
         await submitProposal();
       }
 
-      const response = await fetch(`/api/review/${token}/complete`, {
+      const response = await reviewAuthenticatedFetch(getToken, token, "/complete", {
         method: "POST",
       });
 

@@ -14,7 +14,7 @@ export async function POST(
 ) {
   try {
     const { token, suggestionId } = await context.params;
-    await assertReviewEditor(token);
+    await assertReviewEditor(token, request);
     const body = await request.json();
     const input = followUpMessageSchema.parse(body);
     const { project } = await getReviewProjectByInvitationToken(token);

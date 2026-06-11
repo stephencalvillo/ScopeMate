@@ -30,9 +30,9 @@ export async function canEditReview(
   return verifyReviewSessionValue(session, token);
 }
 
-export async function assertReviewEditor(token: string) {
+export async function assertReviewEditor(token: string, request?: Request) {
   const invitation = await getInvitationByToken(token);
-  if (!(await canEditReview(token, invitation))) {
+  if (!(await canEditReview(token, invitation, request))) {
     throw new ForbiddenError(
       "Only the invited contractor can edit this review. Use the browser where you confirmed your details, or verify your email to continue."
     );

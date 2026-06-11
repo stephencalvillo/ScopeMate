@@ -20,8 +20,10 @@ import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { finishContractorAccountSetup } from "@/lib/contractor/complete-signup";
 import {
   clearShareLinkOnboardingDeferral,
+  clearShareLinkPendingUnlock,
   isShareLinkOnboardingDeferred,
   persistShareLinkReturn,
+  readShareLinkPendingUnlock,
   readShareLinkReturn,
 } from "@/lib/contractor/share-link-onboarding";
 import type { SharedPhoto } from "@/lib/phase2/client";
@@ -63,7 +65,12 @@ export function ContractorReviewPage({ token }: { token: string }) {
   const [linkingShareReview, setLinkingShareReview] = useState(false);
   const [transitionStep, setTransitionStep] =
     useState<ContractorShareLinkTransitionStep>("session");
-  const [expectingShareLinkAccess, setExpectingShareLinkAccess] = useState(false);
+  const [pendingShareLinkUnlock, setPendingShareLinkUnlock] = useState(
+    () => readShareLinkPendingUnlock(token)
+  );
+  const [expectingShareLinkAccess, setExpectingShareLinkAccess] = useState(
+    () => readShareLinkPendingUnlock(token)
+  );
   const [linkShareReviewError, setLinkShareReviewError] = useState<string | null>(
     null
   );
@@ -100,6 +107,8 @@ export function ContractorReviewPage({ token }: { token: string }) {
         setUnavailable(false);
         if (data.can_edit) {
           setExpectingShareLinkAccess(false);
+          setPendingShareLinkUnlock(false);
+          clearShareLinkPendingUnlock();
         }
       } catch {
         setUnavailable(true);
@@ -138,6 +147,9 @@ export function ContractorReviewPage({ token }: { token: string }) {
       return;
     }
     if (isHomeownerShareRecipient) return;
+    if (!pendingShareLinkUnlock && !expectingShareLinkAccess && !readShareLinkReturn()) {
+      return;
+    }
 
     let cancelled = false;
 
@@ -167,6 +179,9 @@ export function ContractorReviewPage({ token }: { token: string }) {
         }
 
         clearShareLinkOnboardingDeferral(token);
+        clearShareLinkPendingUnlock();
+        setPendingShareLinkUnlock(false);
+        setExpectingShareLinkAccess(false);
         setTransitionStep("load");
         await loadReview({ silent: true, authenticated: true });
         setExpectingShareLinkAccess(false);
@@ -248,18 +263,18 @@ export function ContractorReviewPage({ token }: { token: string }) {
     payload?.review.status !== "submitted";
 
   const showShareLinkTransition =
-    isSignedIn &&
     !linkShareReviewError &&
     !payload?.can_edit &&
-    (linkingShareReview ||
+    (pendingShareLinkUnlock ||
+      linkingShareReview ||
       expectingShareLinkAccess ||
       Boolean(requiresShareLinkAccount) ||
-      (loading && expectingShareLinkAccess)) &&
+      (loading && (pendingShareLinkUnlock || expectingShareLinkAccess || isSignedIn))) &&
     (payload
       ? payload.is_share_link &&
         !payload.is_contractor_client_project &&
         payload.review.status !== "submitted"
-      : expectingShareLinkAccess);
+      : pendingShareLinkUnlock || expectingShareLinkAccess);
 
   if (showShareLinkTransition) {
     return (

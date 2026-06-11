@@ -13,7 +13,7 @@ export async function PATCH(
 ) {
   try {
     const { token, suggestionId } = await context.params;
-    await assertReviewEditor(token);
+    await assertReviewEditor(token, request);
     const body = await request.json();
     const input = updateSuggestionSchema.parse(body);
 
@@ -30,12 +30,12 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ token: string; suggestionId: string }> }
 ) {
   try {
     const { token, suggestionId } = await context.params;
-    await assertReviewEditor(token);
+    await assertReviewEditor(token, request);
     const suggestion = await withdrawDraftSuggestion(token, suggestionId);
     return NextResponse.json({ suggestion });
   } catch (error) {
