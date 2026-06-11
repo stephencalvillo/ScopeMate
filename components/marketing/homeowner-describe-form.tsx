@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TimelineStartChoices } from "@/components/project/timeline-start-choices";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
 import { persistGuestProjectToken } from "@/lib/auth/guest-project-session";
 
 export function HomeownerDescribeForm({
@@ -15,6 +17,7 @@ export function HomeownerDescribeForm({
   mode?: "marketing" | "dashboard";
 }) {
   const router = useRouter();
+  const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [targetStart, setTargetStart] = useState<string | null>(null);
@@ -31,18 +34,30 @@ export function HomeownerDescribeForm({
     ).trim();
     const zip = String(formData.get("zip") ?? "").trim();
 
-    const response = await fetch(
-      isDashboard ? "/api/projects" : "/api/projects/guest",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          original_description,
-          zip,
-          ...(targetStart ? { target_start: targetStart } : {}),
-        }),
-      }
-    );
+    const requestInit: RequestInit = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        original_description,
+        zip,
+        ...(targetStart ? { target_start: targetStart } : {}),
+      }),
+    };
+
+    let response: Response;
+    try {
+      response = isDashboard
+        ? await authenticatedFetch(getToken, "/api/projects", requestInit)
+        : await fetch("/api/projects/guest", requestInit);
+    } catch (fetchError) {
+      setLoading(false);
+      setError(
+        fetchError instanceof Error
+          ? fetchError.message
+          : "Could not start your project."
+      );
+      return;
+    }
 
     const data = await response.json();
     setLoading(false);

@@ -10,9 +10,9 @@ import { saveProjectTimelineAnswer } from "@/lib/follow-up/timeline";
 import { resolveProjectTitle } from "@/lib/projects/title";
 import { createProjectSchema } from "@/lib/validators/project";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const user = await ensureUserRecord();
+    const user = await ensureUserRecord(request);
     const projects = await listProjectsForUser(user.id);
     return NextResponse.json(projects);
   } catch (error) {
@@ -22,7 +22,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const user = await ensureUserRecord();
+    const user = await ensureUserRecord(request);
     const body = await request.json();
     const input = createProjectSchema.parse(body);
     const parsed = parseLocation(input.zip);
