@@ -33,7 +33,7 @@ One catalog entry = **one page**, not one tab. Tabs stay interactive inside the 
    ```bash
    npm run check:screen-catalog
    ```
-   CI runs this on every push/PR to `main`.
+   CI runs this on every push/PR to `main` once `.github/workflows/ci.yml` is on the remote (requires a GitHub token with `workflow` scope to push workflow files).
 
 3. **Scaffold starter entry** (if the check fails)
    ```bash
