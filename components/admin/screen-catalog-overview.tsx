@@ -41,8 +41,8 @@ export function ScreenCatalogOverview() {
             User-facing screens
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-            Browse every primary page homeowners and contractors see. Open a
-            screen to preview it with mock data in an embedded frame.
+            Browse every primary page homeowners and contractors see. Click a
+            screen thumbnail to preview it with mock data in a modal.
           </p>
         </div>
         <Link

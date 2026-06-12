@@ -129,7 +129,7 @@ export function AdminDashboard({
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-[var(--muted)]">
-                    Browse thumbnails and open interactive previews.
+                    Browse thumbnails and open interactive previews in a modal.
                   </p>
                 </CardContent>
               </Card>
