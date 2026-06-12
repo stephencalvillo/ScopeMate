@@ -28,12 +28,15 @@ export function Hero({
   className,
 }: HeroProps) {
   const isCentered = align === "center";
+  const hasPreview = Boolean(children);
 
   return (
     <section
       className={cn(
         "relative overflow-hidden",
-        viewport
+        viewport && hasPreview
+          ? "flex min-h-[88vh] w-full flex-col"
+          : viewport
           ? "flex min-h-[85vh] w-full flex-col items-center justify-center"
           : gridBackground
             ? compact
@@ -47,9 +50,16 @@ export function Hero({
       )}
     >
       {gridBackground ? <GridBackground /> : null}
+      {hasPreview ? (
+        <div
+          className="hero-preview-bottom-fade pointer-events-none absolute inset-x-0 bottom-0 z-20 h-36 md:h-44"
+          aria-hidden
+        />
+      ) : null}
       <div
         className={cn(
-          "relative z-10 mx-auto w-full space-y-6",
+          "relative z-10 mx-auto flex w-full flex-col",
+          viewport && hasPreview && "min-h-[88vh]",
           gridBackground
             ? "max-w-6xl px-[var(--page-padding-x)]"
             : "max-w-[60rem]",
@@ -59,6 +69,7 @@ export function Hero({
         <div
           className={cn(
             "space-y-6",
+            viewport && hasPreview && "flex flex-1 flex-col justify-center",
             isCentered ? "mx-auto w-full max-w-[70rem]" : "max-w-[52.5rem]"
           )}
         >
@@ -100,8 +111,10 @@ export function Hero({
             ) : null}
           </div>
         )}
-        {children}
         </div>
+        {children ? (
+          <div className="relative z-10 w-full shrink-0">{children}</div>
+        ) : null}
       </div>
     </section>
   );

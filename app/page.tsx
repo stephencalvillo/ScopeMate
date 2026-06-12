@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { CTAButton } from "@/components/marketing/cta-button";
 import { HowItWorksScrollSection } from "@/components/marketing/how-it-works-scroll-section";
 import { Hero } from "@/components/marketing/hero";
+import { HeroProductPreview } from "@/components/marketing/hero-product-preview";
 import { MarketingSection } from "@/components/marketing/marketing-section";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PathCard } from "@/components/marketing/path-card";
@@ -32,7 +33,9 @@ export default async function HomePage() {
           label: homepage.hero.secondaryCta,
           href: "/contractors",
         }}
-      />
+      >
+        <HeroProductPreview />
+      </Hero>
 
       <HowItWorksScrollSection
         title={homepage.howItWorks.title}
@@ -41,7 +44,7 @@ export default async function HomePage() {
 
       <MarketingSection
         title={homepage.choosePath.title}
-        className="bg-white pt-0"
+        className="bg-white pt-12 md:pt-[100px]"
       >
         <div className="grid gap-6 md:grid-cols-2">
           <PathCard

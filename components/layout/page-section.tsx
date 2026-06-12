@@ -19,7 +19,7 @@ export function PageSection({
         <div className="min-w-0 flex-1 space-y-1">
           <h2 className="font-display text-lg text-neutral-900">{title}</h2>
           {description ? (
-            <p className="text-sm text-[var(--muted)]">{description}</p>
+            <p className="text-base text-[var(--muted)]">{description}</p>
           ) : null}
         </div>
         {action ? (

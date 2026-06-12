@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { howItWorksIcons } from "@/components/marketing/how-it-works-icons";
+import { HowItWorksPreviewFrame } from "@/components/marketing/how-it-works-preview-backdrop";
 import { HowItWorksStepPreview } from "@/components/marketing/how-it-works-step-preview";
 import { FeatureCard } from "@/components/marketing/feature-card";
 import { cn } from "@/lib/utils";
@@ -16,7 +17,8 @@ type HowItWorksScrollSectionProps = {
   steps: readonly HowItWorksStep[];
 };
 
-const STEP_SCROLL_VH = 55;
+// Viewport-heights of scroll needed to advance each step after the section pins.
+const STEP_SCROLL_VH = 80;
 const MARKETING_HEADER_HEIGHT_PX = 64;
 const PEEK_TOP_PADDING_PX = 32;
 const CENTER_TRANSITION_MS = 500;
@@ -51,6 +53,19 @@ export function HowItWorksScrollSection({
   const [activeStep, setActiveStep] = useState(0);
   const [isPinned, setIsPinned] = useState(false);
   const [centerOffset, setCenterOffset] = useState(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    function updatePreference() {
+      setPrefersReducedMotion(mediaQuery.matches);
+    }
+
+    updatePreference();
+    mediaQuery.addEventListener("change", updatePreference);
+
+    return () => mediaQuery.removeEventListener("change", updatePreference);
+  }, []);
 
   const measureCenterOffset = useCallback(() => {
     const sticky = stickyRef.current;
@@ -247,6 +262,7 @@ export function HowItWorksScrollSection({
             {steps.map((step, index) => (
               <div key={step.title} className="space-y-4">
                 <FeatureCard
+                  variant="plain"
                   icon={howItWorksIcons[index]}
                   title={step.title}
                   description={step.description}
@@ -286,44 +302,48 @@ export function HowItWorksScrollSection({
                   {title}
                 </h2>
 
-                <div className="mx-auto grid w-full max-w-5xl shrink-0 grid-cols-2 items-start gap-8 lg:gap-12">
-                  <div className="relative min-h-[25rem] space-y-4">
+                <div className="mx-auto grid w-full max-w-5xl shrink-0 grid-cols-2 items-center gap-8 lg:gap-12">
+                  <div className="relative h-[24rem] overflow-hidden">
                     <div
-                      className="absolute bottom-4 left-4 top-4 w-px bg-[var(--border)]"
+                      className="absolute bottom-0 left-4 top-0 w-px bg-[var(--border)]"
                       aria-hidden
                     />
 
                     {steps.map((step, index) => {
                       const isActive = index === activeStep;
-                      const isComplete = index < activeStep;
+                      const isPast = index < activeStep;
+                      const isFuture = index > activeStep;
 
                       return (
                         <div
                           key={step.title}
                           className={cn(
-                            "relative min-h-[5.5rem] transition-opacity duration-300 ease-out",
-                            isActive
-                              ? "opacity-100"
-                              : isComplete
-                                ? "opacity-55"
-                                : "opacity-35"
+                            "absolute inset-0 flex items-center pl-10",
+                            prefersReducedMotion
+                              ? isActive
+                                ? "opacity-100"
+                                : "pointer-events-none opacity-0"
+                              : cn(
+                                  "motion-safe:transition-all motion-safe:duration-500 motion-safe:ease-out",
+                                  isActive &&
+                                    "z-10 translate-y-0 opacity-100",
+                                  isPast &&
+                                    "pointer-events-none -translate-y-full opacity-0",
+                                  isFuture &&
+                                    "pointer-events-none translate-y-full opacity-0"
+                                )
                           )}
+                          aria-hidden={!isActive}
                         >
-                          <div className="flex items-start gap-3 pl-10">
+                          <div className="flex w-full min-w-0 items-start gap-3">
                             <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--accent-foreground)]">
                               {howItWorksIcons[index]}
                             </span>
-                            <div className="space-y-1.5 text-left">
+                            <div className="min-w-0 flex-1 space-y-1.5 text-left">
                               <h3 className="font-display text-xl tracking-tight text-neutral-900">
                                 {step.title}
                               </h3>
-                              <p
-                                className={cn(
-                                  "text-sm leading-relaxed text-[var(--muted)]",
-                                  !isActive && "invisible"
-                                )}
-                                aria-hidden={!isActive}
-                              >
+                              <p className="text-lg leading-relaxed text-[var(--muted)]">
                                 {step.description}
                               </p>
                             </div>
@@ -334,31 +354,38 @@ export function HowItWorksScrollSection({
                   </div>
 
                   <div className="relative h-[24rem] w-full">
-                    {steps.map((_, index) => (
-                      <div
-                        key={index}
-                        className={cn(
-                          "absolute inset-0 motion-safe:transition-opacity motion-safe:duration-300 motion-safe:ease-out",
-                          index === activeStep
-                            ? "opacity-100"
-                            : "pointer-events-none opacity-0"
-                        )}
-                      >
-                        <HowItWorksStepPreview step={index} />
+                    <HowItWorksPreviewFrame>
+                      <div className="relative h-full">
+                        {steps.map((_, index) => (
+                          <div
+                            key={index}
+                            className={cn(
+                              "absolute inset-0 motion-safe:transition-opacity motion-safe:duration-300 motion-safe:ease-out",
+                              index === activeStep
+                                ? "opacity-100"
+                                : "pointer-events-none opacity-0"
+                            )}
+                          >
+                            <HowItWorksStepPreview
+                              step={index}
+                              isActive={index === activeStep}
+                            />
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </HowItWorksPreviewFrame>
                   </div>
                 </div>
 
                 <div
-                  className="mx-auto mt-12 flex w-full max-w-5xl shrink-0 items-center gap-2"
+                  className="mx-auto mt-12 flex w-full max-w-5xl shrink-0 items-center justify-center gap-2"
                   aria-hidden
                 >
                   {steps.map((step, index) => (
                     <div
                       key={step.title}
                       className={cn(
-                        "h-1 flex-1 rounded-full transition-colors duration-300 ease-out",
+                        "size-2 rounded-full transition-colors duration-300 ease-out",
                         index <= activeStep
                           ? "bg-neutral-900"
                           : "bg-[var(--border)]"

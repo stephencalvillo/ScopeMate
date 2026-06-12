@@ -41,7 +41,7 @@ export function PathCard({
             <h3 className="font-display text-2xl tracking-tight text-neutral-900 text-balance">
               {headline}
             </h3>
-            <p className="text-sm leading-relaxed text-[var(--muted)]">
+            <p className="text-base leading-relaxed text-[var(--muted)]">
               {description}
             </p>
           </div>
