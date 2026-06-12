@@ -62,30 +62,29 @@ export function ScreenCatalogGallery({
         </div>
 
         {groupedScreens.length > 0 ? (
-          <div className="space-y-10">
-            {groupedScreens.map(([category, items]) => (
-              <section key={category} className="space-y-4">
-                <h2 className="text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
-                  {category}
-                </h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {items.map((screen) => (
-                    <button
-                      key={screen.id}
-                      type="button"
-                      onClick={() => setSelectedScreen(screen)}
-                      className={cn(
-                        "rounded-[var(--radius-card)] border border-[var(--border)] bg-white p-4 text-left transition",
-                        "hover:border-neutral-300 hover:shadow-sm",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2"
-                      )}
-                    >
-                      <ScreenThumbnailCard screen={screen} />
-                    </button>
-                  ))}
-                </div>
-              </section>
-            ))}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {groupedScreens.flatMap(([category, items]) => [
+              <h2
+                key={`${category}-heading`}
+                className="col-span-full text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]"
+              >
+                {category}
+              </h2>,
+              ...items.map((screen) => (
+                <button
+                  key={screen.id}
+                  type="button"
+                  onClick={() => setSelectedScreen(screen)}
+                  className={cn(
+                    "rounded-[var(--radius-card)] border border-[var(--border)] bg-white p-4 text-left transition",
+                    "hover:border-neutral-300 hover:shadow-sm",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2"
+                  )}
+                >
+                  <ScreenThumbnailCard screen={screen} />
+                </button>
+              )),
+            ])}
           </div>
         ) : (
           <p className="text-sm text-[var(--muted)]">
