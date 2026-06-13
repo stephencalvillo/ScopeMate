@@ -1,4 +1,4 @@
-# ScopeMate - Phase 2 Plan
+# ScopeBuddy - Phase 2 Plan
 
 ## Optional Context + Photos
 
@@ -10,7 +10,7 @@
 
 Phase 1 proved the core loop: describe -> generate scope -> edit -> share.
 
-Phase 2 helps homeowners **add optional context before sharing** - without turning the experience into a form-heavy interrogation or implying the project is incomplete. The product should feel like ScopeMate is gently suggesting: *"These details can help contractors quote more accurately."*
+Phase 2 helps homeowners **add optional context before sharing** - without turning the experience into a form-heavy interrogation or implying the project is incomplete. The product should feel like ScopeBuddy is gently suggesting: *"These details can help contractors quote more accurately."*
 
 ### Phase 2 success criteria
 

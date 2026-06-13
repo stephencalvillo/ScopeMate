@@ -1,8 +1,8 @@
-# ScopeMate  -  Project Brief
+# ScopeBuddy — Project Brief
 
 ## Vision
 
-ScopeMate helps homeowners clearly define construction projects and helps contractors respond with better bids.
+ScopeBuddy helps homeowners clearly define construction projects and helps contractors respond with better bids.
 
 The platform uses AI to transform homeowner descriptions into contractor-ready scopes, allows contractors to improve those scopes, and eventually supports bid creation and comparison.
 

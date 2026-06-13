@@ -12,7 +12,7 @@
 
 Phases 3–5 let contractors collaborate **without an account** — open a token link, review scope, submit a proposal, optionally create a Clerk account at the end. That works for one-off jobs but not for repeat use.
 
-Phase 6 turns ScopeMate into a **contractor workspace**:
+Phase 6 turns ScopeBuddy into a **contractor workspace**:
 
 > Sign in once → see all your reviews and bids → reuse your rates and templates → respond faster on the next invite.
 
@@ -124,24 +124,52 @@ Phase 6 is large. Ship in slices so each PR is reviewable and deployable.
 
 ---
 
-### 6D — Proposal templates
+### 6D′ — Duplicate from past bid *(replaces template library)*
 
-**Goal:** Reuse a past estimate structure on a new job.
+**Goal:** Speed up estimating on a new job by copying line items from a prior submitted estimate.
 
 | Item | Notes |
 | --- | --- |
-| Migration `015` — `contractor_proposal_templates`, `contractor_proposal_template_items` | Snapshot of line items + pricing mode |
-| Save as template | From draft or submitted estimate; name + optional description |
-| Template library UI | List, duplicate, delete |
-| Apply template | Merges into current review draft (scope-item match by category/description; manual rows for unmatched) |
+| No template tables | Action on bid history or review estimate bar |
+| Duplicate estimate | Copies line items from selected past bid into current draft; contractor edits before submit |
+| Pro-gated | Same gate as saved rates |
 
-**Success:** Contractor applies "Standard bath remodel" template → draft populated in under a minute.
+**Deprioritized:** Named proposal template library and fuzzy scope matching — poor fit for unique remodel scopes. See [`PHASE_6F_PLAN.md`](./PHASE_6F_PLAN.md).
+
+**Success:** Contractor duplicates a prior bath remodel bid → edits line items for this scope → submits in minutes.
 
 ---
 
 ### 6E — Subscription (Contractor Pro)
 
-**Goal:** Monetize rates + templates; Stripe is source of truth.
+**Goal:** Monetize rates, duplicate-from-bid, and **contracts**; Stripe is source of truth.
+
+#### Stripe business setup *(do before 6E code — test mode first)*
+
+**Full checklist:** [`BUSINESS_CHECKLIST.md`](./BUSINESS_CHECKLIST.md) — entity order (Stripe Atlas vs DIY), trademark timing, domains, LegalZoom vs attorney.
+
+Yes — you need a real **Stripe account** (business), not just API keys in `.env`. ScopeBuddy charges contractors for **Contractor Pro** subscriptions; Stripe holds payment methods, runs Checkout, and pays out to your bank.
+
+**Stripe Atlas** (~$500): Delaware LLC + EIN + registered agent + Stripe + bank in one flow. Does **not** include trademark or Terms/Privacy. Prefer Atlas if you don’t have an LLC yet.
+
+| Step | Action |
+| --- | --- |
+| 1. Create account | [dashboard.stripe.com](https://dashboard.stripe.com) — use the legal entity that will own ScopeBuddy revenue (LLC recommended before meaningful revenue; sole prop OK to start in many cases — confirm with your accountant) |
+| 2. Activate account | Complete business profile: legal name, EIN or SSN (US), business address, industry (Software / SaaS), website URL |
+| 3. Connect bank | Payout account for subscription revenue |
+| 4. Test mode | Build entire 6E against **test mode** keys (`sk_test_…`, `pk_test_…`); use [Stripe test cards](https://docs.stripe.com/testing) |
+| 5. Product + Price | Dashboard → Products → **Contractor Pro** → recurring Price (e.g. `$29/mo` — set at launch); save `price_…` ID to env |
+| 6. Customer Portal | Settings → Billing → Customer portal → enable cancel / update payment method |
+| 7. Webhook endpoint | `POST /api/webhooks/stripe` on production URL; subscribe to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`; use Stripe CLI locally (`stripe listen --forward-to localhost:3000/api/webhooks/stripe`) |
+| 8. Env vars | `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_CONTRACTOR_PRO` |
+| 9. Legal pages | Checkout requires live **Terms of Service** and **Privacy Policy** URLs (can be simple `/terms` and `/privacy` routes) |
+| 10. Go live | Toggle to live mode only when account activated; swap to `sk_live_…` / `pk_live_…` in Vercel production env |
+
+**Not in 6E MVP:** Stripe Tax (add when nexus/accountant advises), annual plans, trials, coupons, or **Stripe Connect** (that’s for collecting homeowner deposits on behalf of contractors — separate future phase).
+
+**Entity note:** Stripe account holder should match who signs contractor ToS and issues invoices. If ScopeBuddy is still pre-LLC, you can onboard as individual/sole prop and migrate later (Stripe supports business profile updates; plan the entity before heavy marketing).
+
+#### App work
 
 | Item | Notes |
 | --- | --- |
@@ -149,10 +177,26 @@ Phase 6 is large. Ship in slices so each PR is reviewable and deployable.
 | Stripe Checkout for upgrade | `/contractor/billing` |
 | Customer Portal link | Manage payment method / cancel |
 | Webhook `checkout.session.completed`, `customer.subscription.*` | Sync status |
-| Feature gates | Middleware or server checks: rates + templates require `active` subscription |
+| Feature gates | Middleware or server checks: rates, duplicate-from-bid, and contract send require `active` subscription |
 | Free tier UX | Show locked state with upgrade CTA, not hard errors |
 
-**Success:** Contractor subscribes → saves rates and templates; cancel → read-only access to existing data, no new saves.
+**Success:** Contractor subscribes → saves rates, duplicates bids, sends contracts; cancel → read-only access to existing data, no new saves.
+
+---
+
+### 6F — Contracts from accepted proposals
+
+**Goal:** Turn an accepted proposal into a sendable agreement (primary Pro differentiator).
+
+**Plan:** [`PHASE_6F_PLAN.md`](./PHASE_6F_PLAN.md)
+
+| Slice | Focus |
+| --- | --- |
+| **6F-A** | Contract draft from accepted estimate + editable terms |
+| **6F-B** | PDF export + send to homeowner (Pro gate) |
+| **6F-C** | In-app electronic signature (ESIGN consent + typed name + optional drawn signature) |
+
+**Success:** Homeowner accepts proposal → Pro contractor sends contract → homeowner signs in-app → both download PDF.
 
 ---
 
@@ -246,8 +290,7 @@ Phase 6 is large. Ship in slices so each PR is reviewable and deployable.
 | `GET /api/contractor/bids` | 6B | Bid history with estimate summary |
 | `GET/POST/PATCH/DELETE /api/contractor/rates` | 6C | Saved rates CRUD |
 | `POST /api/contractor/rates/apply` | 6C | Apply rates to current review estimate |
-| `GET/POST/PATCH/DELETE /api/contractor/templates` | 6D | Template CRUD |
-| `POST /api/contractor/templates/[id]/apply` | 6D | Apply template to review estimate |
+| `POST /api/contractor/bids/[id]/duplicate` | 6D′ | Duplicate past estimate into current draft |
 | `POST /api/contractor/billing/checkout` | 6E | Stripe Checkout session |
 | `POST /api/contractor/billing/portal` | 6E | Stripe Customer Portal |
 | `POST /api/webhooks/stripe` | 6E | Subscription sync |
@@ -261,7 +304,7 @@ Authenticated contractor routes use Clerk session + `contractor_profiles` owners
 - Homeowner subscription or payments
 - Marketplace / lead gen (Phase 7)
 - Contractor-to-contractor messaging
-- E-sign or deposit collection
+- Third-party e-sign (DocuSign) or deposit collection via Stripe Connect
 - Mobile app
 - Multi-user contractor teams / sub-accounts
 - Import/export rates from Excel

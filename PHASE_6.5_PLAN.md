@@ -12,7 +12,7 @@
 
 ## Why Phase 6.5 exists
 
-User feedback and contractor interviews converge on the same tension: **homeowners share too little context for accurate remote bidding**, but **ScopeMate must not become a pricing engine or a form-heavy gate**.
+User feedback and contractor interviews converge on the same tension: **homeowners share too little context for accurate remote bidding**, but **ScopeBuddy must not become a pricing engine or a form-heavy gate**.
 
 Phase 6.5 improves **what contractors receive** without changing the core loop or blocking share/review. It completes deferred Phase 4 finish-tier UX and sets up Phase 7’s “qualified lead” positioning.
 
@@ -165,7 +165,7 @@ Bands are **project-type aware** where possible (kitchen vs bath vs exterior pai
 **Copy rules:**
 
 - Always show: “Planning range only — not a quote. Your contractor sets final pricing.”
-- Bands appear on homeowner project detail only; contractors see finish level in scope text, not ScopeMate’s band.
+- Bands appear on homeowner project detail only; contractors see finish level in scope text, not ScopeBuddy’s band.
 
 **Files (expected):**
 

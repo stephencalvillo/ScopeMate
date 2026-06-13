@@ -1,4 +1,4 @@
-# ScopeMate - Roadmap
+# ScopeBuddy — Roadmap
 
 ## Phase 1 - Homeowner MVP *(complete)*
 
@@ -96,7 +96,7 @@ Contractors generate draft estimates from scope, edit line items, and submit pro
 
 ## Phase 6 - Contractor Pro
 
-**Plan:** [`PHASE_6_PLAN.md`](./PHASE_6_PLAN.md)
+**Plan:** [`PHASE_6_PLAN.md`](./PHASE_6_PLAN.md) · **Business / legal:** [`BUSINESS_CHECKLIST.md`](./BUSINESS_CHECKLIST.md)
 
 **Status:** In progress — 6A shipped.
 
@@ -107,15 +107,16 @@ Contractors generate draft estimates from scope, edit line items, and submit pro
 | **6A** | Contractor accounts, profile, dashboard, invitation linking | Shipped |
 | **6B** | Bid history | Planned |
 | **6C** | Saved rates | Planned |
-| **6D** | Proposal templates | Planned |
+| **6D′** | Duplicate from past bid (replaces template library) | Planned |
 | **6E** | Stripe subscription (Contractor Pro) | Planned |
+| **6F** | Contracts from accepted proposals | Proposed — see [`PHASE_6F_PLAN.md`](./PHASE_6F_PLAN.md) |
 
 **Features:**
 
 - Saved rates
-- Saved templates
-- Proposal templates
+- Duplicate from past bid
 - Bid history
+- **Contracts** — generate, send, and sign agreements in-app from accepted proposals (primary Pro hook)
 
 Subscription product.
 

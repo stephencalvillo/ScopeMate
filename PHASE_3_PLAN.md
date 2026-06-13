@@ -1,4 +1,4 @@
-# ScopeMate - Phase 3 Plan
+# ScopeBuddy - Phase 3 Plan
 
 ## Contractor Collaboration
 
@@ -14,7 +14,7 @@ Phase 1 proved the homeowner loop. Phase 2 added optional context. Phase 3 close
 
 > Homeowner defines scope -> contractor reviews and suggests improvements -> homeowner approves -> scope is ready to price.
 
-Today, contractors only get a **read-only share link**. They cannot leave structured feedback inside ScopeMate, and homeowners cannot accept contractor input without manually editing scope items.
+Today, contractors only get a **read-only share link**. They cannot leave structured feedback inside ScopeBuddy, and homeowners cannot accept contractor input without manually editing scope items.
 
 Phase 3 introduces **invited contractor review** and a **suggestion + approval workflow** — without pricing, estimates, or full contractor accounts yet.
 

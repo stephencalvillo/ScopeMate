@@ -10,7 +10,7 @@
 
 ## Why Phase 4 exists
 
-Homeowners and contractors need a shared vocabulary for budget conversations **without** ScopeMate becoming a pricing engine. Phase 4 adds **project-wide finish planning**, not quotes.
+Homeowners and contractors need a shared vocabulary for budget conversations **without** ScopeBuddy becoming a pricing engine. Phase 4 adds **project-wide finish planning**, not quotes.
 
 > Homeowner picks a rough finish level → answer syncs into scope → contractor still owns final pricing.
 

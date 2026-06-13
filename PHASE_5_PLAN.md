@@ -10,7 +10,7 @@
 
 ## Why Phase 5 exists
 
-Once scope is clear, contractors need to respond with **real numbers**. Phase 5 adds draft estimates and proposals — not ScopeMate-owned pricing.
+Once scope is clear, contractors need to respond with **real numbers**. Phase 5 adds draft estimates and proposals — not ScopeBuddy-owned pricing.
 
 > Contractor generates a draft → edits line items → submits proposal with a project total.
 
