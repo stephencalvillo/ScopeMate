@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pencil, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,10 +16,29 @@ const HERO_SCOPE_ITEMS = [
   "Install quartz countertops with undermount sink",
 ] as const;
 
-const HERO_PHASE_DURATIONS_MS = [6200, 4200, 4200] as const;
-const TYPEWRITER_INTERVAL_MS = 32;
+const HERO_PHASE_DURATIONS_MS = [4500, 4200, 4200] as const;
+const TYPEWRITER_INTERVAL_MS = 18;
 const SCOPE_ITEM_STAGGER_MS = 350;
 const SCOPE_ITEMS_START_DELAY_MS = 250;
+const ESTIMATE_CONTENT_DELAY_MS = 200;
+const ESTIMATE_BUTTON_PRESS_DELAY_MS = 1200;
+const ESTIMATE_BUTTON_PRESS_DURATION_MS = 150;
+const ESTIMATE_SPARKLE_DURATION_MS = 700;
+
+const HERO_SPARKLES = [
+  { angle: -95, distance: 24, variant: "diamond" as const },
+  { angle: -68, distance: 32, variant: "star" as const },
+  { angle: -38, distance: 26, variant: "diamond" as const },
+  { angle: -8, distance: 30, variant: "star" as const },
+  { angle: 22, distance: 28, variant: "diamond" as const },
+  { angle: 52, distance: 34, variant: "star" as const },
+  { angle: 82, distance: 26, variant: "diamond" as const },
+  { angle: 118, distance: 32, variant: "star" as const },
+  { angle: 152, distance: 28, variant: "diamond" as const },
+  { angle: 188, distance: 30, variant: "star" as const },
+  { angle: 218, distance: 34, variant: "diamond" as const },
+  { angle: 248, distance: 26, variant: "star" as const },
+] as const;
 
 function PreviewShell({
   children,
@@ -44,11 +63,21 @@ function PreviewShell({
   );
 }
 
-function useTypewriter(text: string, isActive: boolean) {
+function useTypewriter(
+  text: string,
+  isActive: boolean,
+  onComplete?: () => void
+) {
   const [displayedText, setDisplayedText] = useState("");
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     if (!isActive) {
+      setDisplayedText("");
       return;
     }
 
@@ -58,6 +87,7 @@ function useTypewriter(text: string, isActive: boolean) {
 
     if (prefersReducedMotion) {
       setDisplayedText(text);
+      onCompleteRef.current?.();
       return;
     }
 
@@ -69,6 +99,7 @@ function useTypewriter(text: string, isActive: boolean) {
 
       if (index >= text.length) {
         window.clearInterval(intervalId);
+        onCompleteRef.current?.();
       }
     }, TYPEWRITER_INTERVAL_MS);
 
@@ -137,8 +168,18 @@ function SceneContentLayer({
   );
 }
 
-function HeroDescribeContent({ isActive }: { isActive: boolean }) {
-  const displayedText = useTypewriter(HERO_DESCRIBE_TEXT, isActive);
+function HeroDescribeContent({
+  isActive,
+  onTypingComplete,
+}: {
+  isActive: boolean;
+  onTypingComplete?: () => void;
+}) {
+  const displayedText = useTypewriter(
+    HERO_DESCRIBE_TEXT,
+    isActive,
+    onTypingComplete
+  );
 
   return (
     <SceneContentLayer isActive={isActive}>
@@ -216,12 +257,57 @@ function HeroScopeContent({ isActive }: { isActive: boolean }) {
   );
 }
 
-function HeroEstimateContent({ isActive }: { isActive: boolean }) {
+function GoldSparkleBurst({ active }: { active: boolean }) {
+  if (!active) {
+    return null;
+  }
+
+  return (
+    <div
+      className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-0 w-0 overflow-visible"
+      aria-hidden
+    >
+      {HERO_SPARKLES.map((sparkle, index) => {
+        const radians = (sparkle.angle * Math.PI) / 180;
+        const x = Math.cos(radians) * sparkle.distance;
+        const y = Math.sin(radians) * sparkle.distance;
+
+        return (
+          <span
+            key={`${sparkle.angle}-${sparkle.distance}`}
+            className="hero-sparkle absolute left-0 top-0"
+            style={
+              {
+                "--sparkle-x": `${x}px`,
+                "--sparkle-y": `${y}px`,
+                animationDelay: `${index * 30}ms`,
+              } as React.CSSProperties
+            }
+          >
+            {sparkle.variant === "star" ? (
+              <span className="block text-[10px] leading-none text-[var(--gold-text)]">
+                ✦
+              </span>
+            ) : (
+              <span className="block h-1.5 w-1.5 rotate-45 rounded-[1px] bg-[var(--accent)] shadow-[0_0_4px_rgb(179_139_46/0.55)]" />
+            )}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function useEstimatePreviewAnimation(isActive: boolean) {
   const [contentVisible, setContentVisible] = useState(false);
+  const [buttonPressed, setButtonPressed] = useState(false);
+  const [sparklesVisible, setSparklesVisible] = useState(false);
 
   useEffect(() => {
     if (!isActive) {
       setContentVisible(false);
+      setButtonPressed(false);
+      setSparklesVisible(false);
       return;
     }
 
@@ -235,12 +321,40 @@ function HeroEstimateContent({ isActive }: { isActive: boolean }) {
     }
 
     setContentVisible(false);
-    const timeoutId = window.setTimeout(() => {
-      setContentVisible(true);
-    }, 200);
+    setButtonPressed(false);
+    setSparklesVisible(false);
 
-    return () => window.clearTimeout(timeoutId);
+    const contentTimeoutId = window.setTimeout(() => {
+      setContentVisible(true);
+    }, ESTIMATE_CONTENT_DELAY_MS);
+
+    const pressStartId = window.setTimeout(() => {
+      setButtonPressed(true);
+      setSparklesVisible(true);
+    }, ESTIMATE_BUTTON_PRESS_DELAY_MS);
+
+    const pressEndId = window.setTimeout(() => {
+      setButtonPressed(false);
+    }, ESTIMATE_BUTTON_PRESS_DELAY_MS + ESTIMATE_BUTTON_PRESS_DURATION_MS);
+
+    const sparklesEndId = window.setTimeout(() => {
+      setSparklesVisible(false);
+    }, ESTIMATE_BUTTON_PRESS_DELAY_MS + ESTIMATE_SPARKLE_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(contentTimeoutId);
+      window.clearTimeout(pressStartId);
+      window.clearTimeout(pressEndId);
+      window.clearTimeout(sparklesEndId);
+    };
   }, [isActive]);
+
+  return { contentVisible, buttonPressed, sparklesVisible };
+}
+
+function HeroEstimateContent({ isActive }: { isActive: boolean }) {
+  const { contentVisible, buttonPressed, sparklesVisible } =
+    useEstimatePreviewAnimation(isActive);
 
   return (
     <SceneContentLayer isActive={isActive}>
@@ -259,14 +373,20 @@ function HeroEstimateContent({ isActive }: { isActive: boolean }) {
         <p className="mt-2 font-display text-5xl tracking-tight text-neutral-900 md:text-[3.25rem] md:leading-none">
           $42,800
         </p>
-        <Button
-          type="button"
-          className="mt-4 pointer-events-none"
-          tabIndex={-1}
-          aria-hidden
-        >
-          Accept estimate
-        </Button>
+        <div className="relative mt-4 inline-flex">
+          <GoldSparkleBurst active={sparklesVisible} />
+          <Button
+            type="button"
+            className={cn(
+              "pointer-events-none border-neutral-950 bg-linear-to-b from-neutral-600/60 via-neutral-900/60 to-neutral-950/60 text-white shadow-none [text-shadow:0_1px_2px_rgb(0_0_0/0.45)] motion-safe:transition-transform motion-safe:duration-150",
+              buttonPressed && "scale-90 translate-y-px"
+            )}
+            tabIndex={-1}
+            aria-hidden
+          >
+            Accept estimate
+          </Button>
+        </div>
         <p className="mt-3 text-sm text-[var(--muted)]">Kitchen remodel</p>
       </div>
     </SceneContentLayer>
@@ -275,6 +395,16 @@ function HeroEstimateContent({ isActive }: { isActive: boolean }) {
 
 export function HeroProductPreview() {
   const [phase, setPhase] = useState(0);
+  const [showDescribeGlow, setShowDescribeGlow] = useState(false);
+  const handleTypingComplete = useCallback(() => {
+    setShowDescribeGlow(true);
+  }, []);
+
+  useEffect(() => {
+    if (phase !== 0) {
+      setShowDescribeGlow(false);
+    }
+  }, [phase]);
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia(
@@ -302,9 +432,21 @@ export function HeroProductPreview() {
       aria-hidden
     >
       <div className="relative h-[24rem] translate-y-[16%] md:h-[27rem] md:translate-y-[18%]">
+        <div
+          className={cn(
+            "hero-preview-gold-glow pointer-events-none absolute inset-0 motion-safe:transition-opacity motion-safe:duration-500 motion-safe:ease-out",
+            showDescribeGlow && phase === 0
+              ? "opacity-100"
+              : "opacity-0"
+          )}
+          aria-hidden
+        />
         <PreviewShell>
           <div className="relative h-full">
-            <HeroDescribeContent isActive={phase === 0} />
+            <HeroDescribeContent
+              isActive={phase === 0}
+              onTypingComplete={handleTypingComplete}
+            />
             <HeroScopeContent isActive={phase === 1} />
             <HeroEstimateContent isActive={phase === 2} />
           </div>
