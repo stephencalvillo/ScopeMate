@@ -3,6 +3,7 @@ import { GridBackground } from "@/components/marketing/grid-background";
 
 type MarketingSectionProps = {
   title?: string;
+  titleClassName?: string;
   description?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
@@ -14,6 +15,7 @@ type MarketingSectionProps = {
 
 export function MarketingSection({
   title,
+  titleClassName,
   description,
   children,
   className,
@@ -40,14 +42,14 @@ export function MarketingSection({
       ) : null}
       <div className="relative z-10 mx-auto max-w-6xl px-[var(--page-padding-x)]">
         {(title || description) && (
-          <div
-            className={cn(
-              "mb-10 space-y-3 text-center",
-              centered && "mx-auto max-w-2xl"
-            )}
-          >
+          <div className="mb-10 space-y-3 text-center">
             {title ? (
-              <h2 className="font-display text-3xl tracking-tight text-neutral-900 text-balance">
+              <h2
+                className={cn(
+                  "font-display text-3xl tracking-tight text-neutral-900",
+                  titleClassName ?? "text-balance"
+                )}
+              >
                 {title}
               </h2>
             ) : null}

@@ -43,6 +43,7 @@ export default async function HomePage() {
 
       <MarketingSection
         title={homepage.choosePath.title}
+        titleClassName="md:whitespace-nowrap"
         description={
           <>
             {homepage.choosePath.descriptionLead}
