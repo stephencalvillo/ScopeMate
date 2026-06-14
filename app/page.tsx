@@ -1,6 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { CTAButton } from "@/components/marketing/cta-button";
 import { HowItWorksScrollSection } from "@/components/marketing/how-it-works-scroll-section";
 import { Hero } from "@/components/marketing/hero";
 import { HeroProductPreview } from "@/components/marketing/hero-product-preview";
@@ -44,6 +43,14 @@ export default async function HomePage() {
 
       <MarketingSection
         title={homepage.choosePath.title}
+        description={
+          <>
+            {homepage.choosePath.descriptionLead}
+            <br className="hidden md:block" />
+            {homepage.choosePath.descriptionClosing}
+          </>
+        }
+        centered
         className="bg-white pt-12 md:pt-[100px]"
       >
         <div className="grid gap-6 md:grid-cols-2">
@@ -61,22 +68,6 @@ export default async function HomePage() {
             cta={homepage.choosePath.contractors.cta}
             href="/contractors/signup"
           />
-        </div>
-      </MarketingSection>
-
-      <MarketingSection className="bg-white">
-        <div className="mx-auto max-w-2xl space-y-6 text-center">
-          <div className="space-y-3">
-            <h2 className="font-display text-3xl tracking-tight text-neutral-900 text-balance">
-              {homepage.finalCta.headline}
-            </h2>
-            <p className="text-base text-[var(--muted)] md:text-lg">
-              {homepage.finalCta.subheadline}
-            </p>
-          </div>
-          <CTAButton href="/homeowners/signup" size="lg">
-            {homepage.finalCta.cta}
-          </CTAButton>
         </div>
       </MarketingSection>
     </MarketingShell>

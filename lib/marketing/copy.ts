@@ -34,7 +34,10 @@ export const marketingCopy = {
       ],
     },
     choosePath: {
-      title: "Choose your path",
+      title: "Every successful project starts with a clear scope.",
+      descriptionLead:
+        "Homeowners don't know what to ask. Contractors don't know what's missing.",
+      descriptionClosing: "ScopeBuddy bridges the gap.",
       homeowners: {
         headline: "Stop collecting apples-to-oranges bids.",
         description:
@@ -47,12 +50,6 @@ export const marketingCopy = {
           "Review scopes, suggest missing items, and generate polished proposals.",
         cta: "Join as a Contractor",
       },
-    },
-    finalCta: {
-      headline: "Every successful project starts with a clear scope.",
-      subheadline:
-        "Homeowners don't know what to ask. Contractors don't know what's missing. ScopeBuddy bridges the gap.",
-      cta: "Get Started",
     },
   },
   homeowners: {

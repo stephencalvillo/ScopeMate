@@ -3,7 +3,7 @@ import { GridBackground } from "@/components/marketing/grid-background";
 
 type MarketingSectionProps = {
   title?: string;
-  description?: string;
+  description?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
   centered?: boolean;
