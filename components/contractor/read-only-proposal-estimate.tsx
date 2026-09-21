@@ -12,9 +12,11 @@ import type { ContractorEstimate, ScopeItem } from "@/types";
 export function ReadOnlyProposalEstimate({
   scopeItems,
   estimate,
+  embedded = false,
 }: {
   scopeItems: ScopeItem[];
   estimate: ContractorEstimate;
+  embedded?: boolean;
 }) {
   const lineItems = estimate.line_items ?? [];
   const estimateDisplay = useMemo(
@@ -40,42 +42,46 @@ export function ReadOnlyProposalEstimate({
     );
   }
 
-  return (
-    <PageSection title="Scope of work">
-      <div className="space-y-3">
-        {groups.map((group) => {
-          const sectionRange = estimateDisplay?.sectionRanges.get(group.category);
+  const list = (
+    <div className="space-y-3">
+      {groups.map((group) => {
+        const sectionRange = estimateDisplay?.sectionRanges.get(group.category);
 
-          return (
-            <ScopeCategoryGroup
-              key={group.category}
-              category={group.category}
-              itemCount={group.items.length}
-              chevronAfterAside={usesSectionPricing && Boolean(sectionRange)}
-              headerAside={
-                usesSectionPricing && sectionRange ? (
-                  <SubmittedScopeEstimateRange
-                    laborCost={sectionRange.labor_cost}
-                    materialCost={sectionRange.material_cost}
-                  />
-                ) : null
-              }
-            >
-              {group.items.map((item) => {
-                const itemRange = estimateDisplay?.scopeItemRanges.get(item.id);
+        return (
+          <ScopeCategoryGroup
+            key={group.category}
+            category={group.category}
+            itemCount={group.items.length}
+            chevronAfterAside={usesSectionPricing && Boolean(sectionRange)}
+            headerAside={
+              usesSectionPricing && sectionRange ? (
+                <SubmittedScopeEstimateRange
+                  laborCost={sectionRange.labor_cost}
+                  materialCost={sectionRange.material_cost}
+                />
+              ) : null
+            }
+          >
+            {group.items.map((item) => {
+              const itemRange = estimateDisplay?.scopeItemRanges.get(item.id);
 
-                return (
-                  <ScopeItemWithEstimateRange
-                    key={item.id}
-                    item={item}
-                    range={usesItemPricing ? itemRange : null}
-                  />
-                );
-              })}
-            </ScopeCategoryGroup>
-          );
-        })}
-      </div>
-    </PageSection>
+              return (
+                <ScopeItemWithEstimateRange
+                  key={item.id}
+                  item={item}
+                  range={usesItemPricing ? itemRange : null}
+                />
+              );
+            })}
+          </ScopeCategoryGroup>
+        );
+      })}
+    </div>
   );
+
+  if (embedded) {
+    return list;
+  }
+
+  return <PageSection title="Scope of work">{list}</PageSection>;
 }

@@ -106,7 +106,7 @@ test("needsFollowUpBackfill stops once injected and ai-gap questions exist", () 
     }),
     makeQuestion({
       id: "question-4",
-      question: "About how many cabinet doors or faces?",
+      question: "About how many kitchen cabinet doors or faces?",
       category: "trade_scope",
     }),
     makeQuestion({

@@ -33,11 +33,13 @@ export function FollowUpQuestionCard({
   projectType,
   question,
   onUpdated,
+  showSkip = true,
 }: {
   projectId: string;
   projectType?: string;
   question: FollowUpQuestion;
   onUpdated: (question: FollowUpQuestion) => void;
+  showSkip?: boolean;
 }) {
   const [textAnswer, setTextAnswer] = useState(question.answer ?? "");
   const [showOtherInput, setShowOtherInput] = useState(false);
@@ -145,14 +147,16 @@ export function FollowUpQuestionCard({
               >
                 Save
               </FollowUpAnswerButton>
-              <button
-                type="button"
-                disabled={saving}
-                onClick={skip}
-                className="ml-auto shrink-0 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-50"
-              >
-                Skip for now
-              </button>
+              {showSkip ? (
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={skip}
+                  className="ml-auto shrink-0 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-50"
+                >
+                  Skip for now
+                </button>
+              ) : null}
             </div>
           ) : null}
 
@@ -178,14 +182,16 @@ export function FollowUpQuestionCard({
                   </FollowUpAnswerButton>
                 ))}
               </div>
-              <button
-                type="button"
-                disabled={saving}
-                onClick={skip}
-                className="ml-auto shrink-0 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-50"
-              >
-                Skip for now
-              </button>
+              {showSkip ? (
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={skip}
+                  className="ml-auto shrink-0 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-50"
+                >
+                  Skip for now
+                </button>
+              ) : null}
             </div>
           ) : null}
 
@@ -204,14 +210,16 @@ export function FollowUpQuestionCard({
                   onCustomDimensions={() => setShowCustomDimensions(true)}
                 />
               </div>
-              <button
-                type="button"
-                disabled={saving}
-                onClick={skip}
-                className="ml-auto shrink-0 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-50"
-              >
-                Skip for now
-              </button>
+              {showSkip ? (
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={skip}
+                  className="ml-auto shrink-0 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-50"
+                >
+                  Skip for now
+                </button>
+              ) : null}
             </div>
           ) : null}
 

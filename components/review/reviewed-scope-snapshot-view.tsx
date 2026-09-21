@@ -562,6 +562,7 @@ export function ReviewedScopeSnapshotView({
   suggestions,
   estimate,
   onUpdated,
+  embedded = false,
 }: {
   projectId: string;
   snapshot: ReviewScopeSnapshot | null;
@@ -572,6 +573,7 @@ export function ReviewedScopeSnapshotView({
   suggestions: ScopeSuggestionWithMeta[];
   estimate?: ContractorEstimate | null;
   onUpdated: () => void;
+  embedded?: boolean;
 }) {
   const [view, setView] = useState<ScopeView>("submitted");
 
@@ -650,7 +652,7 @@ export function ReviewedScopeSnapshotView({
       ) : view === "submitted" ? (
         <div className="space-y-6">
           {snapshot.ai_summary ? (
-            <ScopeSummary summary={snapshot.ai_summary} />
+            <ScopeSummary summary={snapshot.ai_summary} embedded={embedded} />
           ) : null}
           <SubmittedScopeList
             snapshot={snapshot}
@@ -662,7 +664,9 @@ export function ReviewedScopeSnapshotView({
         </div>
       ) : (
         <div className="space-y-6">
-          {currentSummary ? <ScopeSummary summary={currentSummary} /> : null}
+          {currentSummary ? (
+            <ScopeSummary summary={currentSummary} embedded={embedded} />
+          ) : null}
           <CurrentScopeList
             items={currentItems}
             estimateDisplay={currentEstimateDisplay}

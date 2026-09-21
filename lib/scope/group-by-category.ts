@@ -25,6 +25,16 @@ export function compareScopeCategories(a: string, b: string): number {
   return String(aKey).localeCompare(String(bKey));
 }
 
+export function isAnswerDerivedScopeItem(
+  item: Pick<ScopeItem, "follow_up_question_id">
+) {
+  return Boolean(item.follow_up_question_id);
+}
+
+export function withoutAnswerDerivedScopeItems(items: ScopeItem[]) {
+  return items.filter((item) => !isAnswerDerivedScopeItem(item));
+}
+
 export function groupScopeItemsByCategory(
   items: ScopeItem[]
 ): ScopeCategoryGroup[] {

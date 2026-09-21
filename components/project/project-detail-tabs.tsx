@@ -24,12 +24,14 @@ export function ProjectDetailTabs({
   activityRefreshKey: activityRefreshKeyProp,
   showTabs = true,
   previewContext,
+  onGeneratingChange,
 }: {
   project: ProjectWithScope;
   autoGenerate?: boolean;
   activityRefreshKey?: number;
   showTabs?: boolean;
   previewContext?: ProjectPreviewContext;
+  onGeneratingChange?: (generating: boolean) => void;
 }) {
   const router = useRouter();
   const projectPathFromHook = useProjectDetailPath(project.id);
@@ -134,8 +136,12 @@ export function ProjectDetailTabs({
 
       {showOverview ? (
         <div className="space-y-8">
-          <ScopeEditor project={project} autoGenerate={autoGenerate} />
-          <ProjectShareSection />
+          <ScopeEditor
+            project={project}
+            autoGenerate={autoGenerate}
+            onGeneratingChange={onGeneratingChange}
+          />
+          {project.share_enabled ? <ProjectShareSection /> : null}
         </div>
       ) : null}
 

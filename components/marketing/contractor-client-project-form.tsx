@@ -108,7 +108,7 @@ export function ContractorClientProjectForm({
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-      <Button type="submit" size="lg" disabled={loading}>
+      <Button type="submit" size="lg" className="w-full" disabled={loading}>
         {loading ? "Building project scope..." : "Build client scope"}
       </Button>
     </form>

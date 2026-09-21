@@ -114,11 +114,24 @@ async function resolveProjectAccessUserId(options?: {
   return resolveClerkUserIdFromHeaders();
 }
 
+function guestTokenFromRequest(request?: Request): string | null {
+  if (!request) return null;
+
+  try {
+    return new URL(request.url).searchParams.get("guest_token");
+  } catch {
+    return null;
+  }
+}
+
 export async function getAccessibleProject(
   projectId: string,
   options?: { guestToken?: string | null; request?: Request }
 ): Promise<Project> {
-  const guestToken = options?.guestToken?.trim() || null;
+  const guestToken =
+    options?.guestToken?.trim() ||
+    guestTokenFromRequest(options?.request)?.trim() ||
+    null;
   const userId = await resolveProjectAccessUserId(options);
 
   if (userId) {

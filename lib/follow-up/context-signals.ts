@@ -33,7 +33,7 @@ const CABINET_QUANTITY_PATTERN =
   /\b\d+\s*(?:cabinet|door|drawer|face)s?\b|\b(?:under|about|around)\s+\d+\s*(?:cabinet|door|drawer|face)/i;
 
 export const CABINET_COUNT_QUESTION =
-  "About how many cabinet doors or faces?";
+  "About how many kitchen cabinet doors or faces?";
 
 export const CABINET_COUNT_CHOICES = [
   "Under 15",

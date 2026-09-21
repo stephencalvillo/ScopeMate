@@ -428,7 +428,7 @@ export function HeroProductPreview() {
 
   return (
     <div
-      className="mx-auto w-full max-w-lg origin-bottom scale-[1.08] md:max-w-2xl md:scale-110"
+      className="pointer-events-none mx-auto w-full max-w-lg origin-bottom scale-[1.08] md:max-w-2xl md:scale-110"
       aria-hidden
     >
       <div className="relative h-[24rem] translate-y-[16%] md:h-[27rem] md:translate-y-[18%]">

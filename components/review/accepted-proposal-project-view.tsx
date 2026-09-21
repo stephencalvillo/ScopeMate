@@ -3,8 +3,8 @@ import { ReadOnlyProposalEstimate } from "@/components/contractor/read-only-prop
 import { SharedPhotoGallery } from "@/components/share/shared-photo-gallery";
 import { ProjectReadinessSummary } from "@/components/review/project-readiness-summary";
 import { ScopeSummary } from "@/components/scope/scope-summary";
-import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { PageBreadcrumbHeader } from "@/components/layout/page-breadcrumb-header";
+import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { Badge } from "@/components/ui/badge";
 import { formatReviewDate } from "@/lib/contractor/review-display";
 import {
@@ -56,11 +56,13 @@ function ContractorProjectEstimateSection({
   audience,
   mode,
   statusBadge,
+  embedded = false,
 }: {
   estimate: ContractorEstimate;
   audience: "homeowner" | "contractor";
   mode: EstimateMode;
   statusBadge?: StatusBadge | null;
+  embedded?: boolean;
 }) {
   const lineItems = estimate.line_items ?? [];
   const { minTotal, maxTotal } = proposalRangeFromLineItems(lineItems);
@@ -103,29 +105,37 @@ function ContractorProjectEstimateSection({
         ? "The homeowner can see your scope feedback, notes, and proposal."
         : null;
 
+  const content = (
+    <>
+      {estimateStatusBadge ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={estimateStatusBadge.variant}>
+            {estimateStatusBadge.label}
+          </Badge>
+        </div>
+      ) : null}
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="font-display text-3xl tracking-tight text-neutral-900">
+          {rangeLabel}
+        </p>
+        <ProposalDisclaimerInfo />
+      </div>
+      {detailParts.length > 0 ? (
+        <p className="text-sm text-neutral-800">{detailParts.join(" · ")}</p>
+      ) : null}
+      {description ? (
+        <p className="text-sm text-neutral-800">{description}</p>
+      ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="space-y-3">{content}</div>;
+  }
+
   return (
     <PageSection title="Project estimate">
-      <SectionSurface className={surfaceClassName}>
-        {estimateStatusBadge ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={estimateStatusBadge.variant}>
-              {estimateStatusBadge.label}
-            </Badge>
-          </div>
-        ) : null}
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="font-display text-3xl tracking-tight text-neutral-900">
-            {rangeLabel}
-          </p>
-          <ProposalDisclaimerInfo />
-        </div>
-        {detailParts.length > 0 ? (
-          <p className="text-sm text-neutral-800">{detailParts.join(" · ")}</p>
-        ) : null}
-        {description ? (
-          <p className="text-sm text-neutral-800">{description}</p>
-        ) : null}
-      </SectionSurface>
+      <SectionSurface className={surfaceClassName}>{content}</SectionSurface>
     </PageSection>
   );
 }
@@ -133,15 +143,18 @@ function ContractorProjectEstimateSection({
 export function AcceptedProjectEstimateSection({
   estimate,
   audience,
+  embedded = false,
 }: {
   estimate: ContractorEstimate;
   audience: "homeowner" | "contractor";
+  embedded?: boolean;
 }) {
   return (
     <ContractorProjectEstimateSection
       estimate={estimate}
       audience={audience}
       mode="accepted"
+      embedded={embedded}
     />
   );
 }

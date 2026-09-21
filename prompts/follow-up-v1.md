@@ -26,7 +26,7 @@ Rules:
 
 Examples:
 - Description: "Kitchen remodel with new quartz counters." → dimension_estimate: "Roughly how big is the kitchen?"
-- Description: "Replace kitchen cabinets." → trade_scope choice about cabinet doors/faces, not cabinet dimensions.
+- Description: "Replace kitchen cabinets." → trade_scope choice about kitchen cabinet doors/faces, not cabinet dimensions.
 - Description: "12x15 kitchen remodel." → skip dimension question; ask timeline or permits instead.
 
 Return JSON matching the provided schema only.

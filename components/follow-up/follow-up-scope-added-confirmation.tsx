@@ -4,8 +4,10 @@ import { cn } from "@/lib/utils";
 
 export function FollowUpScopeAddedConfirmation({
   exiting = false,
+  message = "Your response has been added to the scope above",
 }: {
   exiting?: boolean;
+  message?: string;
 }) {
   return (
     <SectionSurface
@@ -18,7 +20,7 @@ export function FollowUpScopeAddedConfirmation({
         <Check className="h-6 w-6" strokeWidth={2.5} />
       </div>
       <p className="max-w-sm text-sm font-medium leading-6 text-neutral-900">
-        Your response has been added to the scope above
+        {message}
       </p>
     </SectionSurface>
   );

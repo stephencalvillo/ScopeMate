@@ -7,6 +7,7 @@ import {
   type GetStartedRole,
 } from "@/components/marketing/get-started-role-toggle";
 import { HomeownerDescribeForm } from "@/components/marketing/homeowner-describe-form";
+import { Card, CardContent } from "@/components/ui/card";
 import { marketingCopy } from "@/lib/marketing/copy";
 
 export function GetStartedSignup({
@@ -20,21 +21,22 @@ export function GetStartedSignup({
     role === "homeowner" ? signup.homeowner : signup.getStartedContractor;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <GetStartedRoleToggle value={role} onChange={setRole} />
 
-      <div className="space-y-2 text-left">
-        <h2 className="font-display text-lg tracking-tight text-neutral-900 text-balance">
-          {copy.title}
-        </h2>
-        <p className="text-sm text-[var(--muted)]">{copy.subtitle}</p>
-      </div>
+      <Card>
+        <CardContent className="space-y-6 p-6 md:p-8">
+          <h2 className="text-left font-display text-lg tracking-tight text-neutral-900 text-balance">
+            {copy.title}
+          </h2>
 
-      {role === "homeowner" ? (
-        <HomeownerDescribeForm />
-      ) : (
-        <ContractorClientProjectForm />
-      )}
+          {role === "homeowner" ? (
+            <HomeownerDescribeForm />
+          ) : (
+            <ContractorClientProjectForm />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

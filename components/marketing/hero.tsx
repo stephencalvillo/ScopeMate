@@ -69,7 +69,7 @@ export function Hero({
         <div
           className={cn(
             "space-y-6",
-            viewport && hasPreview && "flex flex-1 flex-col justify-center",
+            viewport && hasPreview && "relative z-20 flex flex-1 flex-col justify-center",
             isCentered ? "mx-auto w-full max-w-[70rem]" : "max-w-[52.5rem]"
           )}
         >
@@ -113,7 +113,9 @@ export function Hero({
         )}
         </div>
         {children ? (
-          <div className="relative z-10 w-full shrink-0">{children}</div>
+          <div className="relative z-10 w-full shrink-0 pointer-events-none">
+            {children}
+          </div>
         ) : null}
       </div>
     </section>

@@ -25,30 +25,46 @@ import type { ProjectPreviewContext } from "@/lib/admin/preview-context";
 function ProjectHeaderMeta({
   project,
   canEditTitle,
+  heading,
+  showStatusBadge = true,
+  showLocationMeta = true,
 }: {
   project: ProjectWithScope;
   canEditTitle: boolean;
+  heading?: string;
+  showStatusBadge?: boolean;
+  showLocationMeta?: boolean;
 }) {
   const statusBadge = projectStatusBadgeProps(project);
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <ProjectTitleEditor
-          projectId={project.id}
-          title={project.title}
-          canEdit={canEditTitle}
-        />
-        <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+        {heading ? (
+          <h1 className="font-display text-4xl tracking-tight text-neutral-900">
+            {heading}
+          </h1>
+        ) : (
+          <ProjectTitleEditor
+            projectId={project.id}
+            title={project.title}
+            canEdit={canEditTitle}
+          />
+        )}
+        {showStatusBadge ? (
+          <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+        ) : null}
       </div>
-      <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
-        <span>{formatProjectTypeLabel(project.project_type)}</span>
-        <span aria-hidden>{"\u00b7"}</span>
-        <span className="inline-flex items-center gap-1.5">
-          <MapPin className="h-4 w-4 shrink-0" aria-hidden />
-          {formatProjectLocation(project)}
-        </span>
-      </p>
+      {showLocationMeta ? (
+        <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
+          <span>{formatProjectTypeLabel(project.project_type)}</span>
+          <span aria-hidden>{"\u00b7"}</span>
+          <span className="inline-flex items-center gap-1.5">
+            <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+            {formatProjectLocation(project)}
+          </span>
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -68,12 +84,17 @@ export function ProjectDetailView({
   projectsBreadcrumbHref?: "/projects" | "/contractor" | null;
   previewContext?: ProjectPreviewContext;
 }) {
+  const hasScope = project.scope_items.length > 0 || project.ai_summary;
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const handleActivityChange = useCallback(() => {
     setActivityRefreshKey((current) => current + 1);
   }, []);
-
-  const hasScope = project.scope_items.length > 0 || project.ai_summary;
+  const [isGenerating, setIsGenerating] = useState(
+    Boolean(autoGenerate && !hasScope)
+  );
+  const handleGeneratingChange = useCallback((generating: boolean) => {
+    setIsGenerating(generating);
+  }, []);
 
   const breadcrumb =
     projectsBreadcrumbHref === null
@@ -102,25 +123,39 @@ export function ProjectDetailView({
 
   if (!hasScope) {
     return (
-      <div className="space-y-8">
-        <Suspense fallback={null}>
-          <ProjectClaimHandler
-            projectId={project.id}
-            isGuestProject={isGuestProject}
-          />
-        </Suspense>
-        <PageBreadcrumbHeader breadcrumb={breadcrumb}>
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <ProjectHeaderMeta
-              project={project}
-              canEditTitle={!isGuestProject}
+      <ProjectShareProvider
+        project={project}
+        onActivityChange={handleActivityChange}
+      >
+        <div className="space-y-8">
+          <Suspense fallback={null}>
+            <ProjectClaimHandler
+              projectId={project.id}
+              isGuestProject={isGuestProject}
             />
-            <ProjectActionsMenu projectId={project.id} />
-          </div>
-        </PageBreadcrumbHeader>
-        {acceptedProposalBanner}
-        <ScopeEditor project={project} autoGenerate={autoGenerate} />
-      </div>
+          </Suspense>
+          {isGenerating ? null : (
+            <PageBreadcrumbHeader breadcrumb={breadcrumb}>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <ProjectHeaderMeta
+                  project={project}
+                  canEditTitle={!isGuestProject}
+                  heading="Confirm and share"
+                  showStatusBadge={false}
+                  showLocationMeta={false}
+                />
+                <ProjectActionsMenu projectId={project.id} />
+              </div>
+            </PageBreadcrumbHeader>
+          )}
+          {isGenerating ? null : acceptedProposalBanner}
+          <ScopeEditor
+            project={project}
+            autoGenerate={autoGenerate}
+            onGeneratingChange={handleGeneratingChange}
+          />
+        </div>
+      </ProjectShareProvider>
     );
   }
 
@@ -130,19 +165,34 @@ export function ProjectDetailView({
       onActivityChange={handleActivityChange}
     >
       <div className="space-y-8">
-        <PageBreadcrumbHeader breadcrumb={breadcrumb}>
-          <ProjectShareHeaderRow>
-            <ProjectHeaderMeta
-              project={project}
-              canEditTitle={!isGuestProject}
-            />
-            <ProjectShareHeaderActions>
-              <ProjectActionsMenu projectId={project.id} />
-            </ProjectShareHeaderActions>
-          </ProjectShareHeaderRow>
-        </PageBreadcrumbHeader>
+        {isGenerating ? null : (
+          <PageBreadcrumbHeader breadcrumb={breadcrumb}>
+            {project.share_enabled ? (
+              <ProjectShareHeaderRow>
+                <ProjectHeaderMeta
+                  project={project}
+                  canEditTitle={!isGuestProject}
+                />
+                <ProjectShareHeaderActions>
+                  <ProjectActionsMenu projectId={project.id} />
+                </ProjectShareHeaderActions>
+              </ProjectShareHeaderRow>
+            ) : (
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <ProjectHeaderMeta
+                  project={project}
+                  canEditTitle={!isGuestProject}
+                  heading="Confirm and share"
+                  showStatusBadge={false}
+                  showLocationMeta={false}
+                />
+                <ProjectActionsMenu projectId={project.id} />
+              </div>
+            )}
+          </PageBreadcrumbHeader>
+        )}
 
-        {acceptedProposalBanner}
+        {isGenerating ? null : acceptedProposalBanner}
 
         <Suspense
           fallback={
@@ -153,8 +203,9 @@ export function ProjectDetailView({
             project={project}
             autoGenerate={autoGenerate}
             activityRefreshKey={activityRefreshKey}
-            showTabs={!isGuestProject}
+            showTabs={!isGuestProject && project.share_enabled && !isGenerating}
             previewContext={previewContext}
+            onGeneratingChange={handleGeneratingChange}
           />
         </Suspense>
       </div>

@@ -127,6 +127,7 @@ function ProposalEstimateCard({
   error,
   onAccept,
   className,
+  embedded = false,
 }: {
   rangeLabel: string;
   canAccept: boolean;
@@ -134,9 +135,10 @@ function ProposalEstimateCard({
   error: string | null;
   onAccept: () => void;
   className?: string;
+  embedded?: boolean;
 }) {
-  return (
-    <SectionSurface className={cn("space-y-2", className)}>
+  const body = (
+    <div className="space-y-2">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <p className="font-display text-3xl tracking-tight text-neutral-900">
           {rangeLabel}
@@ -151,7 +153,15 @@ function ProposalEstimateCard({
       </div>
       <p className="text-sm text-[var(--muted)]">{PROPOSAL_DISCLAIMER}</p>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
-    </SectionSurface>
+    </div>
+  );
+
+  if (embedded) {
+    return body;
+  }
+
+  return (
+    <SectionSurface className={cn("space-y-2", className)}>{body}</SectionSurface>
   );
 }
 
@@ -160,43 +170,47 @@ function ProposalEstimateStatusCard({
   estimateStatus,
   isSelectedProposal,
   projectHasSelectedProposal,
+  embedded = false,
 }: {
   rangeLabel: string | null;
   estimateStatus: ContractorEstimate["status"];
   isSelectedProposal: boolean;
   projectHasSelectedProposal: boolean;
+  embedded?: boolean;
 }) {
+  const Surface = embedded ? "div" : SectionSurface;
+
   if (estimateStatus === "accepted" || isSelectedProposal) {
     return (
-      <SectionSurface className="flex flex-wrap items-center gap-3">
+      <Surface className={embedded ? "flex flex-wrap items-center gap-3" : "flex flex-wrap items-center gap-3"}>
         <Badge variant="success">Proposal accepted</Badge>
         <p className="text-sm text-neutral-800">
           You selected this contractor&apos;s proposal
           {rangeLabel ? ` (${rangeLabel})` : ""}. Other contractors have been
           notified.
         </p>
-      </SectionSurface>
+      </Surface>
     );
   }
 
   if (estimateStatus === "declined") {
     return (
-      <SectionSurface className="flex flex-wrap items-center gap-3">
+      <Surface className="flex flex-wrap items-center gap-3">
         <Badge variant="secondary">Not selected</Badge>
         <p className="text-sm text-neutral-800">
           You accepted another contractor&apos;s proposal for this project.
         </p>
-      </SectionSurface>
+      </Surface>
     );
   }
 
   if (projectHasSelectedProposal) {
     return (
-      <SectionSurface>
+      <Surface>
         <p className="text-sm text-neutral-800">
           You already accepted a proposal for this project.
         </p>
-      </SectionSurface>
+      </Surface>
     );
   }
 
@@ -277,7 +291,11 @@ export function ProposalAcceptDockProvider({
     headerObserverRef.current?.disconnect();
     headerObserverRef.current = null;
 
-    if (!node) return;
+    if (!node) {
+      setHeaderInView(false);
+      setHeaderObserved(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -295,7 +313,11 @@ export function ProposalAcceptDockProvider({
     inlineObserverRef.current?.disconnect();
     inlineObserverRef.current = null;
 
-    if (!node) return;
+    if (!node) {
+      setInlineInView(false);
+      setInlineObserved(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -373,7 +395,11 @@ export function ProposalAcceptDockProvider({
   );
 }
 
-export function ProposalEstimateHeaderSection() {
+export function ProposalEstimateHeaderSection({
+  embedded = false,
+}: {
+  embedded?: boolean;
+}) {
   const {
     rangeLabel,
     canAccept,
@@ -390,26 +416,33 @@ export function ProposalEstimateHeaderSection() {
     return null;
   }
 
+  const body =
+    canAccept && rangeLabel ? (
+      <ProposalEstimateCard
+        rangeLabel={rangeLabel}
+        canAccept
+        loading={loading}
+        error={error}
+        onAccept={handleAccept}
+        embedded={embedded}
+      />
+    ) : (
+      <ProposalEstimateStatusCard
+        rangeLabel={rangeLabel}
+        estimateStatus={estimateStatus}
+        isSelectedProposal={isSelectedProposal}
+        projectHasSelectedProposal={projectHasSelectedProposal}
+        embedded={embedded}
+      />
+    );
+
+  if (embedded) {
+    return <div ref={headerSentinelRef}>{body}</div>;
+  }
+
   return (
     <div ref={headerSentinelRef}>
-      <PageSection title="Project estimate">
-        {canAccept && rangeLabel ? (
-          <ProposalEstimateCard
-            rangeLabel={rangeLabel}
-            canAccept
-            loading={loading}
-            error={error}
-            onAccept={handleAccept}
-          />
-        ) : (
-          <ProposalEstimateStatusCard
-            rangeLabel={rangeLabel}
-            estimateStatus={estimateStatus}
-            isSelectedProposal={isSelectedProposal}
-            projectHasSelectedProposal={projectHasSelectedProposal}
-          />
-        )}
-      </PageSection>
+      <PageSection title="Project estimate">{body}</PageSection>
     </div>
   );
 }

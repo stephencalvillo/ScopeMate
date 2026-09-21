@@ -129,50 +129,59 @@ export function PhotoLightbox({
   );
 }
 
-export function SharedPhotoGallery({ photos }: { photos: SharedPhoto[] }) {
+export function SharedPhotoGallery({
+  photos,
+  embedded = false,
+}: {
+  photos: SharedPhoto[];
+  embedded?: boolean;
+}) {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
+  const gallery =
+    photos.length === 0 ? (
+      <p className="text-sm text-[var(--muted)]">
+        No photos were shared for this project.
+      </p>
+    ) : (
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        {photos.map((photo, index) => (
+          <button
+            key={photo.id}
+            type="button"
+            onClick={() => {
+              setLightboxIndex(index);
+              setLightboxOpen(true);
+            }}
+            className={cn(
+              "aspect-square overflow-hidden rounded-[8px] border border-[var(--border)] bg-neutral-100",
+              "transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+            )}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={photo.url}
+              alt={photo.file_name}
+              className="h-full w-full object-cover"
+            />
+          </button>
+        ))}
+      </div>
+    );
+
   return (
     <>
-      <PageSection
-        title="Project photos"
-        description="Photos of the project area shared by the homeowner."
-      >
-        {photos.length === 0 ? (
-          <SectionSurface>
-            <p className="text-sm text-[var(--muted)]">
-              No photos were shared for this project.
-            </p>
-          </SectionSurface>
-        ) : (
-          <SectionSurface>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-              {photos.map((photo, index) => (
-                <button
-                  key={photo.id}
-                  type="button"
-                  onClick={() => {
-                    setLightboxIndex(index);
-                    setLightboxOpen(true);
-                  }}
-                  className={cn(
-                    "aspect-square overflow-hidden rounded-[8px] border border-[var(--border)] bg-neutral-100",
-                    "transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
-                  )}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photo.url}
-                    alt={photo.file_name}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          </SectionSurface>
-        )}
-      </PageSection>
+      {embedded ? (
+        gallery
+      ) : (
+        <PageSection
+          title="Project photos"
+          description="Photos of the project area shared by the homeowner."
+        >
+          <SectionSurface>{gallery}</SectionSurface>
+        </PageSection>
+      )}
 
       <PhotoLightbox
         photos={photos}

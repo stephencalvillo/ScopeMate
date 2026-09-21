@@ -96,7 +96,7 @@ test("buildInjectedContextQuestions returns room and cabinet questions", () => {
   assert.equal(questions[0]?.question_type, "dimension_estimate");
   assert.match(questions[0]?.question ?? "", /kitchen/i);
   assert.equal(questions[1]?.question_type, "choice");
-  assert.match(questions[1]?.question ?? "", /cabinet/i);
+  assert.match(questions[1]?.question ?? "", /kitchen cabinet/i);
 });
 
 test("buildInjectedContextQuestions asks size for each room without dimensions", () => {

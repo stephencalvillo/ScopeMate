@@ -5,15 +5,18 @@ import { useAuth } from "@clerk/nextjs";
 import { useContractorEstimate } from "@/components/estimate/contractor-estimate-context";
 import { reviewAuthenticatedFetch } from "@/lib/review/authenticated-review-fetch-client";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function ReviewSubmitActions({
   token,
   notes,
   onSubmitted,
+  stacked = false,
 }: {
   token: string;
   notes: string;
   onSubmitted: () => void | Promise<void>;
+  stacked?: boolean;
 }) {
   const { getToken } = useAuth();
   const {
@@ -76,9 +79,10 @@ export function ReviewSubmitActions({
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
+      <div className={cn("flex flex-wrap gap-2", stacked && "flex-col")}>
         <Button
           type="button"
+          className={stacked ? "w-full" : undefined}
           disabled={completing || saving}
           onClick={handleSubmitReview}
         >
@@ -87,6 +91,7 @@ export function ReviewSubmitActions({
         <Button
           type="button"
           variant="secondary"
+          className={stacked ? "w-full" : undefined}
           disabled={saving || completing || !dirty}
           onClick={saveDraft}
         >

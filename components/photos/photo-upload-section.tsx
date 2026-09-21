@@ -125,11 +125,18 @@ function toSharedPhotos(photos: ProjectPhotoWithUrl[]): SharedPhoto[] {
   }));
 }
 
-export function PhotoUploadSection({ projectId }: { projectId: string }) {
+export function PhotoUploadSection({
+  projectId,
+  embedded = false,
+  onPhotosChange,
+}: {
+  projectId: string;
+  embedded?: boolean;
+  onPhotosChange?: (photos: ProjectPhotoWithUrl[]) => void;
+}) {
   const { getToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photos, setPhotos] = useState<ProjectPhotoWithUrl[]>([]);
-  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -143,14 +150,16 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
       setPhotos(result);
     } catch {
       setPhotos([]);
-    } finally {
-      setLoading(false);
     }
   }, [getToken, projectId]);
 
   useEffect(() => {
     loadPhotos();
   }, [loadPhotos]);
+
+  useEffect(() => {
+    onPhotosChange?.(photos);
+  }, [onPhotosChange, photos]);
 
   async function handleFiles(files: FileList) {
     const imageFiles = Array.from(files).filter((file) =>
@@ -208,6 +217,94 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
     if (!uploading) fileInputRef.current?.click();
   }
 
+  const gallery = (
+    <>
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+      {photos.length === 0 ? (
+        <PhotoDropZone
+          onFiles={handleFiles}
+          uploading={uploading}
+          short
+          label="Click or drag photos here"
+        />
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          {photos.map((photo, index) => (
+            <SectionSurface
+              key={photo.id}
+              className="group relative aspect-square overflow-hidden p-0"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setLightboxIndex(index);
+                  setLightboxOpen(true);
+                }}
+                className="h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2"
+                aria-label={`View ${photo.file_name}`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photo.url}
+                  alt={photo.file_name}
+                  className="h-full w-full object-cover"
+                />
+              </button>
+
+              {pendingDeleteId === photo.id ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-stone-950/75 p-3 text-center">
+                  <p className="text-sm font-medium text-white">
+                    Remove this photo?
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="destructive"
+                      disabled={deletingId === photo.id}
+                      onClick={() => handleDelete(photo.id)}
+                    >
+                      {deletingId === photo.id ? "Removing..." : "Remove"}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      disabled={deletingId === photo.id}
+                      onClick={() => setPendingDeleteId(null)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setPendingDeleteId(photo.id);
+                  }}
+                  className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-neutral-700 shadow-sm transition-colors hover:bg-white hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+                  aria-label="Remove photo"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
+              )}
+            </SectionSurface>
+          ))}
+          <PhotoDropZone
+            onFiles={handleFiles}
+            uploading={uploading}
+            compact
+            label="Add more"
+            hint="Click or drag"
+          />
+        </div>
+      )}
+    </>
+  );
+
   return (
     <>
       <input
@@ -222,112 +319,29 @@ export function PhotoUploadSection({ projectId }: { projectId: string }) {
         }}
       />
 
-      <PageSection
-        title="Project photos"
-        description="Photos help contractors understand your space. No need for perfect angles."
-        action={
-          !loading && photos.length === 0 ? (
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={uploading}
-              onClick={openPhotoPicker}
-            >
-              <Plus className="h-4 w-4" aria-hidden />
-              Add photos
-            </Button>
-          ) : null
-        }
-      >
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-        {loading ? (
-          <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading photos
-          </div>
-        ) : photos.length === 0 ? (
-          <PhotoDropZone
-            onFiles={handleFiles}
-            uploading={uploading}
-            short
-            label="Add photos by dragging and dropping here"
-          />
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {photos.map((photo, index) => (
-              <SectionSurface
-                key={photo.id}
-                className="group relative aspect-square overflow-hidden p-0"
+      {embedded ? (
+        gallery
+      ) : (
+        <PageSection
+          title="Project photos"
+          description="Photos help contractors understand your space. No need for perfect angles."
+          action={
+            photos.length === 0 ? (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={uploading}
+                onClick={openPhotoPicker}
               >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLightboxIndex(index);
-                    setLightboxOpen(true);
-                  }}
-                  className="h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2"
-                  aria-label={`View ${photo.file_name}`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photo.url}
-                    alt={photo.file_name}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-
-                {pendingDeleteId === photo.id ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-stone-950/75 p-3 text-center">
-                    <p className="text-sm font-medium text-white">
-                      Remove this photo?
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="destructive"
-                        disabled={deletingId === photo.id}
-                        onClick={() => handleDelete(photo.id)}
-                      >
-                        {deletingId === photo.id ? "Removing..." : "Remove"}
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        disabled={deletingId === photo.id}
-                        onClick={() => setPendingDeleteId(null)}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setPendingDeleteId(photo.id);
-                    }}
-                    className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-neutral-700 shadow-sm transition-colors hover:bg-white hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
-                    aria-label="Remove photo"
-                  >
-                    <X className="h-4 w-4" aria-hidden />
-                  </button>
-                )}
-              </SectionSurface>
-            ))}
-            <PhotoDropZone
-              onFiles={handleFiles}
-              uploading={uploading}
-              compact
-              label="Add more"
-              hint="Click or drag"
-            />
-          </div>
-        )}
-      </PageSection>
+                <Plus className="h-4 w-4" aria-hidden />
+                Add photos
+              </Button>
+            ) : null
+          }
+        >
+          {gallery}
+        </PageSection>
+      )}
 
       <PhotoLightbox
         photos={sharedPhotos}

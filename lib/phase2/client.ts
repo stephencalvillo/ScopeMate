@@ -1,3 +1,4 @@
+import { readGuestProjectToken } from "@/lib/auth/guest-project-session";
 import type { FollowUpQuestion, ScopeItem } from "@/types";
 
 export type ProjectPhotoWithUrl = {
@@ -86,12 +87,24 @@ export async function deletePhoto(
   }
 }
 
+function followUpPath(projectId: string, suffix = "") {
+  const path = `/api/projects/${projectId}/follow-up-questions${suffix}`;
+  if (typeof window === "undefined") return path;
+
+  const token =
+    new URLSearchParams(window.location.search).get("guest_token") ??
+    readGuestProjectToken(projectId);
+  if (!token) return path;
+
+  const url = new URL(path, window.location.origin);
+  url.searchParams.set("guest_token", token);
+  return `${url.pathname}${url.search}`;
+}
+
 export async function fetchFollowUpQuestions(
   projectId: string
 ): Promise<FollowUpQuestion[]> {
-  const response = await fetch(
-    `/api/projects/${projectId}/follow-up-questions`
-  );
+  const response = await fetch(followUpPath(projectId));
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.error ?? "Could not load questions.");
@@ -102,10 +115,9 @@ export async function fetchFollowUpQuestions(
 export async function generateFollowUpQuestions(
   projectId: string
 ): Promise<FollowUpQuestion[]> {
-  const response = await fetch(
-    `/api/projects/${projectId}/follow-up-questions/generate`,
-    { method: "POST" }
-  );
+  const response = await fetch(followUpPath(projectId, "/generate"), {
+    method: "POST",
+  });
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.error ?? "Could not generate questions.");
@@ -118,14 +130,11 @@ export async function answerFollowUpQuestion(
   questionId: string,
   payload: { answer?: string; skipped?: boolean }
 ): Promise<{ question: FollowUpQuestion; scope_item?: ScopeItem | null }> {
-  const response = await fetch(
-    `/api/projects/${projectId}/follow-up-questions/${questionId}`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }
-  );
+  const response = await fetch(followUpPath(projectId, `/${questionId}`), {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
   const data = await response.json();
   if (!response.ok) {
@@ -137,10 +146,9 @@ export async function answerFollowUpQuestion(
 export async function syncFollowUpAnswersToScope(
   projectId: string
 ): Promise<{ scope_items: ScopeItem[] }> {
-  const response = await fetch(
-    `/api/projects/${projectId}/follow-up-questions/sync-scope`,
-    { method: "POST" }
-  );
+  const response = await fetch(followUpPath(projectId, "/sync-scope"), {
+    method: "POST",
+  });
 
   const data = await response.json();
   if (!response.ok) {

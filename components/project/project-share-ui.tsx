@@ -565,6 +565,31 @@ export function ProjectShareInlineDock() {
   );
 }
 
+export function ProjectShareLastStepActions() {
+  const { openShareDialog, openSaveProjectDialog, isGuestProject } =
+    useProjectShare();
+  const buttonClassName = cn("px-4", mobileFullWidthCtaClassName);
+
+  if (!isGuestProject) {
+    return (
+      <ShareLinkTriggerButton
+        onClick={openShareDialog}
+        className={buttonClassName}
+      />
+    );
+  }
+
+  return (
+    <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-start">
+      <ShareLinkTriggerButton onClick={openShareDialog} className={buttonClassName} />
+      <SaveProjectTriggerButton
+        onClick={openSaveProjectDialog}
+        className={buttonClassName}
+      />
+    </div>
+  );
+}
+
 export function useProjectShareCopy() {
   const { shareSectionTitle, shareDescription } = useProjectShare();
   return { shareSectionTitle, shareDescription };
