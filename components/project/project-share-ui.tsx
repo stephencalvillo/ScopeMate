@@ -244,6 +244,7 @@ export function ProjectShareProvider({
     if (isGuestProject) {
       await claimProject();
       finishGuestShareOnboarding();
+      router.refresh();
       return;
     }
 
@@ -255,6 +256,7 @@ export function ProjectShareProvider({
     finishGuestShareOnboarding,
     isGuestProject,
     openShareLinkDialog,
+    router,
   ]);
 
   const openShareDialog = useCallback(async () => {
@@ -269,6 +271,7 @@ export function ProjectShareProvider({
 
       await claimProject();
       finishGuestShareOnboarding();
+      router.refresh();
       return;
     }
 
@@ -283,6 +286,7 @@ export function ProjectShareProvider({
     isSignedIn,
     openAccountDialog,
     openShareLinkDialog,
+    router,
   ]);
 
   const openSaveProjectDialog = useCallback(async () => {
@@ -317,8 +321,8 @@ export function ProjectShareProvider({
         finishGuestShareOnboarding();
       } else {
         cleanShareReturnUrl();
-        router.refresh();
       }
+      router.refresh();
       return;
     }
 

@@ -17,6 +17,7 @@ import { MyProjectsBreadcrumb } from "@/components/layout/my-projects-breadcrumb
 import { PageBreadcrumbHeader } from "@/components/layout/page-breadcrumb-header";
 import { Badge } from "@/components/ui/badge";
 import { formatProjectLocation } from "@/lib/location/parse";
+import { usesCreationWalkthrough } from "@/lib/project/creation-walkthrough";
 import { projectStatusBadgeProps } from "@/lib/project-status";
 import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision-types";
 import { formatProjectTypeLabel, type ProjectWithScope } from "@/types";
@@ -69,6 +70,43 @@ function ProjectHeaderMeta({
   );
 }
 
+function ProjectDetailHeader({
+  project,
+  isGuestProject,
+  useCreationWalkthrough,
+}: {
+  project: ProjectWithScope;
+  isGuestProject: boolean;
+  useCreationWalkthrough: boolean;
+}) {
+  const actions = <ProjectActionsMenu projectId={project.id} />;
+  const meta = (
+    <ProjectHeaderMeta
+      project={project}
+      canEditTitle={!isGuestProject}
+      heading={useCreationWalkthrough ? "Confirm and share" : undefined}
+      showStatusBadge={!useCreationWalkthrough}
+      showLocationMeta={!useCreationWalkthrough}
+    />
+  );
+
+  if (useCreationWalkthrough) {
+    return (
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        {meta}
+        {actions}
+      </div>
+    );
+  }
+
+  return (
+    <ProjectShareHeaderRow>
+      {meta}
+      <ProjectShareHeaderActions>{actions}</ProjectShareHeaderActions>
+    </ProjectShareHeaderRow>
+  );
+}
+
 export function ProjectDetailView({
   project,
   autoGenerate,
@@ -85,6 +123,7 @@ export function ProjectDetailView({
   previewContext?: ProjectPreviewContext;
 }) {
   const hasScope = project.scope_items.length > 0 || project.ai_summary;
+  const useCreationWalkthrough = usesCreationWalkthrough(project);
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const handleActivityChange = useCallback(() => {
     setActivityRefreshKey((current) => current + 1);
@@ -136,16 +175,11 @@ export function ProjectDetailView({
           </Suspense>
           {isGenerating ? null : (
             <PageBreadcrumbHeader breadcrumb={breadcrumb}>
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <ProjectHeaderMeta
-                  project={project}
-                  canEditTitle={!isGuestProject}
-                  heading="Confirm and share"
-                  showStatusBadge={false}
-                  showLocationMeta={false}
-                />
-                <ProjectActionsMenu projectId={project.id} />
-              </div>
+              <ProjectDetailHeader
+                project={project}
+                isGuestProject={isGuestProject}
+                useCreationWalkthrough={useCreationWalkthrough}
+              />
             </PageBreadcrumbHeader>
           )}
           {isGenerating ? null : acceptedProposalBanner}
@@ -167,28 +201,11 @@ export function ProjectDetailView({
       <div className="space-y-8">
         {isGenerating ? null : (
           <PageBreadcrumbHeader breadcrumb={breadcrumb}>
-            {project.share_enabled ? (
-              <ProjectShareHeaderRow>
-                <ProjectHeaderMeta
-                  project={project}
-                  canEditTitle={!isGuestProject}
-                />
-                <ProjectShareHeaderActions>
-                  <ProjectActionsMenu projectId={project.id} />
-                </ProjectShareHeaderActions>
-              </ProjectShareHeaderRow>
-            ) : (
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <ProjectHeaderMeta
-                  project={project}
-                  canEditTitle={!isGuestProject}
-                  heading="Confirm and share"
-                  showStatusBadge={false}
-                  showLocationMeta={false}
-                />
-                <ProjectActionsMenu projectId={project.id} />
-              </div>
-            )}
+            <ProjectDetailHeader
+              project={project}
+              isGuestProject={isGuestProject}
+              useCreationWalkthrough={useCreationWalkthrough}
+            />
           </PageBreadcrumbHeader>
         )}
 

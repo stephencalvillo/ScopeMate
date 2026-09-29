@@ -33,6 +33,7 @@ import { ScopeSummary } from "@/components/scope/scope-summary";
 import { UpdateProjectScopeDialog } from "@/components/scope/update-project-scope-dialog";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+import { usesCreationWalkthrough } from "@/lib/project/creation-walkthrough";
 import {
   groupScopeItemsByCategory,
   withoutAnswerDerivedScopeItems,
@@ -72,7 +73,7 @@ export function ScopeEditor({
 
   const hasScope = items.length > 0 || Boolean(summary);
   const isUpdatingScope = Boolean(updatedSummary);
-  const useConfirmSteps = hasScope && !project.share_enabled;
+  const useConfirmSteps = hasScope && usesCreationWalkthrough(project);
   const groupedItems = groupScopeItemsByCategory(
     useConfirmSteps ? withoutAnswerDerivedScopeItems(items) : items
   );

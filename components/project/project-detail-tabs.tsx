@@ -14,6 +14,7 @@ import {
   type ProjectTabId,
 } from "@/components/project/project-tab-nav";
 import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
+import { usesCreationWalkthrough } from "@/lib/project/creation-walkthrough";
 import { useProjectDetailPath } from "@/lib/project/use-project-detail-path";
 import type { ProjectPreviewContext } from "@/lib/admin/preview-context";
 import type { ProjectWithScope } from "@/types";
@@ -141,7 +142,7 @@ export function ProjectDetailTabs({
             autoGenerate={autoGenerate}
             onGeneratingChange={onGeneratingChange}
           />
-          {project.share_enabled ? <ProjectShareSection /> : null}
+          {!usesCreationWalkthrough(project) ? <ProjectShareSection /> : null}
         </div>
       ) : null}
 
