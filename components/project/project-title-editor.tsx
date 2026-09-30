@@ -105,15 +105,15 @@ export function ProjectTitleEditor({
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="font-display text-4xl tracking-tight text-neutral-900">
+      <div className="flex items-start gap-1">
+        <h1 className="min-w-0 flex-1 font-display text-4xl tracking-tight text-neutral-900">
           {title}
         </h1>
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="h-8 px-2 text-[var(--muted)]"
+          className="mt-1.5 h-8 shrink-0 px-2 text-[var(--muted)]"
           onClick={() => setEditing(true)}
           aria-label="Edit project name"
         >

@@ -128,10 +128,14 @@ function toSharedPhotos(photos: ProjectPhotoWithUrl[]): SharedPhoto[] {
 export function PhotoUploadSection({
   projectId,
   embedded = false,
+  layout = "default",
+  previewApiBase,
   onPhotosChange,
 }: {
   projectId: string;
   embedded?: boolean;
+  layout?: "default" | "sidebar";
+  previewApiBase?: string;
   onPhotosChange?: (photos: ProjectPhotoWithUrl[]) => void;
 }) {
   const { getToken } = useAuth();
@@ -143,15 +147,28 @@ export function PhotoUploadSection({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const isSidebar = layout === "sidebar";
 
   const loadPhotos = useCallback(async () => {
     try {
+      if (previewApiBase) {
+        const filled =
+          typeof window !== "undefined" &&
+          new URLSearchParams(window.location.search).get("photos") === "1";
+        const response = await fetch(
+          `${previewApiBase}/photos${filled ? "?filled=1" : ""}`
+        );
+        const data = await response.json();
+        setPhotos(response.ok ? (data.photos ?? []) : []);
+        return;
+      }
+
       const result = await fetchPhotos(projectId, getToken);
       setPhotos(result);
     } catch {
       setPhotos([]);
     }
-  }, [getToken, projectId]);
+  }, [getToken, previewApiBase, projectId]);
 
   useEffect(() => {
     loadPhotos();
@@ -172,6 +189,24 @@ export function PhotoUploadSection({
 
     try {
       for (const file of imageFiles) {
+        if (previewApiBase) {
+          setPhotos((current) => [
+            ...current,
+            {
+              id: `local-${crypto.randomUUID()}`,
+              project_id: projectId,
+              storage_path: file.name,
+              file_name: file.name,
+              mime_type: file.type,
+              file_size: file.size,
+              sort_order: current.length,
+              created_at: new Date().toISOString(),
+              url: URL.createObjectURL(file),
+            },
+          ]);
+          continue;
+        }
+
         const photo = await uploadPhoto(projectId, file, getToken);
         setPhotos((current) => [...current, photo]);
       }
@@ -189,7 +224,9 @@ export function PhotoUploadSection({
     setError(null);
 
     try {
-      await deletePhoto(projectId, photoId, getToken);
+      if (!previewApiBase && !photoId.startsWith("local-")) {
+        await deletePhoto(projectId, photoId, getToken);
+      }
       const deletedIndex = photos.findIndex((photo) => photo.id === photoId);
       const nextPhotos = photos.filter((photo) => photo.id !== photoId);
       setPhotos(nextPhotos);
@@ -217,23 +254,58 @@ export function PhotoUploadSection({
     if (!uploading) fileInputRef.current?.click();
   }
 
+  const sidebarEmpty = (
+    <button
+      type="button"
+      disabled={uploading}
+      onClick={openPhotoPicker}
+      className={cn(
+        "flex h-14 w-full items-center gap-3 rounded-[8px] bg-neutral-100 px-4 text-left text-sm text-neutral-500 transition-colors hover:bg-neutral-200/80",
+        uploading && "cursor-wait opacity-70"
+      )}
+    >
+      {uploading ? (
+        <Loader2 className="h-5 w-5 shrink-0 animate-spin text-neutral-400" aria-hidden />
+      ) : (
+        <ImagePlus className="h-5 w-5 shrink-0 text-neutral-400" aria-hidden />
+      )}
+      Click or add photos here
+    </button>
+  );
+
   const gallery = (
     <>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       {photos.length === 0 ? (
-        <PhotoDropZone
-          onFiles={handleFiles}
-          uploading={uploading}
-          short
-          label="Click or drag photos here"
-        />
+        isSidebar ? (
+          sidebarEmpty
+        ) : (
+          <PhotoDropZone
+            onFiles={handleFiles}
+            uploading={uploading}
+            short
+            label="Click or drag photos here"
+          />
+        )
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        <div
+          className={cn(
+            "grid gap-2",
+            isSidebar
+              ? "grid-cols-2"
+              : "grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4"
+          )}
+        >
           {photos.map((photo, index) => (
-            <SectionSurface
+            <div
               key={photo.id}
-              className="group relative aspect-square overflow-hidden p-0"
+              className={cn(
+                "group relative aspect-square overflow-hidden rounded-[8px]",
+                isSidebar
+                  ? "bg-neutral-100"
+                  : "border border-[var(--border)] bg-white"
+              )}
             >
               <button
                 type="button"
@@ -285,24 +357,48 @@ export function PhotoUploadSection({
                     event.stopPropagation();
                     setPendingDeleteId(photo.id);
                   }}
-                  className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-neutral-700 shadow-sm transition-colors hover:bg-white hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+                  className={cn(
+                    "absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-neutral-700 shadow-sm transition-colors hover:bg-white hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400",
+                    isSidebar &&
+                      "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+                  )}
                   aria-label="Remove photo"
                 >
                   <X className="h-4 w-4" aria-hidden />
                 </button>
               )}
-            </SectionSurface>
+            </div>
           ))}
-          <PhotoDropZone
-            onFiles={handleFiles}
-            uploading={uploading}
-            compact
-            label="Add more"
-            hint="Click or drag"
-          />
+          {isSidebar ? null : (
+            <PhotoDropZone
+              onFiles={handleFiles}
+              uploading={uploading}
+              compact
+              label="Add more"
+              hint="Click or drag"
+            />
+          )}
         </div>
       )}
     </>
+  );
+
+  const sidebar = (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-display text-lg text-neutral-900">Photos</h2>
+        <button
+          type="button"
+          onClick={openPhotoPicker}
+          disabled={uploading}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-[4px] text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:opacity-50"
+          aria-label="Add photos"
+        >
+          <Plus className="h-4 w-4" aria-hidden />
+        </button>
+      </div>
+      {gallery}
+    </section>
   );
 
   return (
@@ -319,7 +415,9 @@ export function PhotoUploadSection({
         }}
       />
 
-      {embedded ? (
+      {isSidebar ? (
+        sidebar
+      ) : embedded ? (
         gallery
       ) : (
         <PageSection

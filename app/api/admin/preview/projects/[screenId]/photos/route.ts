@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth/admin";
-import { getPreviewHomeownerOwnerSuggestions } from "@/lib/admin/fixtures";
+import { previewHomeownerPhotos } from "@/lib/admin/fixtures";
 import { getScreenById } from "@/lib/admin/screen-catalog";
 
 export const dynamic = "force-dynamic";
@@ -10,11 +10,11 @@ export const runtime = "nodejs";
 const noStoreHeaders = { "Cache-Control": "no-store" };
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ screenId: string }> }
 ) {
   try {
-    await requireAdmin(_request);
+    await requireAdmin(request);
     const { screenId } = await params;
     const screen = getScreenById(screenId);
 
@@ -22,8 +22,10 @@ export async function GET(
       return NextResponse.json({ error: "Preview not found." }, { status: 404 });
     }
 
+    const filled = new URL(request.url).searchParams.get("filled") === "1";
+
     return NextResponse.json(
-      { suggestions: getPreviewHomeownerOwnerSuggestions() },
+      { photos: filled ? previewHomeownerPhotos : [] },
       { headers: noStoreHeaders }
     );
   } catch (error) {

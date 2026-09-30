@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth/admin";
-import { getPreviewHomeownerOwnerSuggestions } from "@/lib/admin/fixtures";
+import { previewHomeownerFollowUpQuestions } from "@/lib/admin/fixtures";
 import { getScreenById } from "@/lib/admin/screen-catalog";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +23,7 @@ export async function GET(
     }
 
     return NextResponse.json(
-      { suggestions: getPreviewHomeownerOwnerSuggestions() },
+      { questions: previewHomeownerFollowUpQuestions },
       { headers: noStoreHeaders }
     );
   } catch (error) {

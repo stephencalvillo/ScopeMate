@@ -1,7 +1,14 @@
 import type { ProjectActivityItem } from "@/lib/contractor/activity";
+import {
+  SHARE_LINK_PLACEHOLDER_EMAIL,
+  SHARE_LINK_PLACEHOLDER_NAME,
+} from "@/lib/contractor/project-share";
 import type { ReviewedScopeDetail } from "@/lib/contractor/reviewed-scopes";
 import type { ReviewedScopeSummary } from "@/lib/contractor/reviewed-scopes";
+import type { ProjectPhotoWithUrl } from "@/lib/phase2/client";
 import type {
+  ContractorInvitationWithReview,
+  FollowUpQuestion,
   Project,
   ProjectWithScope,
   ScopeItem,
@@ -10,7 +17,10 @@ import type {
 import {
   PREVIEW_HOMEOWNER_PROJECT_ID,
   PREVIEW_INVITATION_ID,
+  PREVIEW_JUAN_INVITATION_ID,
+  PREVIEW_KURT_INVITATION_ID,
   PREVIEW_REVIEW_TOKEN,
+  PREVIEW_SHARE_INVITATION_ID,
   PREVIEW_TIMESTAMP,
 } from "./constants";
 import { buildPreviewScopeSnapshot } from "./scope-snapshot";
@@ -19,8 +29,8 @@ const scopeItems: ScopeItem[] = [
   {
     id: "preview-scope-1",
     project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
-    category: "demolition",
-    text: "Remove existing upper and lower cabinets, countertop, and backsplash tile.",
+    category: "planning",
+    text: "Develop design plans for kitchen layout and guest bathroom.",
     source: "ai",
     priority: "required",
     status: "active",
@@ -32,39 +42,26 @@ const scopeItems: ScopeItem[] = [
   {
     id: "preview-scope-2",
     project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
-    category: "cabinetry",
-    text: "Install shaker-style cabinets with soft-close hinges and drawer slides.",
+    category: "planning",
+    text: "Select materials, fixtures, and finishes for both kitchen and bathroom.",
     source: "ai",
     priority: "required",
     status: "active",
     sort_order: 1,
-    needs_verification: true,
+    needs_verification: false,
     created_at: PREVIEW_TIMESTAMP,
     updated_at: PREVIEW_TIMESTAMP,
   },
   {
     id: "preview-scope-3",
     project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
-    category: "countertops",
-    text: "Template and install quartz countertops with eased edge profile.",
+    category: "permits",
+    text: "Obtain necessary permits for kitchen and bathroom remodel.",
     source: "ai",
-    priority: "recommended",
+    priority: "required",
     status: "active",
     sort_order: 2,
-    needs_verification: false,
-    created_at: PREVIEW_TIMESTAMP,
-    updated_at: PREVIEW_TIMESTAMP,
-  },
-  {
-    id: "preview-scope-4",
-    project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
-    category: "fixtures",
-    text: "Install under-cabinet LED lighting and replace outlet covers.",
-    source: "homeowner",
-    priority: "optional",
-    status: "active",
-    sort_order: 3,
-    needs_verification: false,
+    needs_verification: true,
     created_at: PREVIEW_TIMESTAMP,
     updated_at: PREVIEW_TIMESTAMP,
   },
@@ -75,15 +72,15 @@ export const previewHomeownerKitchenProject: ProjectWithScope = {
   homeowner_id: "preview-homeowner-user",
   creator_role: "homeowner",
   created_by_user_id: "preview-homeowner-user",
-  title: "Kitchen refresh",
+  title: "Kitchen and bath remodel",
   project_type: "kitchen",
-  city: "Austin",
-  zip: "78701",
-  location: "Austin, TX 78701",
+  city: "Long Beach",
+  zip: "90802",
+  location: "Long Beach, CA",
   original_description:
-    "We want to update our kitchen with new cabinets, quartz counters, and better lighting.",
+    "Remodel both the kitchen and guest bathroom in a Long Beach, CA home.",
   ai_summary:
-    "Full kitchen refresh including demo, new shaker cabinets, quartz counters, and upgraded lighting.",
+    "This project involves remodeling both the kitchen and guest bathroom in a Long Beach, CA home. Key considerations include updating fixtures, cabinetry, and finishes in both spaces. The homeowner plans to start the project in 3-6 months, allowing time for design and planning. Coordination of plumbing, electrical, and potential structural changes will be important.",
   status: "scope_ready",
   share_token: PREVIEW_REVIEW_TOKEN,
   share_enabled: true,
@@ -234,3 +231,184 @@ export const previewHomeownerReviewedScopeDetail: ReviewedScopeDetail = {
   ...previewHomeownerReviewedScopes[0],
   suggestions: previewHomeownerSuggestions,
 };
+
+function daysAgoIso(days: number) {
+  const date = new Date();
+  date.setHours(16, 0, 0, 0);
+  date.setDate(date.getDate() - days);
+  return date.toISOString();
+}
+
+export function getPreviewHomeownerSentInvitations(): ContractorInvitationWithReview[] {
+  const sentAt = daysAgoIso(3);
+  const openedAt = daysAgoIso(1);
+  const expiresAt = "2026-12-31T23:59:59.000Z";
+
+  const shareInvitation: ContractorInvitationWithReview = {
+    id: PREVIEW_SHARE_INVITATION_ID,
+    project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+    invited_by: "preview-homeowner-user",
+    contractor_name: SHARE_LINK_PLACEHOLDER_NAME,
+    contractor_email: SHARE_LINK_PLACEHOLDER_EMAIL,
+    contractor_company: null,
+    invitation_token: PREVIEW_REVIEW_TOKEN,
+    status: "pending",
+    accepted_at: null,
+    first_accessed_at: openedAt,
+    last_accessed_at: openedAt,
+    expires_at: expiresAt,
+    created_at: sentAt,
+    updated_at: openedAt,
+  };
+
+  const kurtInvitation: ContractorInvitationWithReview = {
+    id: PREVIEW_KURT_INVITATION_ID,
+    project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+    invited_by: "preview-homeowner-user",
+    contractor_name: "Kurt Blaiser",
+    contractor_email: "kurt@example.com",
+    contractor_company: null,
+    invitation_token: "preview-kurt-token",
+    status: "in_review",
+    accepted_at: openedAt,
+    first_accessed_at: openedAt,
+    last_accessed_at: openedAt,
+    expires_at: expiresAt,
+    created_at: sentAt,
+    updated_at: openedAt,
+  };
+
+  const juanInvitation: ContractorInvitationWithReview = {
+    id: PREVIEW_JUAN_INVITATION_ID,
+    project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+    invited_by: "preview-homeowner-user",
+    contractor_name: "Juan Numberjuan",
+    contractor_email: "juan@example.com",
+    contractor_company: null,
+    invitation_token: "preview-juan-token",
+    status: "submitted",
+    accepted_at: openedAt,
+    first_accessed_at: openedAt,
+    last_accessed_at: openedAt,
+    expires_at: expiresAt,
+    created_at: sentAt,
+    updated_at: openedAt,
+    review: {
+      id: "preview-juan-review",
+      project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+      invitation_id: PREVIEW_JUAN_INVITATION_ID,
+      notes: "Kitchen and bath bid attached.",
+      status: "submitted",
+      submitted_at: openedAt,
+      scope_snapshot: null,
+      created_at: sentAt,
+      updated_at: openedAt,
+    },
+  };
+
+  return [shareInvitation, kurtInvitation, juanInvitation];
+}
+
+export const previewKurtSuggestion: ScopeSuggestionWithMeta = {
+  id: "preview-suggestion-kurt",
+  project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+  invitation_id: PREVIEW_KURT_INVITATION_ID,
+  target_scope_item_id: "preview-scope-2",
+  suggestion_type: "note",
+  category: "other",
+  suggested_text: null,
+  contractor_note:
+    "Can the existing window stay in the kitchen, or should we plan to replace it with the new cabinetry?",
+  status: "pending",
+  homeowner_rejection_reason: null,
+  resolved_at: null,
+  resolved_by: null,
+  created_at: PREVIEW_TIMESTAMP,
+  updated_at: PREVIEW_TIMESTAMP,
+  contractor_name: "Kurt Blaiser",
+  target_scope_item_text: scopeItems[1].text,
+};
+
+export function getPreviewHomeownerOwnerSuggestions(): ScopeSuggestionWithMeta[] {
+  return [...previewHomeownerSuggestions, previewKurtSuggestion];
+}
+
+export const previewHomeownerFollowUpQuestions: FollowUpQuestion[] = [
+  {
+    id: "preview-follow-up-timeline",
+    project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+    question: "When are you looking to start?",
+    question_type: "choice",
+    category: "timeline",
+    choices: ["Within 1 month", "1–3 months", "3–6 months", "Just exploring", "Not sure"],
+    answer: "1–3 months",
+    skipped: false,
+    sort_order: 0,
+    source: "homeowner",
+    created_at: PREVIEW_TIMESTAMP,
+    answered_at: PREVIEW_TIMESTAMP,
+  },
+  {
+    id: "preview-follow-up-kitchen",
+    project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+    question: "About how large is the kitchen?",
+    question_type: "dimension_estimate",
+    category: "dimensions",
+    choices: null,
+    answer: "exact:20x15",
+    skipped: false,
+    sort_order: 1,
+    source: "ai",
+    created_at: PREVIEW_TIMESTAMP,
+    answered_at: PREVIEW_TIMESTAMP,
+  },
+  {
+    id: "preview-follow-up-bath",
+    project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+    question: "About how large is the guest bathroom?",
+    question_type: "dimension_estimate",
+    category: "dimensions",
+    choices: null,
+    answer: "exact:10x10",
+    skipped: false,
+    sort_order: 2,
+    source: "ai",
+    created_at: PREVIEW_TIMESTAMP,
+    answered_at: PREVIEW_TIMESTAMP,
+  },
+  {
+    id: "preview-follow-up-finishes",
+    project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+    question: "What finish level are you aiming for?",
+    question_type: "choice",
+    category: "materials",
+    choices: ["Standard finishes", "Elevated finishes", "Not sure"],
+    answer: "Elevated finishes",
+    skipped: false,
+    sort_order: 3,
+    source: "ai",
+    created_at: PREVIEW_TIMESTAMP,
+    answered_at: PREVIEW_TIMESTAMP,
+  },
+];
+
+const PREVIEW_HOMEOWNER_PHOTO_URLS = [
+  "https://images.unsplash.com/photo-1556912173-46c336c7fd55?auto=format&fit=crop&w=800&h=800&q=80",
+  "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=800&h=800&q=80",
+  "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=800&h=800&q=80",
+  "https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=800&h=800&q=80",
+];
+
+export const previewHomeownerPhotos: ProjectPhotoWithUrl[] = PREVIEW_HOMEOWNER_PHOTO_URLS.map(
+  (url, index) => ({
+    id: `preview-photo-${index + 1}`,
+    project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+    storage_path: `preview/photo-${index + 1}.jpg`,
+    file_name: `project-photo-${index + 1}.jpg`,
+    mime_type: "image/jpeg",
+    file_size: 120_000,
+    sort_order: index,
+    created_at: PREVIEW_TIMESTAMP,
+    url,
+  })
+);

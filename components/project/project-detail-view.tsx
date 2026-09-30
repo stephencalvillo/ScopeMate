@@ -6,6 +6,7 @@ import { AcceptedProposalSummary } from "@/components/project/accepted-proposal-
 import { ProjectActionsMenu } from "@/components/project/project-actions-menu";
 import { ProjectClaimHandler } from "@/components/project/project-claim-handler";
 import { ProjectDetailTabs } from "@/components/project/project-detail-tabs";
+import { OwnerProjectWorkspace } from "@/components/project/owner-project-workspace";
 import { ProjectTitleEditor } from "@/components/project/project-title-editor";
 import {
   ProjectShareHeaderActions,
@@ -18,6 +19,7 @@ import { PageBreadcrumbHeader } from "@/components/layout/page-breadcrumb-header
 import { Badge } from "@/components/ui/badge";
 import { formatProjectLocation } from "@/lib/location/parse";
 import { usesCreationWalkthrough } from "@/lib/project/creation-walkthrough";
+import { usesOwnerProjectWorkspace } from "@/lib/project/owner-workspace";
 import { projectStatusBadgeProps } from "@/lib/project-status";
 import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision-types";
 import { formatProjectTypeLabel, type ProjectWithScope } from "@/types";
@@ -28,12 +30,14 @@ function ProjectHeaderMeta({
   canEditTitle,
   heading,
   showStatusBadge = true,
+  locationOnly = false,
   showLocationMeta = true,
 }: {
   project: ProjectWithScope;
   canEditTitle: boolean;
   heading?: string;
   showStatusBadge?: boolean;
+  locationOnly?: boolean;
   showLocationMeta?: boolean;
 }) {
   const statusBadge = projectStatusBadgeProps(project);
@@ -57,14 +61,20 @@ function ProjectHeaderMeta({
         ) : null}
       </div>
       {showLocationMeta ? (
-        <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
-          <span>{formatProjectTypeLabel(project.project_type)}</span>
-          <span aria-hidden>{"\u00b7"}</span>
-          <span className="inline-flex items-center gap-1.5">
-            <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+        locationOnly ? (
+          <p className="text-sm text-[var(--muted)]">
             {formatProjectLocation(project)}
-          </span>
-        </p>
+          </p>
+        ) : (
+          <p className="flex flex-wrap items-center gap-1.5 text-sm text-[var(--muted)]">
+            <span>{formatProjectTypeLabel(project.project_type)}</span>
+            <span aria-hidden>{"\u00b7"}</span>
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+              {formatProjectLocation(project)}
+            </span>
+          </p>
+        )
       ) : null}
     </div>
   );
@@ -74,10 +84,12 @@ function ProjectDetailHeader({
   project,
   isGuestProject,
   useCreationWalkthrough,
+  useOwnerWorkspace,
 }: {
   project: ProjectWithScope;
   isGuestProject: boolean;
   useCreationWalkthrough: boolean;
+  useOwnerWorkspace: boolean;
 }) {
   const actions = <ProjectActionsMenu projectId={project.id} />;
   const meta = (
@@ -85,7 +97,8 @@ function ProjectDetailHeader({
       project={project}
       canEditTitle={!isGuestProject}
       heading={useCreationWalkthrough ? "Confirm and share" : undefined}
-      showStatusBadge={!useCreationWalkthrough}
+      showStatusBadge={!useCreationWalkthrough && !useOwnerWorkspace}
+      locationOnly={useOwnerWorkspace}
       showLocationMeta={!useCreationWalkthrough}
     />
   );
@@ -124,6 +137,7 @@ export function ProjectDetailView({
 }) {
   const hasScope = project.scope_items.length > 0 || project.ai_summary;
   const useCreationWalkthrough = usesCreationWalkthrough(project);
+  const useOwnerWorkspace = usesOwnerProjectWorkspace(project);
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const handleActivityChange = useCallback(() => {
     setActivityRefreshKey((current) => current + 1);
@@ -179,6 +193,7 @@ export function ProjectDetailView({
                 project={project}
                 isGuestProject={isGuestProject}
                 useCreationWalkthrough={useCreationWalkthrough}
+                useOwnerWorkspace={useOwnerWorkspace}
               />
             </PageBreadcrumbHeader>
           )}
@@ -205,6 +220,7 @@ export function ProjectDetailView({
               project={project}
               isGuestProject={isGuestProject}
               useCreationWalkthrough={useCreationWalkthrough}
+              useOwnerWorkspace={useOwnerWorkspace}
             />
           </PageBreadcrumbHeader>
         )}
@@ -216,14 +232,23 @@ export function ProjectDetailView({
             <div className="text-sm text-[var(--muted)]">Loading project...</div>
           }
         >
-          <ProjectDetailTabs
-            project={project}
-            autoGenerate={autoGenerate}
-            activityRefreshKey={activityRefreshKey}
-            showTabs={!isGuestProject && project.share_enabled && !isGenerating}
-            previewContext={previewContext}
-            onGeneratingChange={handleGeneratingChange}
-          />
+          {useOwnerWorkspace ? (
+            <OwnerProjectWorkspace
+              project={project}
+              activityRefreshKey={activityRefreshKey}
+              previewContext={previewContext}
+              onGeneratingChange={handleGeneratingChange}
+            />
+          ) : (
+            <ProjectDetailTabs
+              project={project}
+              autoGenerate={autoGenerate}
+              activityRefreshKey={activityRefreshKey}
+              showTabs={false}
+              previewContext={previewContext}
+              onGeneratingChange={handleGeneratingChange}
+            />
+          )}
         </Suspense>
       </div>
     </ProjectShareProvider>

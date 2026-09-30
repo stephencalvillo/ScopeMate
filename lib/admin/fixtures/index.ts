@@ -13,6 +13,10 @@ export {
   previewHomeownerActivity,
   previewHomeownerSuggestions,
   previewHomeownerReviewedScopeDetail,
+  getPreviewHomeownerSentInvitations,
+  getPreviewHomeownerOwnerSuggestions,
+  previewHomeownerFollowUpQuestions,
+  previewHomeownerPhotos,
 } from "./homeowner";
 
 export {

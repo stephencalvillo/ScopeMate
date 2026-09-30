@@ -71,6 +71,20 @@ export function ShareLinkTriggerButton({
   );
 }
 
+function ShareProjectTriggerButton({
+  onClick,
+  className,
+}: {
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <Button type="button" onClick={onClick} className={className}>
+      Share project
+    </Button>
+  );
+}
+
 function SaveProjectTriggerButton({
   onClick,
   className,
@@ -102,7 +116,7 @@ function ProjectSharePrimaryActions({
 
   if (!isGuestProject) {
     return (
-      <ShareLinkTriggerButton
+      <ShareProjectTriggerButton
         onClick={onShare}
         className={cn(buttonClassName, className)}
       />
@@ -193,11 +207,13 @@ export function ProjectShareProvider({
   const [animation, setAnimation] = useState<DockAnimation>(null);
 
   const hasObserved = headerObserved || sectionObserved;
-  const mode: DockMode = sectionInView
-    ? "inline"
-    : hasObserved && !headerInView
-      ? "float"
-      : "header";
+  const mode: DockMode = isGuestProject
+    ? sectionInView
+      ? "inline"
+      : hasObserved && !headerInView
+        ? "float"
+        : "header"
+    : "header";
 
   const claimProject = useCallback(async () => {
     setIsClaimingProject(true);
@@ -452,7 +468,7 @@ export function ProjectShareProvider({
         />
       </Suspense>
 
-      {mode === "float" ? (
+      {mode === "float" && isGuestProject ? (
         <div
           className={cn(
             "fixed inset-x-0 bottom-4 z-40 px-[var(--page-padding-x)]",
@@ -597,6 +613,11 @@ export function ProjectShareLastStepActions() {
 export function useProjectShareCopy() {
   const { shareSectionTitle, shareDescription } = useProjectShare();
   return { shareSectionTitle, shareDescription };
+}
+
+export function useProjectShareDialog() {
+  const { openShareDialog } = useProjectShare();
+  return { openShareDialog };
 }
 
 export function useProjectShareSectionVisibility(

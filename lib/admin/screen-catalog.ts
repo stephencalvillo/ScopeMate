@@ -31,7 +31,7 @@ export const SCREEN_CATALOG: ScreenCatalogEntry[] = [
     audience: "homeowner",
     title: "Project detail",
     description:
-      "Scope editor, share, activity, reviewed scopes, and needs attention tabs.",
+      "Owned project workspace: summary, sent scopes, scope list, details, and photos.",
     productionPath: "/projects/[id]",
     category: "Project workspace",
   },

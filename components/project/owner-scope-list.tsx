@@ -1,0 +1,140 @@
+"use client";
+
+import { useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+import { IconActionButton } from "@/components/review/icon-action-button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
+import type { ScopeCategoryGroup as ScopeCategoryGroupData } from "@/lib/scope/group-by-category";
+import type { ScopeItem } from "@/types";
+
+function QuietScopeItem({
+  item,
+  projectId,
+  onUpdated,
+  onRemoved,
+}: {
+  item: ScopeItem;
+  projectId: string;
+  onUpdated: (item: ScopeItem) => void;
+  onRemoved: (itemId: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(item.text);
+  const [saving, setSaving] = useState(false);
+
+  async function saveChanges() {
+    setSaving(true);
+    const response = await fetch(
+      `/api/projects/${projectId}/scope-items/${item.id}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, priority: item.priority }),
+      }
+    );
+    const data = await response.json();
+    setSaving(false);
+
+    if (response.ok) {
+      onUpdated(data);
+      setEditing(false);
+    }
+  }
+
+  async function removeItem() {
+    const response = await fetch(
+      `/api/projects/${projectId}/scope-items/${item.id}`,
+      { method: "DELETE" }
+    );
+
+    if (response.ok) {
+      onRemoved(item.id);
+    }
+  }
+
+  if (editing) {
+    return (
+      <div className="space-y-3">
+        <Input value={text} onChange={(event) => setText(event.target.value)} />
+        <div className="flex gap-2">
+          <Button size="sm" onClick={() => void saveChanges()} disabled={saving}>
+            {saving ? "Saving..." : "Save"}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setText(item.text);
+              setEditing(false);
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group flex items-start gap-3">
+      <div className="min-w-0 flex-1 space-y-1">
+        <p className="text-sm leading-6 text-neutral-900">{item.text}</p>
+        {item.needs_verification ? (
+          <p className="text-sm text-[var(--muted)]">Contractor must verify</p>
+        ) : null}
+      </div>
+      <div className="flex shrink-0 items-center">
+        <IconActionButton label="Edit" onClick={() => setEditing(true)}>
+          <Pencil className="h-4 w-4" />
+        </IconActionButton>
+        <IconActionButton label="Remove" onClick={() => void removeItem()}>
+          <Trash2 className="h-4 w-4" />
+        </IconActionButton>
+      </div>
+    </div>
+  );
+}
+
+export function OwnerScopeList({
+  projectId,
+  groups,
+  onUpdated,
+  onRemoved,
+}: {
+  projectId: string;
+  groups: ScopeCategoryGroupData[];
+  onUpdated: (item: ScopeItem) => void;
+  onRemoved: (itemId: string) => void;
+}) {
+  return (
+    <section className="space-y-3">
+      <h2 className="font-display text-lg text-neutral-900">Scope list</h2>
+
+      {groups.length === 0 ? (
+        <p className="text-sm text-[var(--muted)]">No scope items yet.</p>
+      ) : (
+        <div className="space-y-3">
+          {groups.map((group) => (
+            <ScopeCategoryGroup
+              key={group.category}
+              category={group.category}
+              itemCount={group.items.length}
+            >
+              {group.items.map((item) => (
+                <QuietScopeItem
+                  key={item.id}
+                  item={item}
+                  projectId={projectId}
+                  onUpdated={onUpdated}
+                  onRemoved={onRemoved}
+                />
+              ))}
+            </ScopeCategoryGroup>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
