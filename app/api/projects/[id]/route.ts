@@ -29,9 +29,15 @@ export async function PATCH(
 ) {
   try {
     const { id } = await context.params;
-    await getAccessibleProject(id, { request });
     const body = await request.json();
     const input = updateProjectSchema.parse(body);
+
+    if (input.status !== undefined) {
+      await getOwnedProject(id, request);
+    } else {
+      await getAccessibleProject(id, { request });
+    }
+
     const supabase = createServiceClient();
 
     const { data, error } = await supabase
@@ -54,7 +60,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await context.params;
-    await getOwnedProject(id);
+    await getOwnedProject(id, request);
     const supabase = createServiceClient();
 
     const { error } = await supabase.from("projects").delete().eq("id", id);

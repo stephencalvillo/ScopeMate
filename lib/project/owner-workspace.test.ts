@@ -9,18 +9,33 @@ test("guest unshared drafts stay on the creation accordion", () => {
       created_by_user_id: null,
       share_enabled: false,
       creator_role: "homeowner",
+      creation_completed_at: null,
     }),
     false
   );
 });
 
-test("claimed homeowner projects use the owned workspace", () => {
+test("signed-in homeowners still in creation stay on the stepper", () => {
   assert.equal(
     usesOwnerProjectWorkspace({
       homeowner_id: "user-1",
       created_by_user_id: "user-1",
       share_enabled: false,
       creator_role: "homeowner",
+      creation_completed_at: null,
+    }),
+    false
+  );
+});
+
+test("created homeowner projects use the owned workspace", () => {
+  assert.equal(
+    usesOwnerProjectWorkspace({
+      homeowner_id: "user-1",
+      created_by_user_id: "user-1",
+      share_enabled: false,
+      creator_role: "homeowner",
+      creation_completed_at: "2026-10-01T00:00:00.000Z",
     }),
     true
   );

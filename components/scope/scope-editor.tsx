@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ConfirmShareSummary } from "@/components/review/confirm-share-summary";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { useProjectDetailPath } from "@/lib/project/use-project-detail-path";
 import { GenerateScopeButton } from "@/components/scope/generate-scope-button";
 import {
@@ -34,6 +35,7 @@ import { UpdateProjectScopeDialog } from "@/components/scope/update-project-scop
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { usesCreationWalkthrough } from "@/lib/project/creation-walkthrough";
+import { markCreationCompleteClient } from "@/lib/project/creation-complete-client";
 import {
   groupScopeItemsByCategory,
   withoutAnswerDerivedScopeItems,
@@ -45,10 +47,12 @@ export function ScopeEditor({
   project,
   autoGenerate = false,
   onGeneratingChange,
+  onCreationComplete,
 }: {
   project: ProjectWithScope;
   autoGenerate?: boolean;
   onGeneratingChange?: (generating: boolean) => void;
+  onCreationComplete?: () => void;
 }) {
   const router = useRouter();
   const projectPath = useProjectDetailPath(project.id);
@@ -168,6 +172,7 @@ export function ScopeEditor({
             setItems((current) => current.filter((entry) => entry.id !== itemId))
           }
           onOpenUpdateDialog={() => setUpdateDialogOpen(true)}
+          onCreationComplete={onCreationComplete}
         />
       ) : (
         <>
@@ -301,6 +306,7 @@ function NewProjectConfirmSteps({
   onUpdateItem,
   onRemoveItem,
   onOpenUpdateDialog,
+  onCreationComplete,
 }: {
   project: ProjectWithScope;
   summary: string | null;
@@ -313,8 +319,10 @@ function NewProjectConfirmSteps({
   onUpdateItem: (item: ScopeItem) => void;
   onRemoveItem: (itemId: string) => void;
   onOpenUpdateDialog: () => void;
+  onCreationComplete?: () => void;
 }) {
   const { shareSectionTitle, shareDescription } = useProjectShareCopy();
+  const { getToken, isSignedIn } = useAuth();
   const followUpStep = useFollowUpConfirmStep(
     project.id,
     project.project_type
@@ -327,6 +335,21 @@ function NewProjectConfirmSteps({
   const handlePhotosChange = useCallback((nextPhotos: ProjectPhotoWithUrl[]) => {
     setPhotos(nextPhotos);
   }, []);
+  const handleWalkthroughComplete = useCallback(() => {
+    void (async () => {
+      try {
+        const result = await markCreationCompleteClient(
+          project.id,
+          isSignedIn ? getToken : undefined
+        );
+        if (result.creation_completed_at) {
+          onCreationComplete?.();
+        }
+      } catch {
+        // Stay on the stepper; sharing still finishes creation.
+      }
+    })();
+  }, [getToken, isSignedIn, onCreationComplete, project.id]);
   const summaryConfirmed = confirmedIds.includes("summary");
   const snapshot = (
     <ConfirmShareSummary
@@ -425,6 +448,7 @@ function NewProjectConfirmSteps({
           steps={steps}
           confirmLabel="Next"
           onConfirmedIdsChange={handleConfirmedIdsChange}
+          onComplete={handleWalkthroughComplete}
           completeFooter={
             <PageSection title={shareSectionTitle} description={shareDescription}>
               <ProjectShareLastStepActions />

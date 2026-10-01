@@ -94,17 +94,20 @@ export function ReviewConfirmSteps({
   confirmLabel = "Next",
   completeFooter,
   onConfirmedIdsChange,
+  onComplete,
 }: {
   steps: ReviewConfirmStepItem[];
   confirmLabel?: string;
   completeFooter?: ReactNode;
   onConfirmedIdsChange?: (ids: string[]) => void;
+  onComplete?: () => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(steps[0]?.id ?? null);
   const [confirmedIds, setConfirmedIds] = useState<string[]>([]);
   const cardRefs = useRef<Record<string, HTMLElement | null>>({});
   const completeFooterRef = useRef<HTMLDivElement | null>(null);
   const shouldScrollToCompleteRef = useRef(false);
+  const didCompleteRef = useRef(false);
 
   const stepIds = steps.map((step) => step.id).join("|");
 
@@ -157,6 +160,15 @@ export function ReviewConfirmSteps({
 
   const allConfirmed =
     steps.length > 0 && steps.every((step) => confirmedIds.includes(step.id));
+
+  useEffect(() => {
+    if (!allConfirmed || didCompleteRef.current) {
+      return;
+    }
+
+    didCompleteRef.current = true;
+    onComplete?.();
+  }, [allConfirmed, onComplete]);
 
   useEffect(() => {
     if (!shouldScrollToCompleteRef.current || !allConfirmed) {

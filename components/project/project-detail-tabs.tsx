@@ -26,6 +26,7 @@ export function ProjectDetailTabs({
   showTabs = true,
   previewContext,
   onGeneratingChange,
+  onCreationComplete,
 }: {
   project: ProjectWithScope;
   autoGenerate?: boolean;
@@ -33,6 +34,7 @@ export function ProjectDetailTabs({
   showTabs?: boolean;
   previewContext?: ProjectPreviewContext;
   onGeneratingChange?: (generating: boolean) => void;
+  onCreationComplete?: () => void;
 }) {
   const router = useRouter();
   const projectPathFromHook = useProjectDetailPath(project.id);
@@ -141,6 +143,7 @@ export function ProjectDetailTabs({
             project={project}
             autoGenerate={autoGenerate}
             onGeneratingChange={onGeneratingChange}
+            onCreationComplete={onCreationComplete}
           />
           {!usesCreationWalkthrough(project) ? <ProjectShareSection /> : null}
         </div>

@@ -89,6 +89,7 @@ export interface Project {
   share_enabled: boolean;
   share_expires_at: string | null;
   share_enabled_at?: string | null;
+  creation_completed_at?: string | null;
   accepted_estimate_id?: string | null;
   created_at: string;
   updated_at: string;

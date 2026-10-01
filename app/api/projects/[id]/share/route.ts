@@ -36,13 +36,27 @@ export async function POST(
       share_expires_at: expiresAt?.toISOString() ?? null,
       status: "shared" as const,
     };
+    const withShareTimestamp = {
+      ...baseUpdate,
+      share_enabled_at: now,
+      creation_completed_at: project.creation_completed_at ?? now,
+    };
 
     let result = await supabase
       .from("projects")
-      .update({ ...baseUpdate, share_enabled_at: now })
+      .update(withShareTimestamp)
       .eq("id", id)
       .select("*")
       .single();
+
+    if (result.error && isMissingColumnError(result.error)) {
+      result = await supabase
+        .from("projects")
+        .update({ ...baseUpdate, share_enabled_at: now })
+        .eq("id", id)
+        .select("*")
+        .single();
+    }
 
     if (result.error && isMissingColumnError(result.error)) {
       result = await supabase

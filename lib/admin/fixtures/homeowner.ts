@@ -86,6 +86,7 @@ export const previewHomeownerKitchenProject: ProjectWithScope = {
   share_enabled: true,
   share_expires_at: null,
   share_enabled_at: PREVIEW_TIMESTAMP,
+  creation_completed_at: PREVIEW_TIMESTAMP,
   accepted_estimate_id: null,
   created_at: PREVIEW_TIMESTAMP,
   updated_at: PREVIEW_TIMESTAMP,

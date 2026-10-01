@@ -25,7 +25,7 @@ const isProjectDetailRoute = createRouteMatcher([
 const isAdminPanelRoute = createRouteMatcher(["/adminpanel(.*)"]);
 
 const guestProjectApiPattern =
-  /^\/api\/projects\/[^/]+\/(generate-scope|claim|guest-token|scope-items(?:\/.*)?|follow-up-questions(?:\/.*)?|photos(?:\/.*)?)$/;
+  /^\/api\/projects\/[^/]+\/(generate-scope|claim|guest-token|creation-complete|scope-items(?:\/.*)?|follow-up-questions(?:\/.*)?|photos(?:\/.*)?)$/;
 
 function isGuestAccessibleProjectApi(request: NextRequest) {
   return guestProjectApiPattern.test(request.nextUrl.pathname);

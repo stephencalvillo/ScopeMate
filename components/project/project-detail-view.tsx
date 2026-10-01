@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { MapPin } from "lucide-react";
 import { AcceptedProposalSummary } from "@/components/project/accepted-proposal-summary";
 import { ProjectActionsMenu } from "@/components/project/project-actions-menu";
@@ -85,13 +85,25 @@ function ProjectDetailHeader({
   isGuestProject,
   useCreationWalkthrough,
   useOwnerWorkspace,
+  canManageProject,
+  listHref,
+  preview,
 }: {
   project: ProjectWithScope;
   isGuestProject: boolean;
   useCreationWalkthrough: boolean;
   useOwnerWorkspace: boolean;
+  canManageProject: boolean;
+  listHref: string;
+  preview: boolean;
 }) {
-  const actions = <ProjectActionsMenu projectId={project.id} />;
+  const actions = canManageProject ? (
+    <ProjectActionsMenu
+      projectId={project.id}
+      listHref={listHref}
+      preview={preview}
+    />
+  ) : null;
   const meta = (
     <ProjectHeaderMeta
       project={project}
@@ -127,6 +139,7 @@ export function ProjectDetailView({
   isGuestProject = false,
   projectsBreadcrumbHref,
   previewContext,
+  actionPreviewListHref,
 }: {
   project: ProjectWithScope;
   autoGenerate: boolean;
@@ -134,10 +147,33 @@ export function ProjectDetailView({
   isGuestProject?: boolean;
   projectsBreadcrumbHref?: "/projects" | "/contractor" | null;
   previewContext?: ProjectPreviewContext;
+  actionPreviewListHref?: string;
 }) {
   const hasScope = project.scope_items.length > 0 || project.ai_summary;
-  const useCreationWalkthrough = usesCreationWalkthrough(project);
-  const useOwnerWorkspace = usesOwnerProjectWorkspace(project);
+  const [creationCompletedAt, setCreationCompletedAt] = useState(
+    project.creation_completed_at
+  );
+
+  useEffect(() => {
+    setCreationCompletedAt(project.creation_completed_at);
+  }, [project.creation_completed_at]);
+
+  const walkthroughProject = {
+    ...project,
+    creation_completed_at: creationCompletedAt,
+  };
+  const useCreationWalkthrough = usesCreationWalkthrough(walkthroughProject);
+  const useOwnerWorkspace = usesOwnerProjectWorkspace(walkthroughProject);
+  const canManageProject =
+    !isGuestProject || projectsBreadcrumbHref === "/contractor";
+  const listHref =
+    previewContext?.listPath ??
+    actionPreviewListHref ??
+    (projectsBreadcrumbHref === "/contractor" ? "/contractor" : "/projects");
+  const preview = Boolean(previewContext) || Boolean(actionPreviewListHref);
+  const handleCreationComplete = useCallback(() => {
+    setCreationCompletedAt((current) => current ?? new Date().toISOString());
+  }, []);
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const handleActivityChange = useCallback(() => {
     setActivityRefreshKey((current) => current + 1);
@@ -194,14 +230,18 @@ export function ProjectDetailView({
                 isGuestProject={isGuestProject}
                 useCreationWalkthrough={useCreationWalkthrough}
                 useOwnerWorkspace={useOwnerWorkspace}
+                canManageProject={canManageProject}
+                listHref={listHref}
+                preview={preview}
               />
             </PageBreadcrumbHeader>
           )}
           {isGenerating ? null : acceptedProposalBanner}
           <ScopeEditor
-            project={project}
+            project={walkthroughProject}
             autoGenerate={autoGenerate}
             onGeneratingChange={handleGeneratingChange}
+            onCreationComplete={handleCreationComplete}
           />
         </div>
       </ProjectShareProvider>
@@ -221,6 +261,9 @@ export function ProjectDetailView({
               isGuestProject={isGuestProject}
               useCreationWalkthrough={useCreationWalkthrough}
               useOwnerWorkspace={useOwnerWorkspace}
+              canManageProject={canManageProject}
+              listHref={listHref}
+              preview={preview}
             />
           </PageBreadcrumbHeader>
         )}
@@ -241,12 +284,13 @@ export function ProjectDetailView({
             />
           ) : (
             <ProjectDetailTabs
-              project={project}
+              project={walkthroughProject}
               autoGenerate={autoGenerate}
               activityRefreshKey={activityRefreshKey}
               showTabs={false}
               previewContext={previewContext}
               onGeneratingChange={handleGeneratingChange}
+              onCreationComplete={handleCreationComplete}
             />
           )}
         </Suspense>
