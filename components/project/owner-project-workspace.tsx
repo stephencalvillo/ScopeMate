@@ -16,6 +16,7 @@ import {
   groupScopeItemsByCategory,
   withoutAnswerDerivedScopeItems,
 } from "@/lib/scope/group-by-category";
+import { restoreScopeItem } from "@/lib/scope/scope-item-client";
 import type { ProjectPreviewContext } from "@/lib/admin/preview-context";
 import type { ProjectWithScope, ScopeItem } from "@/types";
 
@@ -23,11 +24,13 @@ export function OwnerProjectWorkspace({
   project,
   activityRefreshKey = 0,
   previewContext,
+  persistScopeItems = true,
   onGeneratingChange,
 }: {
   project: ProjectWithScope;
   activityRefreshKey?: number;
   previewContext?: ProjectPreviewContext;
+  persistScopeItems?: boolean;
   onGeneratingChange?: (generating: boolean) => void;
 }) {
   const router = useRouter();
@@ -149,6 +152,7 @@ export function OwnerProjectWorkspace({
       <OwnerScopeList
         projectId={project.id}
         groups={groupedItems}
+        persist={persistScopeItems}
         onUpdated={(updated) =>
           setItems((current) =>
             current.map((entry) => (entry.id === updated.id ? updated : entry))
@@ -156,6 +160,9 @@ export function OwnerProjectWorkspace({
         }
         onRemoved={(itemId) =>
           setItems((current) => current.filter((entry) => entry.id !== itemId))
+        }
+        onRestore={(item) =>
+          setItems((current) => restoreScopeItem(current, item))
         }
       />
     </div>

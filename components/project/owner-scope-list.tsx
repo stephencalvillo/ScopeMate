@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { IconActionButton } from "@/components/review/icon-action-button";
+import { useScopeItemMutations } from "@/components/scope/use-scope-item-mutations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
@@ -12,45 +13,32 @@ import type { ScopeItem } from "@/types";
 function QuietScopeItem({
   item,
   projectId,
+  persist,
   onUpdated,
   onRemoved,
+  onRestore,
 }: {
   item: ScopeItem;
   projectId: string;
+  persist: boolean;
   onUpdated: (item: ScopeItem) => void;
   onRemoved: (itemId: string) => void;
+  onRestore: (item: ScopeItem) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(item.text);
-  const [saving, setSaving] = useState(false);
+  const { saveItem, removeItem, saving } = useScopeItemMutations({
+    projectId,
+    persist,
+    onUpdated,
+    onRemoved,
+    onRestore,
+  });
 
   async function saveChanges() {
-    setSaving(true);
-    const response = await fetch(
-      `/api/projects/${projectId}/scope-items/${item.id}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, priority: item.priority }),
-      }
-    );
-    const data = await response.json();
-    setSaving(false);
-
-    if (response.ok) {
-      onUpdated(data);
+    const saved = await saveItem(item, { text, priority: item.priority });
+    if (saved) {
       setEditing(false);
-    }
-  }
-
-  async function removeItem() {
-    const response = await fetch(
-      `/api/projects/${projectId}/scope-items/${item.id}`,
-      { method: "DELETE" }
-    );
-
-    if (response.ok) {
-      onRemoved(item.id);
     }
   }
 
@@ -89,7 +77,7 @@ function QuietScopeItem({
         <IconActionButton label="Edit" onClick={() => setEditing(true)}>
           <Pencil className="h-4 w-4" />
         </IconActionButton>
-        <IconActionButton label="Remove" onClick={() => void removeItem()}>
+        <IconActionButton label="Remove" onClick={() => void removeItem(item)}>
           <Trash2 className="h-4 w-4" />
         </IconActionButton>
       </div>
@@ -100,13 +88,17 @@ function QuietScopeItem({
 export function OwnerScopeList({
   projectId,
   groups,
+  persist = true,
   onUpdated,
   onRemoved,
+  onRestore,
 }: {
   projectId: string;
   groups: ScopeCategoryGroupData[];
+  persist?: boolean;
   onUpdated: (item: ScopeItem) => void;
   onRemoved: (itemId: string) => void;
+  onRestore: (item: ScopeItem) => void;
 }) {
   return (
     <section className="space-y-3">
@@ -127,8 +119,10 @@ export function OwnerScopeList({
                   key={item.id}
                   item={item}
                   projectId={projectId}
+                  persist={persist}
                   onUpdated={onUpdated}
                   onRemoved={onRemoved}
+                  onRestore={onRestore}
                 />
               ))}
             </ScopeCategoryGroup>

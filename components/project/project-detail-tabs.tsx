@@ -25,6 +25,7 @@ export function ProjectDetailTabs({
   activityRefreshKey: activityRefreshKeyProp,
   showTabs = true,
   previewContext,
+  persistScopeItems = true,
   onGeneratingChange,
   onCreationComplete,
 }: {
@@ -33,6 +34,7 @@ export function ProjectDetailTabs({
   activityRefreshKey?: number;
   showTabs?: boolean;
   previewContext?: ProjectPreviewContext;
+  persistScopeItems?: boolean;
   onGeneratingChange?: (generating: boolean) => void;
   onCreationComplete?: () => void;
 }) {
@@ -142,6 +144,7 @@ export function ProjectDetailTabs({
           <ScopeEditor
             project={project}
             autoGenerate={autoGenerate}
+            persistScopeItems={persistScopeItems}
             onGeneratingChange={onGeneratingChange}
             onCreationComplete={onCreationComplete}
           />

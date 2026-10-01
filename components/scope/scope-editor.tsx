@@ -40,17 +40,20 @@ import {
   groupScopeItemsByCategory,
   withoutAnswerDerivedScopeItems,
 } from "@/lib/scope/group-by-category";
+import { restoreScopeItem } from "@/lib/scope/scope-item-client";
 import type { ProjectPhotoWithUrl } from "@/lib/phase2/client";
 import type { ProjectWithScope, ScopeItem } from "@/types";
 
 export function ScopeEditor({
   project,
   autoGenerate = false,
+  persistScopeItems = true,
   onGeneratingChange,
   onCreationComplete,
 }: {
   project: ProjectWithScope;
   autoGenerate?: boolean;
+  persistScopeItems?: boolean;
   onGeneratingChange?: (generating: boolean) => void;
   onCreationComplete?: () => void;
 }) {
@@ -159,6 +162,7 @@ export function ScopeEditor({
           summary={summary}
           generateError={generateError}
           groupedItems={filteredGroups}
+          persistScopeItems={persistScopeItems}
           scopeGroups={groupedItems}
           categoriesInScope={categoriesInScope}
           categoryFilter={categoryFilter}
@@ -170,6 +174,9 @@ export function ScopeEditor({
           }
           onRemoveItem={(itemId) =>
             setItems((current) => current.filter((entry) => entry.id !== itemId))
+          }
+          onRestoreItem={(item) =>
+            setItems((current) => restoreScopeItem(current, item))
           }
           onOpenUpdateDialog={() => setUpdateDialogOpen(true)}
           onCreationComplete={onCreationComplete}
@@ -233,6 +240,7 @@ export function ScopeEditor({
               <ScopeItemsList
                 projectId={project.id}
                 groups={filteredGroups}
+                persist={persistScopeItems}
                 onUpdated={(updated) =>
                   setItems((current) =>
                     current.map((entry) =>
@@ -244,6 +252,9 @@ export function ScopeEditor({
                   setItems((current) =>
                     current.filter((entry) => entry.id !== itemId)
                   )
+                }
+                onRestore={(item) =>
+                  setItems((current) => restoreScopeItem(current, item))
                 }
               />
             </PageSection>
@@ -257,13 +268,17 @@ export function ScopeEditor({
 function ScopeItemsList({
   projectId,
   groups,
+  persist = true,
   onUpdated,
   onRemoved,
+  onRestore,
 }: {
   projectId: string;
   groups: ReturnType<typeof groupScopeItemsByCategory>;
+  persist?: boolean;
   onUpdated: (item: ScopeItem) => void;
   onRemoved: (itemId: string) => void;
+  onRestore: (item: ScopeItem) => void;
 }) {
   if (groups.length === 0) {
     return (
@@ -284,8 +299,10 @@ function ScopeItemsList({
               key={item.id}
               item={item}
               projectId={projectId}
+              persist={persist}
               onUpdated={onUpdated}
               onRemoved={onRemoved}
+              onRestore={onRestore}
             />
           ))}
         </ScopeCategoryGroup>
@@ -299,12 +316,14 @@ function NewProjectConfirmSteps({
   summary,
   generateError,
   groupedItems,
+  persistScopeItems = true,
   scopeGroups,
   categoriesInScope,
   categoryFilter,
   onCategoryFilterChange,
   onUpdateItem,
   onRemoveItem,
+  onRestoreItem,
   onOpenUpdateDialog,
   onCreationComplete,
 }: {
@@ -312,12 +331,14 @@ function NewProjectConfirmSteps({
   summary: string | null;
   generateError: string | null;
   groupedItems: ReturnType<typeof groupScopeItemsByCategory>;
+  persistScopeItems?: boolean;
   scopeGroups: ReturnType<typeof groupScopeItemsByCategory>;
   categoriesInScope: string[];
   categoryFilter: string;
   onCategoryFilterChange: (value: string) => void;
   onUpdateItem: (item: ScopeItem) => void;
   onRemoveItem: (itemId: string) => void;
+  onRestoreItem: (item: ScopeItem) => void;
   onOpenUpdateDialog: () => void;
   onCreationComplete?: () => void;
 }) {
@@ -430,8 +451,10 @@ function NewProjectConfirmSteps({
           <ScopeItemsList
             projectId={project.id}
             groups={groupedItems}
+            persist={persistScopeItems}
             onUpdated={onUpdateItem}
             onRemoved={onRemoveItem}
+            onRestore={onRestoreItem}
           />
         </div>
       ),

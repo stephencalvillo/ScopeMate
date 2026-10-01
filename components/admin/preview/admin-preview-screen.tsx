@@ -105,6 +105,7 @@ export function AdminPreviewScreen({ screen }: { screen: ScreenCatalogEntry }) {
               autoGenerate={false}
               isGuestProject
               projectsBreadcrumbHref="/contractor"
+              previewContext={getProjectPreviewContext(screen.id)}
               actionPreviewListHref="/adminpanel/preview/contractor-dashboard"
             />
           </Suspense>

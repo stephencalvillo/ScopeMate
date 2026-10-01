@@ -240,6 +240,7 @@ export function ProjectDetailView({
           <ScopeEditor
             project={walkthroughProject}
             autoGenerate={autoGenerate}
+            persistScopeItems={!preview}
             onGeneratingChange={handleGeneratingChange}
             onCreationComplete={handleCreationComplete}
           />
@@ -280,6 +281,7 @@ export function ProjectDetailView({
               project={project}
               activityRefreshKey={activityRefreshKey}
               previewContext={previewContext}
+              persistScopeItems={!preview}
               onGeneratingChange={handleGeneratingChange}
             />
           ) : (
@@ -289,6 +291,7 @@ export function ProjectDetailView({
               activityRefreshKey={activityRefreshKey}
               showTabs={false}
               previewContext={previewContext}
+              persistScopeItems={!preview}
               onGeneratingChange={handleGeneratingChange}
               onCreationComplete={handleCreationComplete}
             />
