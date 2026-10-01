@@ -29,6 +29,8 @@ import {
   UPDATE_SCOPE_STEPS,
 } from "@/components/scope/scope-generating-loader";
 import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
+import { ScopeItemAddField } from "@/components/scope/scope-item-add-field";
+import { ScopeListTextIndent } from "@/components/scope/scope-item-content";
 import { ScopeItemRow } from "@/components/scope/scope-item-row";
 import { ScopeSummary } from "@/components/scope/scope-summary";
 import { UpdateProjectScopeDialog } from "@/components/scope/update-project-scope-dialog";
@@ -172,6 +174,9 @@ export function ScopeEditor({
               current.map((entry) => (entry.id === updated.id ? updated : entry))
             )
           }
+          onCreateItem={(created) =>
+            setItems((current) => [...current, created])
+          }
           onRemoveItem={(itemId) =>
             setItems((current) => current.filter((entry) => entry.id !== itemId))
           }
@@ -241,6 +246,9 @@ export function ScopeEditor({
                 projectId={project.id}
                 groups={filteredGroups}
                 persist={persistScopeItems}
+                onCreated={(created) =>
+                  setItems((current) => [...current, created])
+                }
                 onUpdated={(updated) =>
                   setItems((current) =>
                     current.map((entry) =>
@@ -269,6 +277,7 @@ function ScopeItemsList({
   projectId,
   groups,
   persist = true,
+  onCreated,
   onUpdated,
   onRemoved,
   onRestore,
@@ -276,10 +285,13 @@ function ScopeItemsList({
   projectId: string;
   groups: ReturnType<typeof groupScopeItemsByCategory>;
   persist?: boolean;
+  onCreated: (item: ScopeItem) => void;
   onUpdated: (item: ScopeItem) => void;
   onRemoved: (itemId: string) => void;
   onRestore: (item: ScopeItem) => void;
 }) {
+  const [addingCategory, setAddingCategory] = useState<string | null>(null);
+
   if (groups.length === 0) {
     return (
       <p className="text-sm text-[var(--muted)]">No items in this category.</p>
@@ -293,6 +305,7 @@ function ScopeItemsList({
           key={group.category}
           category={group.category}
           itemCount={group.items.length}
+          onAddItem={() => setAddingCategory(group.category)}
         >
           {group.items.map((item) => (
             <ScopeItemRow
@@ -305,6 +318,17 @@ function ScopeItemsList({
               onRestore={onRestore}
             />
           ))}
+          {addingCategory === group.category ? (
+            <ScopeListTextIndent>
+              <ScopeItemAddField
+                projectId={projectId}
+                category={group.category}
+                persist={persist}
+                onCreated={onCreated}
+                onCancel={() => setAddingCategory(null)}
+              />
+            </ScopeListTextIndent>
+          ) : null}
         </ScopeCategoryGroup>
       ))}
     </div>
@@ -321,6 +345,7 @@ function NewProjectConfirmSteps({
   categoriesInScope,
   categoryFilter,
   onCategoryFilterChange,
+  onCreateItem,
   onUpdateItem,
   onRemoveItem,
   onRestoreItem,
@@ -336,6 +361,7 @@ function NewProjectConfirmSteps({
   categoriesInScope: string[];
   categoryFilter: string;
   onCategoryFilterChange: (value: string) => void;
+  onCreateItem: (item: ScopeItem) => void;
   onUpdateItem: (item: ScopeItem) => void;
   onRemoveItem: (itemId: string) => void;
   onRestoreItem: (item: ScopeItem) => void;
@@ -452,6 +478,7 @@ function NewProjectConfirmSteps({
             projectId={project.id}
             groups={groupedItems}
             persist={persistScopeItems}
+            onCreated={onCreateItem}
             onUpdated={onUpdateItem}
             onRemoved={onRemoveItem}
             onRestore={onRestoreItem}

@@ -51,7 +51,7 @@ export function ScopeItemRow({
   }
 
   return (
-    <ScopeItemShell interactive={!editing}>
+    <ScopeItemShell interactive={!editing} className={editing ? undefined : "pl-0"}>
       {editing ? (
         <div className="space-y-3">
           <Input value={text} onChange={(event) => setText(event.target.value)} />
@@ -88,6 +88,7 @@ export function ScopeItemRow({
       ) : (
         <ScopeItemContent
           item={item}
+          showBullet
           actions={
             <>
               <IconActionButton label="Edit" onClick={() => setEditing(true)}>

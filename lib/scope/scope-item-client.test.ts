@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   restoreScopeItem,
   scopeItemRequestPath,
+  scopeItemsCollectionPath,
 } from "./scope-item-client";
 import type { ScopeItem } from "@/types";
 
@@ -20,6 +21,20 @@ function item(overrides: Partial<ScopeItem> & Pick<ScopeItem, "id" | "sort_order
     ...overrides,
   };
 }
+
+test("scope item collection path stays plain without a guest token", () => {
+  assert.equal(
+    scopeItemsCollectionPath("project-1"),
+    "/api/projects/project-1/scope-items"
+  );
+});
+
+test("scope item collection path includes a guest token when present", () => {
+  assert.equal(
+    scopeItemsCollectionPath("project-1", "guest-abc"),
+    "/api/projects/project-1/scope-items?guest_token=guest-abc"
+  );
+});
 
 test("scope item delete path stays plain without a guest token", () => {
   assert.equal(

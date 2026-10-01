@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { SectionSurface } from "@/components/layout/page-section";
 import { ScopeCategoryLabel } from "@/components/scope/scope-category-label";
 import { cn, formatCategoryLabel } from "@/lib/utils";
@@ -29,6 +29,7 @@ export function ScopeCategoryGroup({
   defaultExpanded = true,
   headerAside,
   chevronAfterAside = false,
+  onAddItem,
 }: {
   category: string;
   itemCount: number;
@@ -38,10 +39,12 @@ export function ScopeCategoryGroup({
     | ReactNode
     | ((context: ScopeCategoryHeaderAsideContext) => ReactNode);
   chevronAfterAside?: boolean;
+  onAddItem?: () => void;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const label = formatCategoryLabel(category);
   const usesStackedAside = chevronAfterAside && Boolean(headerAside);
+  const separateChevron = chevronAfterAside || Boolean(onAddItem);
 
   const chevron = (
     <ChevronDown
@@ -67,17 +70,45 @@ export function ScopeCategoryGroup({
     </div>
   );
 
+  const headerIconButtonClassName =
+    "shrink-0 rounded-[4px] p-1 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900";
+
   const chevronButton = (
     <button
       type="button"
       onClick={toggleExpanded}
-      className="shrink-0 rounded-[4px] p-1 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+      className={headerIconButtonClassName}
       aria-expanded={expanded}
       aria-label={`${expanded ? "Collapse" : "Expand"} ${label}`}
     >
       {chevron}
     </button>
   );
+
+  const addButton = onAddItem ? (
+    <button
+      type="button"
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setExpanded(true);
+        onAddItem();
+      }}
+      className={headerIconButtonClassName}
+      aria-label={`Add item to ${label}`}
+    >
+      <Plus className="h-3.5 w-3.5" aria-hidden />
+    </button>
+  ) : null;
+
+  const headerControls = addButton ? (
+    <div className="flex shrink-0 items-center">
+      {addButton}
+      {chevronButton}
+    </div>
+  ) : separateChevron ? (
+    chevronButton
+  ) : null;
 
   return (
     <SectionSurface className="space-y-3">
@@ -113,7 +144,7 @@ export function ScopeCategoryGroup({
                 layout: "inline",
               })}
             </div>
-            {chevronButton}
+            {headerControls}
           </div>
           {expanded ? (
             <div
@@ -134,13 +165,13 @@ export function ScopeCategoryGroup({
             onClick={toggleExpanded}
             className={cn(
               "flex min-w-0 items-center gap-2 text-left",
-              chevronAfterAside ? "flex-1" : "flex-1 justify-between gap-3"
+              separateChevron ? "flex-1" : "flex-1 justify-between gap-3"
             )}
             aria-expanded={expanded}
             aria-label={`${expanded ? "Collapse" : "Expand"} ${label}`}
           >
             {categoryLabel}
-            {!chevronAfterAside ? chevron : null}
+            {!separateChevron ? chevron : null}
           </button>
           {headerAside ? (
             <div
@@ -153,7 +184,7 @@ export function ScopeCategoryGroup({
               })}
             </div>
           ) : null}
-          {chevronAfterAside ? chevronButton : null}
+          {headerControls}
         </div>
       )}
       {expanded ? <div className="space-y-2">{children}</div> : null}

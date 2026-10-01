@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { IconActionButton } from "@/components/review/icon-action-button";
+import { ScopeItemAddField } from "@/components/scope/scope-item-add-field";
+import {
+  ScopeItemBullet,
+  ScopeListTextIndent,
+} from "@/components/scope/scope-item-content";
 import { useScopeItemMutations } from "@/components/scope/use-scope-item-mutations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,11 +72,14 @@ function QuietScopeItem({
 
   return (
     <div className="group flex items-start gap-3">
-      <div className="min-w-0 flex-1 space-y-1">
-        <p className="text-sm leading-6 text-neutral-900">{item.text}</p>
-        {item.needs_verification ? (
-          <p className="text-sm text-[var(--muted)]">Contractor must verify</p>
-        ) : null}
+      <div className="flex min-w-0 flex-1 items-start gap-2">
+        <ScopeItemBullet />
+        <div className="min-w-0 flex-1 space-y-1">
+          <p className="text-sm leading-6 text-neutral-900">{item.text}</p>
+          {item.needs_verification ? (
+            <p className="text-sm text-[var(--muted)]">Contractor must verify</p>
+          ) : null}
+        </div>
       </div>
       <div className="flex shrink-0 items-center">
         <IconActionButton label="Edit" onClick={() => setEditing(true)}>
@@ -89,6 +97,7 @@ export function OwnerScopeList({
   projectId,
   groups,
   persist = true,
+  onCreated,
   onUpdated,
   onRemoved,
   onRestore,
@@ -96,10 +105,13 @@ export function OwnerScopeList({
   projectId: string;
   groups: ScopeCategoryGroupData[];
   persist?: boolean;
+  onCreated: (item: ScopeItem) => void;
   onUpdated: (item: ScopeItem) => void;
   onRemoved: (itemId: string) => void;
   onRestore: (item: ScopeItem) => void;
 }) {
+  const [addingCategory, setAddingCategory] = useState<string | null>(null);
+
   return (
     <section className="space-y-3">
       <h2 className="font-display text-lg text-neutral-900">Scope list</h2>
@@ -113,6 +125,7 @@ export function OwnerScopeList({
               key={group.category}
               category={group.category}
               itemCount={group.items.length}
+              onAddItem={() => setAddingCategory(group.category)}
             >
               {group.items.map((item) => (
                 <QuietScopeItem
@@ -125,6 +138,17 @@ export function OwnerScopeList({
                   onRestore={onRestore}
                 />
               ))}
+              {addingCategory === group.category ? (
+                <ScopeListTextIndent>
+                  <ScopeItemAddField
+                    projectId={projectId}
+                    category={group.category}
+                    persist={persist}
+                    onCreated={onCreated}
+                    onCancel={() => setAddingCategory(null)}
+                  />
+                </ScopeListTextIndent>
+              ) : null}
             </ScopeCategoryGroup>
           ))}
         </div>

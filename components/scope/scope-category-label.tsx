@@ -17,10 +17,12 @@ export function ScopeCategoryLabel({
 
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
-      <Icon
-        className={cn("h-4 w-4 shrink-0 text-neutral-500", iconClassName)}
-        aria-hidden
-      />
+      <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
+        <Icon
+          className={cn("h-4 w-4 shrink-0 text-neutral-500", iconClassName)}
+          aria-hidden
+        />
+      </span>
       <span className={labelClassName}>{label}</span>
     </span>
   );

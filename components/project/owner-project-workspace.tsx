@@ -153,6 +153,9 @@ export function OwnerProjectWorkspace({
         projectId={project.id}
         groups={groupedItems}
         persist={persistScopeItems}
+        onCreated={(created) =>
+          setItems((current) => [...current, created])
+        }
         onUpdated={(updated) =>
           setItems((current) =>
             current.map((entry) => (entry.id === updated.id ? updated : entry))
