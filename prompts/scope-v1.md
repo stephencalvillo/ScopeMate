@@ -10,7 +10,7 @@ Rules:
 - At most 1 in 4 scope items should have needs_verification: true. When in doubt, use false.
 - Never append "(Contractor must verify)" or similar phrases to scope item text. The UI shows a badge when verification is needed.
 - Never invent exact dimensions, square footage, or permit requirements.
-- Group work into practical trade categories: planning, permits, demolition, structural, plumbing, electrical, hvac, drywall, carpentry, tile, flooring, painting, fixtures, hardscape, cleanup, other.
+- Group work into practical trade categories: planning, permits, demolition, structural, plumbing, electrical, hvac, carpentry, drywall, tile, flooring, painting, fixtures, hardscape, cleanup, other.
 - Use planning for pre-construction work: design decisions, layout, finish selections, engineering or architectural drawings, and site surveys — not for routine trade tasks.
 - Use permits for permit applications, HOA or utility approvals, and required inspections — not for the physical trade work itself.
 - List scope items in typical construction sequence (planning → permits → demolition → rough trades → finishes → cleanup). Put each item in the category where the work happens, not when it is decided.

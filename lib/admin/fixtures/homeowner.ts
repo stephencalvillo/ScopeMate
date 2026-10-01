@@ -65,6 +65,32 @@ const scopeItems: ScopeItem[] = [
     created_at: PREVIEW_TIMESTAMP,
     updated_at: PREVIEW_TIMESTAMP,
   },
+  {
+    id: "preview-scope-4",
+    project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+    category: "drywall",
+    text: "Hang, tape, and finish drywall in kitchen and guest bathroom.",
+    source: "ai",
+    priority: "required",
+    status: "active",
+    sort_order: 3,
+    needs_verification: false,
+    created_at: PREVIEW_TIMESTAMP,
+    updated_at: PREVIEW_TIMESTAMP,
+  },
+  {
+    id: "preview-scope-5",
+    project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+    category: "carpentry",
+    text: "Frame kitchen walls, bulkheads, and bathroom blocking.",
+    source: "ai",
+    priority: "required",
+    status: "active",
+    sort_order: 4,
+    needs_verification: false,
+    created_at: PREVIEW_TIMESTAMP,
+    updated_at: PREVIEW_TIMESTAMP,
+  },
 ];
 
 export const previewHomeownerKitchenProject: ProjectWithScope = {
