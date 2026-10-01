@@ -46,9 +46,7 @@ export function ownerDetailIcon(
   question: FollowUpQuestion
 ): LucideIcon {
   if (isTimelineQuestion(question)) return Calendar;
-  if (question.question_type === "dimension_estimate") {
-    return /kitchen/i.test(question.question) ? Pencil : Ruler;
-  }
+  if (question.question_type === "dimension_estimate") return Ruler;
   if (question.category === "materials") return Paintbrush;
   return Pencil;
 }
