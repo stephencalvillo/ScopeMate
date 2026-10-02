@@ -27,6 +27,8 @@ import {
   previewHomeownerKitchenProject,
   previewHomeownerProjectList,
   previewHomeownerReviewedScopeDetail,
+  previewHomeownerFollowUpQuestions,
+  previewHomeownerReviewScopeItems,
 } from "@/lib/admin/fixtures";
 import { getProjectPreviewContext } from "@/lib/admin/preview-context";
 import type { ScreenCatalogEntry } from "@/lib/admin/screen-catalog";
@@ -74,7 +76,8 @@ export function AdminPreviewScreen({ screen }: { screen: ScreenCatalogEntry }) {
             scope={previewHomeownerReviewedScopeDetail}
             suggestions={previewHomeownerReviewedScopeDetail.suggestions}
             currentSummary={previewHomeownerKitchenProject.ai_summary}
-            currentScopeItems={previewHomeownerKitchenProject.scope_items}
+            currentScopeItems={previewHomeownerReviewScopeItems}
+            followUpQuestions={previewHomeownerFollowUpQuestions}
             estimate={previewContractorBidDetail.estimate}
           />
         </AppShell>

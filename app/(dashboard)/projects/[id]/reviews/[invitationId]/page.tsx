@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { ReviewedScopeDetail } from "@/components/review/reviewed-scope-detail";
 import { ensureUserRecord } from "@/lib/auth/clerk";
+import { getAnsweredFollowUps } from "@/lib/ai/generate-follow-up";
 import { getReviewedScopeDetailForProject } from "@/lib/contractor/reviewed-scopes";
 import { getSubmittedEstimateForInvitation } from "@/lib/estimates/estimates";
 import { getProjectForUser } from "@/lib/db/projects";
@@ -39,6 +40,7 @@ export default async function ReviewedScopePage({
       url: photo.url,
     }))
   );
+  const followUpQuestions = await getAnsweredFollowUps(id);
 
   return (
     <ReviewedScopeDetail
@@ -50,6 +52,7 @@ export default async function ReviewedScopePage({
       currentScopeItems={project.scope_items}
       estimate={estimate}
       photos={photos}
+      followUpQuestions={followUpQuestions}
     />
   );
 }

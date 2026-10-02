@@ -259,6 +259,7 @@ export interface ReviewScopeSnapshotItem {
   needs_verification: boolean;
   contractor_attribution_name?: string | null;
   suggestion_id?: string | null;
+  follow_up_question_id?: string | null;
 }
 
 export interface ReviewScopeSnapshotSuggestion {

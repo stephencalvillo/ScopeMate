@@ -16,6 +16,7 @@ export {
   getPreviewHomeownerSentInvitations,
   getPreviewHomeownerOwnerSuggestions,
   previewHomeownerFollowUpQuestions,
+  previewHomeownerReviewScopeItems,
   previewHomeownerPhotos,
 } from "./homeowner";
 

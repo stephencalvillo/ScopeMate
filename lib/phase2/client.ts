@@ -102,9 +102,14 @@ function followUpPath(projectId: string, suffix = "") {
 }
 
 export async function fetchFollowUpQuestions(
-  projectId: string
+  projectId: string,
+  getToken?: () => Promise<string | null>
 ): Promise<FollowUpQuestion[]> {
-  const response = await fetch(followUpPath(projectId));
+  const response = await projectFetch(
+    followUpPath(projectId),
+    undefined,
+    getToken
+  );
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.error ?? "Could not load questions.");

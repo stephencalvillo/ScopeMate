@@ -20,6 +20,7 @@ export function buildPreviewScopeSnapshot(
       priority: item.priority,
       sort_order: item.sort_order,
       needs_verification: item.needs_verification,
+      follow_up_question_id: item.follow_up_question_id ?? null,
     })),
     suggestions,
   };

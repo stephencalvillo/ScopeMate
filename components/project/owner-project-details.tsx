@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
-import {
-  formatOwnerDetailFact,
-  ownerDetailIcon,
-} from "@/lib/project/owner-detail-facts";
+import { ProjectDetailFactList } from "@/components/project/project-detail-fact-list";
+import { listProjectDetailFacts } from "@/lib/project/project-detail-facts";
 import { fetchFollowUpQuestions } from "@/lib/phase2/client";
 import type { FollowUpQuestion } from "@/types";
 
@@ -13,15 +12,29 @@ export function OwnerProjectDetails({
   projectId,
   projectType,
   previewApiBase,
+  followUpQuestions,
 }: {
   projectId: string;
   projectType?: string;
   previewApiBase?: string;
+  followUpQuestions?: FollowUpQuestion[];
 }) {
-  const [questions, setQuestions] = useState<FollowUpQuestion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { getToken, isSignedIn } = useAuth();
+  const hasProvidedQuestions = followUpQuestions != null;
+  const [questions, setQuestions] = useState<FollowUpQuestion[]>(
+    followUpQuestions ?? []
+  );
+  const [loading, setLoading] = useState(!hasProvidedQuestions);
 
   useEffect(() => {
+    if (!hasProvidedQuestions) return;
+    setQuestions(followUpQuestions ?? []);
+    setLoading(false);
+  }, [followUpQuestions, hasProvidedQuestions]);
+
+  useEffect(() => {
+    if (hasProvidedQuestions) return;
+
     let cancelled = false;
 
     async function load() {
@@ -33,7 +46,10 @@ export function OwnerProjectDetails({
             setQuestions(response.ok ? (data.questions ?? []) : []);
           }
         } else {
-          const result = await fetchFollowUpQuestions(projectId);
+          const result = await fetchFollowUpQuestions(
+            projectId,
+            isSignedIn ? getToken : undefined
+          );
           if (!cancelled) setQuestions(result);
         }
       } catch {
@@ -47,11 +63,9 @@ export function OwnerProjectDetails({
     return () => {
       cancelled = true;
     };
-  }, [previewApiBase, projectId]);
+  }, [getToken, hasProvidedQuestions, isSignedIn, previewApiBase, projectId]);
 
-  const facts = questions.filter(
-    (question) => !question.skipped && Boolean(question.answer)
-  );
+  const facts = listProjectDetailFacts(questions, projectType);
 
   if (loading) {
     return (
@@ -65,35 +79,14 @@ export function OwnerProjectDetails({
     );
   }
 
-  if (facts.length === 0) {
-    return (
-      <section className="space-y-3">
-        <h2 className="font-display text-lg text-neutral-900">Details</h2>
-        <p className="text-sm text-[var(--muted)]">No extra details yet.</p>
-      </section>
-    );
-  }
-
   return (
     <section className="space-y-3">
       <h2 className="font-display text-lg text-neutral-900">Details</h2>
-      <ul className="space-y-3">
-        {facts.map((question) => {
-          const Icon = ownerDetailIcon(question);
-          const label = formatOwnerDetailFact(question, projectType);
-          if (!label) return null;
-
-          return (
-            <li key={question.id} className="flex items-start gap-2.5">
-              <Icon
-                className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500"
-                aria-hidden
-              />
-              <p className="text-sm leading-5 text-neutral-900">{label}</p>
-            </li>
-          );
-        })}
-      </ul>
+      {facts.length === 0 ? (
+        <p className="text-sm text-[var(--muted)]">No extra details yet.</p>
+      ) : (
+        <ProjectDetailFactList facts={facts} />
+      )}
     </section>
   );
 }

@@ -8,6 +8,7 @@ import { SubmittedScopeEstimateRange } from "@/components/estimate/submitted-sco
 import { ScopeItemWithEstimateRange } from "@/components/scope/scope-item-with-estimate-range";
 import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
 import { ScopeSummary } from "@/components/scope/scope-summary";
+import { ProjectDetailFactList } from "@/components/project/project-detail-fact-list";
 import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,11 +16,17 @@ import {
   groupScopeItemsByCategory,
   compareScopeCategories,
 } from "@/lib/scope/group-by-category";
+import {
+  listProjectDetailFacts,
+  projectDetailScopeItemIds,
+} from "@/lib/project/project-detail-facts";
+import type { ProjectDetailFact } from "@/lib/project/project-detail-facts";
 import { snapshotItemToScopeItem } from "@/lib/contractor/review-scope-snapshot";
 import { buildSubmittedEstimateDisplay } from "@/lib/estimates/submitted-estimate-display";
 import type { SubmittedEstimateDisplay } from "@/lib/estimates/submitted-estimate-display";
 import type {
   ContractorEstimate,
+  FollowUpQuestion,
   ReviewScopeSnapshot,
   ReviewScopeSnapshotSuggestion,
   ScopeItem,
@@ -371,14 +378,34 @@ function InlineSnapshotSuggestion({
   );
 }
 
+function ProjectDetailsSection({ facts }: { facts: ProjectDetailFact[] }) {
+  if (facts.length === 0) return null;
+
+  return (
+    <PageSection title="Details">
+      <SectionSurface>
+        <ProjectDetailFactList facts={facts} />
+      </SectionSurface>
+    </PageSection>
+  );
+}
+
 function CurrentScopeList({
   items,
   estimateDisplay,
+  detailItemIds,
 }: {
   items: ScopeItem[];
   estimateDisplay?: SubmittedEstimateDisplay | null;
+  detailItemIds: Set<string>;
 }) {
-  const groups = useMemo(() => groupScopeItemsByCategory(items), [items]);
+  const groups = useMemo(
+    () =>
+      groupScopeItemsByCategory(
+        items.filter((item) => !detailItemIds.has(item.id))
+      ),
+    [detailItemIds, items]
+  );
   const usesItemPricing = estimateDisplay?.pricingMode === "item";
   const usesSectionPricing = estimateDisplay?.pricingMode === "section";
 
@@ -437,12 +464,14 @@ function SubmittedScopeList({
   suggestionsById,
   onUpdated,
   estimateDisplay,
+  detailItemIds,
 }: {
   snapshot: ReviewScopeSnapshot;
   projectId: string;
   suggestionsById: Map<string, ScopeSuggestionWithMeta>;
   onUpdated: () => void;
   estimateDisplay?: SubmittedEstimateDisplay | null;
+  detailItemIds: Set<string>;
 }) {
   const items = useMemo(
     () =>
@@ -493,13 +522,20 @@ function SubmittedScopeList({
           snapshot.suggestions,
           group.category
         );
+        const visibleItems = group.items.filter(
+          (item) => !detailItemIds.has(item.id)
+        );
+        if (visibleItems.length === 0 && addSuggestions.length === 0) {
+          return null;
+        }
+
         const sectionRange = estimateDisplay?.sectionRanges.get(group.category);
 
         return (
           <ScopeCategoryGroup
             key={group.category}
             category={group.category}
-            itemCount={group.items.length + addSuggestions.length}
+            itemCount={visibleItems.length + addSuggestions.length}
             chevronAfterAside={usesSectionPricing && Boolean(sectionRange)}
             headerAside={
               usesSectionPricing && sectionRange ? (
@@ -510,7 +546,7 @@ function SubmittedScopeList({
               ) : null
             }
           >
-            {group.items.map((item) => {
+            {visibleItems.map((item) => {
               const editSuggestion = editSuggestionForItem(
                 snapshot.suggestions,
                 item.id
@@ -577,6 +613,8 @@ export function ReviewedScopeSnapshotView({
   embedded = false,
   contractorNotes,
   belowNotes,
+  followUpQuestions = [],
+  projectType,
 }: {
   projectId: string;
   snapshot: ReviewScopeSnapshot | null;
@@ -589,6 +627,8 @@ export function ReviewedScopeSnapshotView({
   embedded?: boolean;
   contractorNotes?: string | null;
   belowNotes?: ReactNode;
+  followUpQuestions?: FollowUpQuestion[];
+  projectType?: string;
 }) {
   const [view, setView] = useState<ScopeView>("submitted");
 
@@ -605,6 +645,25 @@ export function ReviewedScopeSnapshotView({
           )
         : [],
     [projectId, snapshot]
+  );
+
+  const detailItemIds = useMemo(
+    () =>
+      projectDetailScopeItemIds(
+        followUpQuestions,
+        [...currentItems, ...snapshotItems],
+        projectType
+      ),
+    [currentItems, followUpQuestions, projectType, snapshotItems]
+  );
+
+  const detailFacts = useMemo(
+    () =>
+      listProjectDetailFacts(followUpQuestions, projectType, [
+        ...currentItems,
+        ...snapshotItems,
+      ]),
+    [currentItems, followUpQuestions, projectType, snapshotItems]
   );
 
   const submittedEstimateDisplay = useMemo(
@@ -641,6 +700,7 @@ export function ReviewedScopeSnapshotView({
 
       {!snapshot ? (
         <div className="space-y-6">
+          <ProjectDetailsSection facts={detailFacts} />
           <ContractorNotes notes={contractorNotes} />
           {belowNotes}
           <SectionSurface>
@@ -659,6 +719,7 @@ export function ReviewedScopeSnapshotView({
               plain={!embedded}
             />
           ) : null}
+          <ProjectDetailsSection facts={detailFacts} />
           <ContractorNotes notes={contractorNotes} />
           {belowNotes}
           <SubmittedScopeList
@@ -667,6 +728,7 @@ export function ReviewedScopeSnapshotView({
             suggestionsById={suggestionsById}
             onUpdated={onUpdated}
             estimateDisplay={submittedEstimateDisplay}
+            detailItemIds={detailItemIds}
           />
         </div>
       ) : (
@@ -678,11 +740,13 @@ export function ReviewedScopeSnapshotView({
               plain={!embedded}
             />
           ) : null}
+          <ProjectDetailsSection facts={detailFacts} />
           <ContractorNotes notes={contractorNotes} />
           {belowNotes}
           <CurrentScopeList
             items={currentItems}
             estimateDisplay={currentEstimateDisplay}
+            detailItemIds={detailItemIds}
           />
         </div>
       )}

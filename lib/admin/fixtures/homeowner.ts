@@ -3,6 +3,7 @@ import {
   SHARE_LINK_PLACEHOLDER_EMAIL,
   SHARE_LINK_PLACEHOLDER_NAME,
 } from "@/lib/contractor/project-share";
+import { buildScopeItemTextFromFollowUp } from "@/lib/follow-up/scope-item-text";
 import type { ReviewedScopeDetail } from "@/lib/contractor/reviewed-scopes";
 import type { ReviewedScopeSummary } from "@/lib/contractor/reviewed-scopes";
 import type { ProjectPhotoWithUrl } from "@/lib/phase2/client";
@@ -434,6 +435,57 @@ export const previewHomeownerFollowUpQuestions: FollowUpQuestion[] = [
     answered_at: PREVIEW_TIMESTAMP,
   },
 ];
+
+const previewDetailCategory: Record<FollowUpQuestion["category"], string> = {
+  dimensions: "other",
+  materials: "fixtures",
+  timeline: "other",
+  permits: "permits",
+  trade_scope: "carpentry",
+  other: "other",
+};
+
+const previewDetailScopeItems: ScopeItem[] = previewHomeownerFollowUpQuestions.flatMap(
+  (question, index) => {
+    const text = buildScopeItemTextFromFollowUp(
+      question,
+      previewHomeownerKitchenProject.project_type
+    );
+    if (!text) return [];
+
+    return [
+      {
+        id: `preview-detail-${question.id}`,
+        project_id: PREVIEW_HOMEOWNER_PROJECT_ID,
+        category: previewDetailCategory[question.category],
+        text,
+        source: "homeowner" as const,
+        priority: "optional" as const,
+        status: "active" as const,
+        sort_order: previewHomeownerKitchenProject.scope_items.length + index,
+        needs_verification: false,
+        follow_up_question_id: question.id,
+        created_at: PREVIEW_TIMESTAMP,
+        updated_at: PREVIEW_TIMESTAMP,
+      },
+    ];
+  }
+);
+
+export const previewHomeownerReviewScopeItems: ScopeItem[] = [
+  ...previewHomeownerKitchenProject.scope_items,
+  ...previewDetailScopeItems,
+];
+
+if (previewInvitation.review) {
+  previewInvitation.review.scope_snapshot = buildPreviewScopeSnapshot(
+    {
+      ...previewHomeownerKitchenProject,
+      scope_items: previewHomeownerReviewScopeItems,
+    },
+    previewInvitation.review.scope_snapshot?.suggestions ?? []
+  );
+}
 
 const PREVIEW_HOMEOWNER_PHOTO_URLS = [
   "https://images.unsplash.com/photo-1556912173-46c336c7fd55?auto=format&fit=crop&w=800&h=800&q=80",

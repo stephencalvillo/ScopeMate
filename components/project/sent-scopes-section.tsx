@@ -10,7 +10,6 @@ import {
   Loader2,
 } from "lucide-react";
 import { SuggestionCard } from "@/components/suggestions/suggestion-card";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +24,13 @@ import type {
   ContractorInvitationWithReview,
   ScopeSuggestionWithMeta,
 } from "@/types";
+
+/**
+ * Quiet row action. Same hit area as a default button (`h-11 px-5`, 4px corners)
+ * with no fill, stroke, or shadow until hover. `text-sm` is 16px here.
+ */
+const sentScopeActionClassName =
+  "inline-flex h-11 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-[4px] border-0 bg-transparent px-5 py-2 text-sm font-medium text-neutral-800 shadow-none transition-colors duration-150 hover:bg-black/10 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] active:bg-black/10 active:shadow-none";
 
 function RowIcon({ kind }: { kind: SentScopeRow["kind"] }) {
   if (kind === "question") {
@@ -164,7 +170,7 @@ export function SentScopesSection({
                         : undefined
                     }
                   >
-                    <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
                     <RowIcon kind={row.kind} />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-neutral-900">
@@ -174,31 +180,27 @@ export function SentScopesSection({
                     </div>
                     </div>
                     {row.action === "share" ? (
-                      <Button
+                      <button
                         type="button"
-                        variant="outline"
-                        size="sm"
-                        className="shrink-0"
+                        className={sentScopeActionClassName}
                         onClick={(event) => {
                           event.stopPropagation();
                           void openShareDialog();
                         }}
                       >
                         Share again
-                      </Button>
+                      </button>
                     ) : (
-                      <Button
+                      <button
                         type="button"
-                        variant="outline"
-                        size="sm"
-                        className="shrink-0"
+                        className={sentScopeActionClassName}
                         onClick={(event) => {
                           event.stopPropagation();
                           openReview(row);
                         }}
                       >
                         Review
-                      </Button>
+                      </button>
                     )}
                   </div>
                 </li>

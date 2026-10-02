@@ -8,6 +8,7 @@ import {
 } from "@/lib/contractor/profile";
 import { getAccessibleProjectWithScope } from "@/lib/db/projects";
 import { getProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision";
+import { getAnsweredFollowUps } from "@/lib/ai/generate-follow-up";
 
 export default async function ProjectDetailPage({
   params,
@@ -74,6 +75,7 @@ export default async function ProjectDetailPage({
     project.accepted_estimate_id != null
       ? await getProjectAcceptedProposalSummary(project.id)
       : null;
+  const followUpQuestions = await getAnsweredFollowUps(project.id);
 
   return (
     <ProjectDetailView
@@ -81,6 +83,7 @@ export default async function ProjectDetailPage({
       autoGenerate={generate === "1"}
       acceptedProposal={acceptedProposal}
       isGuestProject={project.homeowner_id === null}
+      followUpQuestions={followUpQuestions}
     />
   );
 }

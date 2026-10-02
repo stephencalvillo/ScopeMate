@@ -25,7 +25,7 @@ import { parseReviewScopeSnapshot } from "@/lib/contractor/review-scope-snapshot
 import type { ReviewedScopeSummary } from "@/lib/contractor/reviewed-scopes";
 import { SHARE_LINK_PLACEHOLDER_EMAIL } from "@/lib/contractor/project-share";
 import { formatProposalRange } from "@/lib/estimates/money";
-import type { ContractorEstimate, ProjectWithScope, ScopeItem, ScopeSuggestionWithMeta } from "@/types";
+import type { ContractorEstimate, FollowUpQuestion, ProjectWithScope, ScopeItem, ScopeSuggestionWithMeta } from "@/types";
 import type { SharedPhoto } from "@/lib/phase2/client";
 
 function formatReviewFeedbackLine(
@@ -77,6 +77,7 @@ export function ReviewedScopeDetail({
   currentScopeItems,
   estimate,
   photos = [],
+  followUpQuestions = [],
 }: {
   projectId: string;
   project: ProjectWithScope;
@@ -86,6 +87,7 @@ export function ReviewedScopeDetail({
   currentScopeItems: ScopeItem[];
   estimate?: ContractorEstimate | null;
   photos?: SharedPhoto[];
+  followUpQuestions?: FollowUpQuestion[];
 }) {
   const router = useRouter();
   const { invitation } = scope;
@@ -138,6 +140,8 @@ export function ReviewedScopeDetail({
       suggestions={suggestions}
       estimate={estimate}
       contractorNotes={contractorNotes}
+      followUpQuestions={followUpQuestions}
+      projectType={project.project_type}
       belowNotes={
         showAcceptedLayout ? <SharedPhotoGallery photos={photos} /> : undefined
       }

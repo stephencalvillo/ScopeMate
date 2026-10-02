@@ -24,7 +24,11 @@ import { usesCreationWalkthrough } from "@/lib/project/creation-walkthrough";
 import { usesOwnerProjectWorkspace } from "@/lib/project/owner-workspace";
 import { projectStatusBadgeProps } from "@/lib/project-status";
 import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision-types";
-import { formatProjectTypeLabel, type ProjectWithScope } from "@/types";
+import {
+  formatProjectTypeLabel,
+  type FollowUpQuestion,
+  type ProjectWithScope,
+} from "@/types";
 import type { ProjectPreviewContext } from "@/lib/admin/preview-context";
 
 function ProjectHeaderMeta({
@@ -150,6 +154,7 @@ export function ProjectDetailView({
   projectsBreadcrumbHref,
   previewContext,
   actionPreviewListHref,
+  followUpQuestions,
 }: {
   project: ProjectWithScope;
   autoGenerate: boolean;
@@ -158,6 +163,7 @@ export function ProjectDetailView({
   projectsBreadcrumbHref?: "/projects" | "/contractor" | null;
   previewContext?: ProjectPreviewContext;
   actionPreviewListHref?: string;
+  followUpQuestions?: FollowUpQuestion[];
 }) {
   const hasScope = project.scope_items.length > 0 || project.ai_summary;
   const [creationCompletedAt, setCreationCompletedAt] = useState(
@@ -324,6 +330,7 @@ export function ProjectDetailView({
               activityRefreshKey={activityRefreshKey}
               previewContext={previewContext}
               persistScopeItems={!preview}
+              followUpQuestions={followUpQuestions}
               onGeneratingChange={handleGeneratingChange}
             />
           ) : (

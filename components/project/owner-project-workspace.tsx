@@ -15,18 +15,20 @@ import {
 } from "@/lib/scope/group-by-category";
 import { restoreScopeItem } from "@/lib/scope/scope-item-client";
 import type { ProjectPreviewContext } from "@/lib/admin/preview-context";
-import type { ProjectWithScope } from "@/types";
+import type { FollowUpQuestion, ProjectWithScope } from "@/types";
 
 export function OwnerProjectWorkspace({
   project,
   activityRefreshKey = 0,
   previewContext,
   persistScopeItems = true,
+  followUpQuestions,
 }: {
   project: ProjectWithScope;
   activityRefreshKey?: number;
   previewContext?: ProjectPreviewContext;
   persistScopeItems?: boolean;
+  followUpQuestions?: FollowUpQuestion[];
   onGeneratingChange?: (generating: boolean) => void;
 }) {
   const { getToken, isSignedIn } = useAuth();
@@ -97,6 +99,7 @@ export function OwnerProjectWorkspace({
           projectId={project.id}
           projectType={project.project_type}
           previewApiBase={previewContext?.apiBasePath}
+          followUpQuestions={followUpQuestions}
         />
         <PhotoUploadSection
           projectId={project.id}

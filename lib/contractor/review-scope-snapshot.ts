@@ -36,6 +36,7 @@ export function snapshotItemToScopeItem(
     sort_order: item.sort_order,
     needs_verification: item.needs_verification,
     contractor_attribution_name: item.contractor_attribution_name ?? undefined,
+    follow_up_question_id: item.follow_up_question_id ?? null,
     created_at: capturedAt,
     updated_at: capturedAt,
   };
@@ -55,7 +56,7 @@ export async function buildReviewScopeSnapshot({
   const { data: scopeItems, error } = await supabase
     .from("scope_items")
     .select(
-      "id, category, text, source, priority, sort_order, needs_verification, suggestion_id"
+      "id, category, text, source, priority, sort_order, needs_verification, suggestion_id, follow_up_question_id"
     )
     .eq("project_id", projectId)
     .eq("status", "active")
@@ -79,6 +80,8 @@ export async function buildReviewScopeSnapshot({
         needs_verification: Boolean(item.needs_verification),
         contractor_attribution_name: null,
         suggestion_id: (item.suggestion_id as string | null) ?? null,
+        follow_up_question_id:
+          (item.follow_up_question_id as string | null) ?? null,
       })
     ),
     suggestions: drafts.map(
