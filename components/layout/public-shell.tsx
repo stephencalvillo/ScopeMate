@@ -22,7 +22,7 @@ export function PublicShell({
     <div className="min-h-screen bg-[var(--background)]">
       <DisclaimerBanner />
       <header className="border-b border-[var(--border)] bg-white/80 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between gap-4 px-[var(--page-padding-x)]">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-[var(--page-padding-x)]">
           <div className="flex min-w-0 items-center gap-3">
             {logoHref ? (
               <Link href={logoHref} aria-label="ScopeBuddy for contractors">
@@ -40,7 +40,7 @@ export function PublicShell({
           ) : null}
         </div>
       </header>
-      <main className="mx-auto max-w-4xl px-[var(--page-padding-x)] pt-6 pb-12">{children}</main>
+      <main className="mx-auto max-w-7xl px-[var(--page-padding-x)] pt-6 pb-12">{children}</main>
     </div>
   );
 }
