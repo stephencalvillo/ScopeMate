@@ -15,17 +15,25 @@ export function UpdateProjectScopeDialog({
   open,
   onOpenChange,
   onUpdate,
+  title = "Edit summary",
+  actionLabel = "Save",
 }: {
   summary: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpdate: (updatedSummary: string) => void;
+  onUpdate: (updatedSummary: string) => void | Promise<void>;
+  title?: string;
+  actionLabel?: string;
 }) {
   const [draft, setDraft] = useState(summary);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setDraft(summary);
+      setSaving(false);
+      setError(null);
     }
   }, [open, summary]);
 
@@ -33,17 +41,29 @@ export function UpdateProjectScopeDialog({
   const hasChanges =
     trimmedDraft.length > 0 && trimmedDraft !== summary.trim();
 
-  function handleUpdate() {
-    if (!hasChanges) return;
-    onUpdate(trimmedDraft);
-    onOpenChange(false);
+  async function handleUpdate() {
+    if (!hasChanges || saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await onUpdate(trimmedDraft);
+      onOpenChange(false);
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not save your summary."
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Update project scope</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
         <Textarea
@@ -51,11 +71,18 @@ export function UpdateProjectScopeDialog({
           onChange={(event) => setDraft(event.target.value)}
           className="min-h-40 text-base"
           placeholder="Describe your project goals and key details..."
+          disabled={saving}
         />
 
+        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
         <div className="flex justify-end pt-2">
-          <Button type="button" disabled={!hasChanges} onClick={handleUpdate}>
-            Update
+          <Button
+            type="button"
+            disabled={!hasChanges || saving}
+            onClick={() => void handleUpdate()}
+          >
+            {saving ? "Saving..." : actionLabel}
           </Button>
         </div>
       </DialogContent>

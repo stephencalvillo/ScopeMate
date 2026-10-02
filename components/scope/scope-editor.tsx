@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { usesCreationWalkthrough } from "@/lib/project/creation-walkthrough";
 import { markCreationCompleteClient } from "@/lib/project/creation-complete-client";
+import { updateProjectSummaryClient } from "@/lib/project/update-project-client";
 import {
   groupScopeItemsByCategory,
   withoutAnswerDerivedScopeItems,
@@ -60,6 +61,7 @@ export function ScopeEditor({
   onCreationComplete?: () => void;
 }) {
   const router = useRouter();
+  const { getToken, isSignedIn } = useAuth();
   const projectPath = useProjectDetailPath(project.id);
   const [summary, setSummary] = useState(project.ai_summary);
   const [items, setItems] = useState(project.scope_items);
@@ -130,6 +132,24 @@ export function ScopeEditor({
     setIsGenerating(true);
   }, []);
 
+  const handleSaveSummary = useCallback(
+    async (nextSummary: string) => {
+      if (!persistScopeItems) {
+        setSummary(nextSummary);
+        return;
+      }
+
+      await updateProjectSummaryClient(
+        project.id,
+        nextSummary,
+        isSignedIn ? getToken : undefined
+      );
+      setSummary(nextSummary);
+      setGenerateError(null);
+    },
+    [getToken, isSignedIn, persistScopeItems, project.id]
+  );
+
   if (isGenerating) {
     return (
       <ScopeGeneratingLoader
@@ -154,7 +174,11 @@ export function ScopeEditor({
           summary={summary}
           open={updateDialogOpen}
           onOpenChange={setUpdateDialogOpen}
-          onUpdate={handleUpdateScope}
+          onUpdate={
+            useConfirmSteps ? handleSaveSummary : handleUpdateScope
+          }
+          title={useConfirmSteps ? "Edit summary" : "Update project scope"}
+          actionLabel={useConfirmSteps ? "Save" : "Update"}
         />
       ) : null}
 

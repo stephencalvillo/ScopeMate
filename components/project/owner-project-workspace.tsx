@@ -1,31 +1,26 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { OwnerProjectDetails } from "@/components/project/owner-project-details";
 import { OwnerScopeList } from "@/components/project/owner-scope-list";
 import { SentScopesSection } from "@/components/project/sent-scopes-section";
 import { PhotoUploadSection } from "@/components/photos/photo-upload-section";
 import { UpdateProjectScopeDialog } from "@/components/scope/update-project-scope-dialog";
-import {
-  ScopeGeneratingLoader,
-  UPDATE_SCOPE_STEPS,
-} from "@/components/scope/scope-generating-loader";
-import { useProjectDetailPath } from "@/lib/project/use-project-detail-path";
+import { updateProjectSummaryClient } from "@/lib/project/update-project-client";
 import {
   groupScopeItemsByCategory,
   withoutAnswerDerivedScopeItems,
 } from "@/lib/scope/group-by-category";
 import { restoreScopeItem } from "@/lib/scope/scope-item-client";
 import type { ProjectPreviewContext } from "@/lib/admin/preview-context";
-import type { ProjectWithScope, ScopeItem } from "@/types";
+import type { ProjectWithScope } from "@/types";
 
 export function OwnerProjectWorkspace({
   project,
   activityRefreshKey = 0,
   previewContext,
   persistScopeItems = true,
-  onGeneratingChange,
 }: {
   project: ProjectWithScope;
   activityRefreshKey?: number;
@@ -33,61 +28,36 @@ export function OwnerProjectWorkspace({
   persistScopeItems?: boolean;
   onGeneratingChange?: (generating: boolean) => void;
 }) {
-  const router = useRouter();
-  const projectPath = useProjectDetailPath(project.id);
+  const { getToken, isSignedIn } = useAuth();
   const [summary, setSummary] = useState(project.ai_summary);
   const [items, setItems] = useState(project.scope_items);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
-  const [updatedSummary, setUpdatedSummary] = useState<string | undefined>();
-  const [generateError, setGenerateError] = useState<string | null>(null);
-  const isUpdatingScope = Boolean(updatedSummary);
 
   useEffect(() => {
     setSummary(project.ai_summary);
     setItems(project.scope_items);
   }, [project.ai_summary, project.scope_items]);
 
-  useEffect(() => {
-    onGeneratingChange?.(isUpdatingScope);
-  }, [isUpdatingScope, onGeneratingChange]);
-
   const groupedItems = groupScopeItemsByCategory(
     withoutAnswerDerivedScopeItems(items)
   );
 
-  const handleGenerated = useCallback(
-    (payload: { ai_summary: string; scope_items: ScopeItem[] }) => {
-      setSummary(payload.ai_summary);
-      setItems(payload.scope_items);
-      setUpdatedSummary(undefined);
-      setGenerateError(null);
-      router.replace(previewContext?.detailPath ?? projectPath);
-      router.refresh();
-    },
-    [previewContext?.detailPath, projectPath, router]
-  );
+  const handleSaveSummary = useCallback(
+    async (nextSummary: string) => {
+      if (!persistScopeItems) {
+        setSummary(nextSummary);
+        return;
+      }
 
-  const handleGenerateError = useCallback(
-    (message: string) => {
-      setUpdatedSummary(undefined);
-      setGenerateError(message);
-      router.replace(previewContext?.detailPath ?? projectPath);
+      await updateProjectSummaryClient(
+        project.id,
+        nextSummary,
+        isSignedIn ? getToken : undefined
+      );
+      setSummary(nextSummary);
     },
-    [previewContext?.detailPath, projectPath, router]
+    [getToken, isSignedIn, persistScopeItems, project.id]
   );
-
-  if (isUpdatingScope && updatedSummary) {
-    return (
-      <ScopeGeneratingLoader
-        projectId={project.id}
-        updatedSummary={updatedSummary}
-        steps={UPDATE_SCOPE_STEPS}
-        helperText="ScopeBuddy is updating your scope list from your summary."
-        onComplete={handleGenerated}
-        onError={handleGenerateError}
-      />
-    );
-  }
 
   return (
     <>
@@ -96,10 +66,7 @@ export function OwnerProjectWorkspace({
           summary={summary}
           open={updateDialogOpen}
           onOpenChange={setUpdateDialogOpen}
-          onUpdate={(nextSummary) => {
-            setGenerateError(null);
-            setUpdatedSummary(nextSummary);
-          }}
+          onUpdate={handleSaveSummary}
         />
       ) : null}
 
@@ -121,9 +88,6 @@ export function OwnerProjectWorkspace({
           >
             Edit summary
           </button>
-        ) : null}
-        {generateError ? (
-          <p className="text-sm text-red-600">{generateError}</p>
         ) : null}
       </section>
 

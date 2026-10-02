@@ -40,6 +40,12 @@ export const updateProjectSchema = z.object({
   title: z.string().trim().min(1).max(120).optional(),
   location: z.string().trim().min(2).max(120).optional(),
   original_description: z.string().trim().min(20).max(8000).optional(),
+  ai_summary: z
+    .string()
+    .trim()
+    .min(1, "Project summary cannot be empty")
+    .max(4000)
+    .optional(),
   project_type: z.string().trim().min(1).max(120).optional(),
   status: z.enum(["draft", "scope_ready", "shared", "archived"]).optional(),
 });
