@@ -21,6 +21,11 @@ import {
   projectDetailScopeItemIds,
 } from "@/lib/project/project-detail-facts";
 import type { ProjectDetailFact } from "@/lib/project/project-detail-facts";
+import {
+  countVisibleContractorChanges,
+  formatContractorViewChangeStatus,
+  isContractorCommentOnItem,
+} from "@/lib/contractor/review-change-status";
 import { snapshotItemToScopeItem } from "@/lib/contractor/review-scope-snapshot";
 import { buildSubmittedEstimateDisplay } from "@/lib/estimates/submitted-estimate-display";
 import type { SubmittedEstimateDisplay } from "@/lib/estimates/submitted-estimate-display";
@@ -51,11 +56,7 @@ function editSuggestionForItem(
   suggestions: ReviewScopeSnapshotSuggestion[],
   itemId: string
 ) {
-  return suggestions.find(
-    (entry) =>
-      entry.target_scope_item_id === itemId &&
-      ["edit", "note", "remove"].includes(entry.suggestion_type)
-  );
+  return suggestions.find((entry) => isContractorCommentOnItem(entry, itemId));
 }
 
 function addSuggestionsForCategory(
@@ -666,6 +667,20 @@ export function ReviewedScopeSnapshotView({
     [currentItems, followUpQuestions, projectType, snapshotItems]
   );
 
+  const contractorChangeStatus = useMemo(() => {
+    if (!snapshot) return null;
+
+    const visibleScopeItemIds = snapshotItems
+      .filter((item) => !detailItemIds.has(item.id))
+      .map((item) => item.id);
+    const { commentCount, suggestionCount } = countVisibleContractorChanges(
+      snapshot.suggestions,
+      visibleScopeItemIds
+    );
+
+    return formatContractorViewChangeStatus(commentCount, suggestionCount);
+  }, [detailItemIds, snapshot, snapshotItems]);
+
   const submittedEstimateDisplay = useMemo(
     () =>
       estimate?.line_items
@@ -691,11 +706,16 @@ export function ReviewedScopeSnapshotView({
   return (
     <section className="space-y-6">
       {snapshot ? (
-        <ScopeViewSegmentedControl
-          value={view}
-          onChange={setView}
-          contractorName={contractorName}
-        />
+        <div className="flex flex-wrap items-center gap-4">
+          <ScopeViewSegmentedControl
+            value={view}
+            onChange={setView}
+            contractorName={contractorName}
+          />
+          {view === "submitted" && contractorChangeStatus ? (
+            <p className="text-sm text-[var(--muted)]">{contractorChangeStatus}</p>
+          ) : null}
+        </div>
       ) : null}
 
       {!snapshot ? (

@@ -256,7 +256,7 @@ export const previewHomeownerSuggestions: ScopeSuggestionWithMeta[] = [
 ];
 
 // The review page draws callouts from the submitted snapshot, not the live
-// suggestion list. Keep both in sync so the header count matches the scope.
+// suggestion list. Keep both in sync so the contractor-view status matches the scope.
 if (previewInvitation.review) {
   previewInvitation.review.scope_snapshot = buildPreviewScopeSnapshot(
     previewHomeownerKitchenProject,

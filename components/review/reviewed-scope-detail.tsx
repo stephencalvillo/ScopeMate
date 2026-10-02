@@ -28,27 +28,6 @@ import { formatProposalRange } from "@/lib/estimates/money";
 import type { ContractorEstimate, FollowUpQuestion, ProjectWithScope, ScopeItem, ScopeSuggestionWithMeta } from "@/types";
 import type { SharedPhoto } from "@/lib/phase2/client";
 
-function formatReviewFeedbackLine(
-  entries: Array<{ suggestion_type: string }>
-) {
-  const commentCount = entries.filter(
-    (entry) => entry.suggestion_type !== "add"
-  ).length;
-  const suggestionCount = entries.filter(
-    (entry) => entry.suggestion_type === "add"
-  ).length;
-  const parts = [
-    commentCount > 0
-      ? `${commentCount} comment${commentCount === 1 ? "" : "s"}`
-      : null,
-    suggestionCount > 0
-      ? `${suggestionCount} suggestion${suggestionCount === 1 ? "" : "s"}`
-      : null,
-  ].filter(Boolean);
-
-  return parts.length > 0 ? parts.join(" · ") : null;
-}
-
 function ReviewEstimateColumns({
   rail,
   children,
@@ -108,9 +87,6 @@ export function ReviewedScopeDetail({
   const scopeSnapshot = parseReviewScopeSnapshot(
     invitation.review?.scope_snapshot ?? null
   );
-  const feedbackLine = formatReviewFeedbackLine(
-    scopeSnapshot?.suggestions ?? suggestions
-  );
   const statusParts = [
     scope.is_selected_proposal ? "Proposal accepted" : null,
     scope.estimate_status === "declined" && invitation.status !== "closed_out"
@@ -123,7 +99,6 @@ export function ReviewedScopeDetail({
     scope.proposal_max_total != null
       ? `Proposal ${formatProposalRange(scope.proposal_min_total, scope.proposal_max_total)}`
       : null,
-    feedbackLine,
   ].filter(Boolean);
 
   const showAcceptedLayout = scope.is_selected_proposal && estimate != null;
