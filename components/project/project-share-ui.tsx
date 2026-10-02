@@ -99,6 +99,25 @@ function SaveProjectTriggerButton({
   );
 }
 
+export function ProjectShareSaveDraftButton({
+  className,
+}: {
+  className?: string;
+}) {
+  const { openSaveProjectDialog } = useProjectShare();
+
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      onClick={openSaveProjectDialog}
+      className={className}
+    >
+      Save draft
+    </Button>
+  );
+}
+
 function ProjectSharePrimaryActions({
   onShare,
   onSave,

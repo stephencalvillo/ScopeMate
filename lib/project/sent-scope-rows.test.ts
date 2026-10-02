@@ -31,7 +31,7 @@ function invitation(
   };
 }
 
-test("unnamed opened share becomes a Sent scope remind row", () => {
+test("unnamed opened share becomes a Sent scope share-again row", () => {
   const rows = buildSentScopeRows(
     [
       invitation({
@@ -45,7 +45,7 @@ test("unnamed opened share becomes a Sent scope remind row", () => {
   assert.equal(rows.length, 1);
   assert.equal(rows[0].kind, "sent");
   assert.equal(rows[0].title, "Sent scope");
-  assert.equal(rows[0].action, "remind");
+  assert.equal(rows[0].action, "share");
   assert.match(rows[0].meta, /Sent Sunday 9\/27/);
   assert.match(rows[0].meta, /Opened yesterday 9\/29/);
 });

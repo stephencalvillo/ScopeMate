@@ -10,6 +10,7 @@ import {
   FollowUpQuestionsPanel,
   useFollowUpConfirmStep,
 } from "@/components/follow-up/follow-up-questions-panel";
+import { MockupsSection } from "@/components/mockups/mockups-section";
 import { PhotoUploadSection } from "@/components/photos/photo-upload-section";
 import {
   ProjectShareLastStepActions,
@@ -234,6 +235,8 @@ export function ScopeEditor({
           />
 
           <PhotoUploadSection projectId={project.id} />
+
+          <MockupsSection projectId={project.id} layout="section" />
 
           {!hasScope ? (
             <PageSection
@@ -464,21 +467,29 @@ function NewProjectConfirmSteps({
     {
       id: "photos",
       title: "Project photos",
-      confirmStart: ({ confirm }) => (
-        <button
-          type="button"
-          className="text-sm text-[var(--muted)] underline underline-offset-4 transition-colors hover:text-neutral-900"
-          onClick={confirm}
-        >
-          Skip photos
-        </button>
-      ),
+      confirmLabel: photos.length > 0 ? "Next" : "Skip",
       content: (
         <PhotoUploadSection
           projectId={project.id}
           embedded
           onPhotosChange={handlePhotosChange}
         />
+      ),
+    },
+    {
+      id: "mockups",
+      title: "Mockups",
+      confirmStart: ({ confirm }) => (
+        <button
+          type="button"
+          className="text-sm text-[var(--muted)] underline underline-offset-4 transition-colors hover:text-neutral-900"
+          onClick={confirm}
+        >
+          Skip mockups
+        </button>
+      ),
+      content: (
+        <MockupsSection projectId={project.id} layout="embedded" />
       ),
     },
     {

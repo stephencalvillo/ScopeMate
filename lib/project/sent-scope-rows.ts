@@ -7,7 +7,7 @@ import type {
 } from "@/types";
 
 export type SentScopeRowKind = "sent" | "question" | "submitted";
-export type SentScopeRowAction = "remind" | "review";
+export type SentScopeRowAction = "share" | "review";
 
 export type SentScopeRow = {
   id: string;
@@ -117,7 +117,7 @@ export function buildSentScopeRows(
     .map((invitation) => {
       const pendingSuggestions = pendingByInvitation.get(invitation.id) ?? [];
       const kind = rowKind(invitation, pendingSuggestions);
-      const action: SentScopeRowAction = kind === "sent" ? "remind" : "review";
+      const action: SentScopeRowAction = kind === "sent" ? "share" : "review";
 
       return {
         id: invitation.id,

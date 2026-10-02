@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { OwnerProjectDetails } from "@/components/project/owner-project-details";
 import { OwnerScopeList } from "@/components/project/owner-scope-list";
 import { SentScopesSection } from "@/components/project/sent-scopes-section";
+import { MockupsSection } from "@/components/mockups/mockups-section";
 import { PhotoUploadSection } from "@/components/photos/photo-upload-section";
 import { UpdateProjectScopeDialog } from "@/components/scope/update-project-scope-dialog";
 import { updateProjectSummaryClient } from "@/lib/project/update-project-client";
@@ -101,6 +102,11 @@ export function OwnerProjectWorkspace({
           projectId={project.id}
           layout="sidebar"
           previewApiBase={previewContext?.apiBasePath}
+        />
+        <MockupsSection
+          projectId={project.id}
+          layout="sidebar"
+          preview={Boolean(previewContext)}
         />
       </aside>
 

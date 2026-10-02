@@ -210,6 +210,18 @@ export interface ProjectPhoto {
   created_at: string;
 }
 
+export interface ProjectMockup {
+  id: string;
+  project_id: string;
+  storage_path: string;
+  file_name: string;
+  mime_type: string;
+  file_size: number;
+  prompt: string;
+  sort_order: number;
+  created_at: string;
+}
+
 export interface AiFollowUpQuestion {
   question: string;
   question_type: FollowUpQuestionType;

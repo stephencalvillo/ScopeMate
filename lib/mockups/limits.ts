@@ -1,0 +1,6 @@
+export const MAX_SPACE_PHOTOS = 8;
+export const MAX_INSPIRATION_IMAGES = 8;
+export const MAX_MOCKUPS_PER_GENERATION = 2;
+export const MAX_MOCKUPS_PER_PROJECT = 24;
+export const MAX_MOCKUP_PROMPT_LENGTH = 2000;
+export const MAX_MOCKUP_IMAGE_BYTES = 8 * 1024 * 1024;

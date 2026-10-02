@@ -92,6 +92,22 @@ function draftTotal(entries: DraftEstimateEntry[]) {
   );
 }
 
+function inferPriceInputMode(
+  lineItems: Array<{ labor_cost: number; material_cost: number }>
+): EstimatePriceInputMode {
+  const priced = lineItems.filter(
+    (item) => Number(item.labor_cost) > 0 || Number(item.material_cost) > 0
+  );
+
+  if (priced.length === 0) return "range";
+
+  return priced.every(
+    (item) => Number(item.labor_cost) === Number(item.material_cost)
+  )
+    ? "flat"
+    : "range";
+}
+
 function flattenEntriesToFlatCost(entries: DraftEstimateEntry[]) {
   return entries.map((entry) => {
     const { high } = estimateRangeBounds(
@@ -200,7 +216,12 @@ export function ContractorEstimateProvider({
     initialPricingMode
   );
   const [priceInputMode, setPriceInputModeState] =
-    useState<EstimatePriceInputMode>("range");
+    useState<EstimatePriceInputMode>(() =>
+      inferPriceInputMode(initialEstimate?.line_items ?? [])
+    );
+  const priceInputModeRef = useRef(priceInputMode);
+  priceInputModeRef.current = priceInputMode;
+  const priceInputModeChosen = useRef(false);
   const [entries, setEntries] = useState<DraftEstimateEntry[]>(() =>
     buildDraftEntries({
       scopeItems,
@@ -255,6 +276,11 @@ export function ContractorEstimateProvider({
 
       setEstimate(nextEstimate);
       setPricingModeState(nextPricingMode);
+      if (!priceInputModeChosen.current) {
+        setPriceInputModeState(
+          inferPriceInputMode(nextEstimate?.line_items ?? [])
+        );
+      }
       setEntries((current) =>
         mergeDraftAddEntries(
           buildDraftEntries({
@@ -403,11 +429,15 @@ export function ContractorEstimateProvider({
       nextPricingMode
     );
     nextEntries = ratedEntries;
+    const quotingFlat = priceInputModeRef.current === "flat";
+    if (quotingFlat) {
+      nextEntries = flattenEntriesToFlatCost(nextEntries);
+    }
 
     setEstimate(nextEstimate);
     setPricingModeState(nextPricingMode);
     setEntries(nextEntries);
-    setDirty(applied);
+    setDirty(applied || quotingFlat);
     setMessage(
       applied
         ? "Prefilled with your saved rates. Review and adjust before submitting."
@@ -508,6 +538,7 @@ export function ContractorEstimateProvider({
   function setPriceInputMode(mode: EstimatePriceInputMode) {
     if (mode === priceInputMode) return;
 
+    priceInputModeChosen.current = true;
     setPriceInputModeState(mode);
     if (mode === "flat") {
       setEntries((current) => flattenEntriesToFlatCost(current));
@@ -582,8 +613,10 @@ export function ContractorEstimateProvider({
   }
 
   async function persistDraft() {
+    const sourceEntries =
+      priceInputMode === "flat" ? flattenEntriesToFlatCost(entries) : entries;
     const payload = serializeDraftEntries(
-      entries,
+      sourceEntries,
       pricingModeByCategory,
       scopeItems
     ).map((item) => ({
@@ -635,7 +668,11 @@ export function ContractorEstimateProvider({
     setMessage(null);
 
     try {
-      if (dirty || !estimate) {
+      const flatQuoteNeedsSave =
+        priceInputMode === "flat" &&
+        entries.some((entry) => entry.labor_cost !== entry.material_cost);
+
+      if (dirty || !estimate || flatQuoteNeedsSave) {
         await persistDraft();
       }
 

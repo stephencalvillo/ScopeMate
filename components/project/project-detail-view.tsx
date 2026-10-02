@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState, type MouseEvent } from "react";
 import { MapPin } from "lucide-react";
 import { AcceptedProposalSummary } from "@/components/project/accepted-proposal-summary";
 import { ProjectActionsMenu } from "@/components/project/project-actions-menu";
@@ -8,10 +8,12 @@ import { ProjectClaimHandler } from "@/components/project/project-claim-handler"
 import { ProjectDetailTabs } from "@/components/project/project-detail-tabs";
 import { OwnerProjectWorkspace } from "@/components/project/owner-project-workspace";
 import { ProjectTitleEditor } from "@/components/project/project-title-editor";
+import { LeaveCreationDraftDialog } from "@/components/project/leave-creation-draft-dialog";
 import {
   ProjectShareHeaderActions,
   ProjectShareHeaderRow,
   ProjectShareProvider,
+  ProjectShareSaveDraftButton,
 } from "@/components/project/project-share-ui";
 import { ScopeEditor } from "@/components/scope/scope-editor";
 import { MyProjectsBreadcrumb } from "@/components/layout/my-projects-breadcrumb";
@@ -116,10 +118,18 @@ function ProjectDetailHeader({
   );
 
   if (useCreationWalkthrough) {
+    const showSaveDraft = isGuestProject;
+    const hasHeaderActions = showSaveDraft || Boolean(actions);
+
     return (
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         {meta}
-        {actions}
+        {hasHeaderActions ? (
+          <div className="ml-auto flex items-center gap-2">
+            {showSaveDraft ? <ProjectShareSaveDraftButton /> : null}
+            {actions}
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -174,6 +184,7 @@ export function ProjectDetailView({
   const handleCreationComplete = useCallback(() => {
     setCreationCompletedAt((current) => current ?? new Date().toISOString());
   }, []);
+  const [leaveCreationOpen, setLeaveCreationOpen] = useState(false);
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const handleActivityChange = useCallback(() => {
     setActivityRefreshKey((current) => current + 1);
@@ -185,12 +196,41 @@ export function ProjectDetailView({
     setIsGenerating(generating);
   }, []);
 
+  const confirmLeaveCreation = useCreationWalkthrough && !isGuestProject;
+  const handleYourProjectsClick = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>) => {
+      if (!confirmLeaveCreation) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+      event.preventDefault();
+      setLeaveCreationOpen(true);
+    },
+    [confirmLeaveCreation]
+  );
+  const breadcrumbOnClick = confirmLeaveCreation
+    ? handleYourProjectsClick
+    : undefined;
+
+  const leaveCreationDialog = confirmLeaveCreation ? (
+    <LeaveCreationDraftDialog
+      open={leaveCreationOpen}
+      onOpenChange={setLeaveCreationOpen}
+      projectId={project.id}
+      listHref={listHref}
+      preview={preview}
+    />
+  ) : null;
+
   const breadcrumb =
     projectsBreadcrumbHref === null
       ? null
       : projectsBreadcrumbHref
         ? (
-            <MyProjectsBreadcrumb href={projectsBreadcrumbHref} />
+            <MyProjectsBreadcrumb
+              href={projectsBreadcrumbHref}
+              onClick={breadcrumbOnClick}
+            />
           )
         : isGuestProject && project.creator_role !== "contractor"
           ? null
@@ -199,6 +239,7 @@ export function ProjectDetailView({
                 href={
                   project.creator_role === "contractor" ? "/contractor" : "/projects"
                 }
+                onClick={breadcrumbOnClick}
               />
             );
 
@@ -244,6 +285,7 @@ export function ProjectDetailView({
             onGeneratingChange={handleGeneratingChange}
             onCreationComplete={handleCreationComplete}
           />
+          {leaveCreationDialog}
         </div>
       </ProjectShareProvider>
     );
@@ -297,6 +339,7 @@ export function ProjectDetailView({
             />
           )}
         </Suspense>
+        {leaveCreationDialog}
       </div>
     </ProjectShareProvider>
   );

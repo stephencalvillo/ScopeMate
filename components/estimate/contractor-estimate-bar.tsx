@@ -18,6 +18,7 @@ export function ContractorEstimateBar({
     generating,
     showEstimate,
     submitted,
+    priceInputMode,
     computedMinTotal,
     computedMaxTotal,
     message,
@@ -29,15 +30,23 @@ export function ContractorEstimateBar({
   }
 
   const hasRange = computedMinTotal > 0 || computedMaxTotal > 0;
+  const showSingleAmount =
+    priceInputMode === "flat" || computedMinTotal === computedMaxTotal;
 
   const body = (
     <div className="space-y-2">
       {hasRange ? (
-        <div className="flex items-center gap-2 font-display text-2xl tracking-tight text-neutral-900">
-          <span>{formatCurrency(computedMinTotal)}</span>
-          <span className="h-px w-4 shrink-0 bg-neutral-300" aria-hidden />
-          <span>{formatCurrency(computedMaxTotal)}</span>
-        </div>
+        showSingleAmount ? (
+          <p className="font-display text-2xl tracking-tight text-neutral-900">
+            {formatCurrency(computedMaxTotal)}
+          </p>
+        ) : (
+          <div className="flex items-center gap-2 font-display text-2xl tracking-tight text-neutral-900">
+            <span>{formatCurrency(computedMinTotal)}</span>
+            <span className="h-px w-4 shrink-0 bg-neutral-300" aria-hidden />
+            <span>{formatCurrency(computedMaxTotal)}</span>
+          </div>
+        )
       ) : (
         <p className="font-display text-2xl tracking-tight text-[var(--muted)]">
           —

@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dialog";
 import { SectionSurface } from "@/components/layout/page-section";
 import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
-import { isShareLinkPlaceholder } from "@/lib/contractor/project-share";
 import { buildSentScopeRows, type SentScopeRow } from "@/lib/project/sent-scope-rows";
 import { useProjectShareDialog } from "@/components/project/project-share-ui";
 import type {
@@ -65,8 +64,6 @@ export function SentScopesSection({
   const { openShareDialog } = useProjectShareDialog();
   const [rows, setRows] = useState<SentScopeRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [remindingId, setRemindingId] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [activeRow, setActiveRow] = useState<SentScopeRow | null>(null);
 
   const loadRows = useCallback(async () => {
@@ -103,29 +100,6 @@ export function SentScopesSection({
     if (!isLoaded) return;
     void loadRows();
   }, [isLoaded, loadRows, refreshKey]);
-
-  async function remind(row: SentScopeRow) {
-    setMessage(null);
-
-    if (isShareLinkPlaceholder(row.invitation)) {
-      openShareDialog();
-      return;
-    }
-
-    setRemindingId(row.id);
-    const response = await fetch(
-      `/api/projects/${projectId}/invitations/${row.invitationId}/resend`,
-      { method: "POST" }
-    );
-    setRemindingId(null);
-
-    if (response.ok) {
-      setMessage(`Reminder sent to ${row.invitation.contractor_email}.`);
-      return;
-    }
-
-    openShareDialog();
-  }
 
   function reviewHref(row: SentScopeRow) {
     if (reviewBasePath) return reviewBasePath;
@@ -199,19 +173,18 @@ export function SentScopesSection({
                       <p className="text-sm text-[var(--muted)]">{row.meta}</p>
                     </div>
                     </div>
-                    {row.action === "remind" ? (
+                    {row.action === "share" ? (
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         className="shrink-0"
-                        disabled={remindingId === row.id}
                         onClick={(event) => {
                           event.stopPropagation();
-                          void remind(row);
+                          void openShareDialog();
                         }}
                       >
-                        {remindingId === row.id ? "Sending..." : "Remind"}
+                        Share again
                       </Button>
                     ) : (
                       <Button
@@ -234,10 +207,6 @@ export function SentScopesSection({
           </ul>
         </SectionSurface>
       )}
-
-      {message ? (
-        <p className="text-sm text-[var(--muted)]">{message}</p>
-      ) : null}
 
       <Dialog
         open={activeRow !== null}
