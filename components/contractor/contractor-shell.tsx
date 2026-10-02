@@ -7,7 +7,7 @@ export function ContractorShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <header className="border-b border-[var(--border)] bg-white/80 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-3 px-[var(--page-padding-x)] md:gap-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-[var(--page-padding-x)] md:gap-6">
           <div className="flex min-w-0 items-center gap-1 md:gap-4">
             <ContractorNavMenu />
             <Link
@@ -39,7 +39,7 @@ export function ContractorShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-[var(--page-padding-x)] pt-6 pb-12">
+      <main className="mx-auto max-w-7xl px-[var(--page-padding-x)] pt-6 pb-12">
         {children}
       </main>
     </div>

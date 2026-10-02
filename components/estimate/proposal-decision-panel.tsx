@@ -352,7 +352,7 @@ function ProposalEstimateFloatingDock({
         animate && "share-dock-float-enter"
       )}
     >
-      <div className="mx-auto max-w-5xl drop-shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+      <div className="mx-auto max-w-7xl drop-shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
         <ProposalEstimateCard
           rangeLabel={rangeLabel}
           canAccept
