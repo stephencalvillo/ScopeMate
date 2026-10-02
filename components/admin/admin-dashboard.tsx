@@ -108,7 +108,7 @@ export function AdminDashboard({
             Screen catalog
           </h2>
           <p className="text-sm text-[var(--muted)]">
-            Preview homeowner and contractor pages with mock data.
+            Walk the homeowner and contractor flows and preview each screen.
           </p>
         </div>
 
@@ -129,7 +129,7 @@ export function AdminDashboard({
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-[var(--muted)]">
-                    Browse thumbnails and open interactive previews in a modal.
+                    Open the flow map and preview each screen beside it.
                   </p>
                 </CardContent>
               </Card>

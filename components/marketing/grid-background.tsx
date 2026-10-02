@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type GridBackgroundProps = {
-  fade?: "hero" | "bottom-reveal" | "footer";
+  fade?: "hero" | "bottom-reveal" | "footer" | "none";
   layers?: "full" | "minimal";
 };
 

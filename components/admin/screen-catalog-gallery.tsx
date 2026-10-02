@@ -1,18 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { ScreenPreviewModal } from "@/components/admin/screen-preview-modal";
-import {
-  type ScreenAudience,
-  type ScreenCatalogEntry,
+import { useEffect, useState } from "react";
+import { GridBackground } from "@/components/marketing/grid-background";
+import { ScreenFlowMap } from "@/components/admin/screen-flow-map";
+import { ScreenPreviewPanel } from "@/components/admin/screen-preview-panel";
+import type {
+  ScreenAudience,
+  ScreenCatalogEntry,
 } from "@/lib/admin/screen-catalog";
 import { cn } from "@/lib/utils";
-
-const audienceLabels: Record<ScreenAudience, string> = {
-  homeowner: "Homeowner",
-  contractor: "Contractor",
-};
 
 export function ScreenCatalogGallery({
   audience,
@@ -25,99 +21,54 @@ export function ScreenCatalogGallery({
     null
   );
 
-  const groupedScreens = useMemo(() => {
-    const groups = new Map<string, ScreenCatalogEntry[]>();
+  useEffect(() => {
+    if (!selectedScreen) return;
 
-    for (const screen of screens) {
-      const items = groups.get(screen.category) ?? [];
-      items.push(screen);
-      groups.set(screen.category, items);
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSelectedScreen(null);
+      }
     }
 
-    return Array.from(groups.entries());
-  }, [screens]);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedScreen]);
+
+  function handleSelect(screen: ScreenCatalogEntry) {
+    setSelectedScreen((current) => (current?.id === screen.id ? null : screen));
+  }
 
   return (
-    <>
-      <div className="space-y-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
-              Screen catalog
-            </p>
-            <h1 className="font-display text-3xl tracking-tight text-neutral-900">
-              {audienceLabels[audience]} screens
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-              Click a screen to open an interactive preview with mock data. Tabs
-              and in-page navigation work inside the modal.
-            </p>
-          </div>
-          <Link
-            href="/adminpanel/screens"
-            className="text-sm text-neutral-700 underline-offset-4 hover:underline"
-          >
-            Back to catalog
-          </Link>
-        </div>
-
-        {groupedScreens.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {groupedScreens.flatMap(([category, items]) => [
-              <h2
-                key={`${category}-heading`}
-                className="col-span-full text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]"
-              >
-                {category}
-              </h2>,
-              ...items.map((screen) => (
-                <button
-                  key={screen.id}
-                  type="button"
-                  onClick={() => setSelectedScreen(screen)}
-                  className={cn(
-                    "rounded-[var(--radius-card)] border border-[var(--border)] bg-white p-4 text-left transition",
-                    "hover:border-neutral-300 hover:shadow-sm",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2"
-                  )}
-                >
-                  <ScreenThumbnailCard screen={screen} />
-                </button>
-              )),
-            ])}
-          </div>
-        ) : (
-          <p className="text-sm text-[var(--muted)]">
-            No screens configured for this audience yet.
-          </p>
+    <div className="flex h-full min-h-0 flex-col lg:flex-row">
+      <section
+        className={cn(
+          "relative min-h-0 min-w-0",
+          selectedScreen ? "h-1/2 w-full lg:h-full lg:w-1/2" : "h-full w-full"
         )}
-      </div>
-
-      <ScreenPreviewModal
-        screen={selectedScreen}
-        onClose={() => setSelectedScreen(null)}
-      />
-    </>
-  );
-}
-
-function ScreenThumbnailCard({ screen }: { screen: ScreenCatalogEntry }) {
-  return (
-    <div className="space-y-3">
-      <div className="aspect-[16/10] overflow-hidden rounded-[6px] border border-[var(--border)] bg-[linear-gradient(180deg,#fafaf9_0%,#f0f0ec_100%)]">
-        <div className="flex h-full flex-col p-3">
-          <div className="mb-3 h-2 w-16 rounded-full bg-neutral-300" />
-          <div className="mb-2 h-2 w-24 rounded-full bg-neutral-200" />
-          <div className="mt-auto grid grid-cols-3 gap-2">
-            <div className="h-8 rounded-[4px] bg-white" />
-            <div className="col-span-2 h-8 rounded-[4px] bg-white" />
-          </div>
+      >
+        <GridBackground fade="none" layers="minimal" />
+        <div className="relative z-10 h-full overflow-auto p-6 sm:p-8">
+          {screens.length > 0 ? (
+            <ScreenFlowMap
+              audience={audience}
+              screens={screens}
+              selectedId={selectedScreen?.id ?? null}
+              onSelect={handleSelect}
+            />
+          ) : (
+            <p className="text-sm text-[var(--muted)]">
+              No screens configured for this audience yet.
+            </p>
+          )}
         </div>
-      </div>
-      <div>
-        <p className="text-sm font-medium text-neutral-900">{screen.title}</p>
-        <p className="mt-1 text-xs text-[var(--muted)]">{screen.productionPath}</p>
-      </div>
+      </section>
+
+      {selectedScreen ? (
+        <ScreenPreviewPanel
+          screen={selectedScreen}
+          onClose={() => setSelectedScreen(null)}
+        />
+      ) : null}
     </div>
   );
 }

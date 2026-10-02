@@ -5,8 +5,8 @@ Internal tool for previewing homeowner and contractor pages with mock data.
 | Route | Purpose |
 |---|---|
 | `/adminpanel/screens` | Audience overview and screen counts |
-| `/adminpanel/screens/homeowner` | Homeowner gallery + iframe preview |
-| `/adminpanel/screens/contractor` | Contractor gallery + iframe preview |
+| `/adminpanel/screens/homeowner` | Homeowner flow map + side-by-side preview |
+| `/adminpanel/screens/contractor` | Contractor flow map + side-by-side preview |
 | `/adminpanel/preview/[screenId]` | Embeddable preview (admin-only) |
 
 Access requires admin configuration (`ADMIN_EMAILS` or `ADMIN_USER_IDS`).

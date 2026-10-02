@@ -6,7 +6,13 @@ import { requireAdminPage } from "@/lib/admin/require-admin-page";
 import {
   getScreensByAudience,
   isScreenAudience,
+  type ScreenAudience,
 } from "@/lib/admin/screen-catalog";
+
+const flowTitles: Record<ScreenAudience, string> = {
+  homeowner: "Homeowner flow",
+  contractor: "Contractor flow",
+};
 
 export default async function AdminScreensAudiencePage({
   params,
@@ -29,9 +35,11 @@ export default async function AdminScreensAudiencePage({
 
   return (
     <AdminPanelChrome
-      title="Screen catalog"
+      title={flowTitles[audience]}
+      subtitle="Click a screen to view it on the right. The map stays open, so you can switch screens without closing the preview."
       backHref="/adminpanel/screens"
       backLabel="All audiences"
+      contentLayout="canvas"
     >
       <ScreenCatalogGallery audience={audience} screens={screens} />
     </AdminPanelChrome>

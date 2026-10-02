@@ -6,19 +6,35 @@ export function AdminPanelChrome({
   subtitle,
   backHref = "/adminpanel",
   backLabel = "Back to dashboard",
+  contentLayout = "contained",
   children,
 }: {
   title: string;
   subtitle?: string;
   backHref?: string;
   backLabel?: string;
+  contentLayout?: "contained" | "canvas";
   children: React.ReactNode;
 }) {
+  const isCanvas = contentLayout === "canvas";
+
   return (
-    <div className="min-h-screen bg-[var(--background)]">
-      <header className="border-b border-[var(--border)] bg-[var(--card)]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-[var(--page-padding-x)] py-4">
-          <div>
+    <div
+      className={
+        isCanvas
+          ? "flex h-dvh flex-col overflow-hidden bg-[var(--background)]"
+          : "min-h-screen bg-[var(--background)]"
+      }
+    >
+      <header className="shrink-0 border-b border-[var(--border)] bg-[var(--card)]">
+        <div
+          className={
+            isCanvas
+              ? "flex w-full items-center justify-between gap-4 px-[var(--page-padding-x)] py-4"
+              : "mx-auto flex max-w-7xl items-center justify-between gap-4 px-[var(--page-padding-x)] py-4"
+          }
+        >
+          <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
               ScopeBuddy Admin
             </p>
@@ -26,7 +42,7 @@ export function AdminPanelChrome({
               {title}
             </h1>
             {subtitle ? (
-              <p className="mt-1 text-sm text-[var(--muted)]">{subtitle}</p>
+              <p className="mt-1 max-w-2xl text-sm text-[var(--muted)]">{subtitle}</p>
             ) : null}
           </div>
           <div className="flex items-center gap-4">
@@ -47,7 +63,13 @@ export function AdminPanelChrome({
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-[var(--page-padding-x)] py-8">
+      <main
+        className={
+          isCanvas
+            ? "min-h-0 flex-1"
+            : "mx-auto max-w-7xl px-[var(--page-padding-x)] py-8"
+        }
+      >
         {children}
       </main>
     </div>

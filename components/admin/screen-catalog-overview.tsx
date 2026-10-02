@@ -18,13 +18,13 @@ const audienceMeta: Record<
   homeowner: {
     title: "Homeowner screens",
     description:
-      "Dashboard, project workspace, proposals, and onboarding flows for homeowners.",
+      "From first setup through the project list, a new project, and a reviewed proposal.",
     href: "/adminpanel/screens/homeowner",
   },
   contractor: {
     title: "Contractor screens",
     description:
-      "Portal, client projects, bids, settings, and share-link review flows.",
+      "From onboarding or a share link into projects, bids, and business settings.",
     href: "/adminpanel/screens/contractor",
   },
 };
@@ -41,8 +41,8 @@ export function ScreenCatalogOverview() {
             User-facing screens
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-            Browse every primary page homeowners and contractors see. Click a
-            screen thumbnail to preview it with mock data in a modal.
+            Walk the path each audience takes. Open a flow, then click a screen
+            to view that page beside the map.
           </p>
         </div>
         <Link
