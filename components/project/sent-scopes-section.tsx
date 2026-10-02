@@ -132,8 +132,8 @@ export function SentScopesSection({
         </p>
       ) : rows.length === 0 ? (
         <p className="text-sm text-[var(--muted)]">
-          No scopes sent yet. Share this project from the header to invite a
-          contractor.
+          No one has opened a scope yet. A row shows up here after someone
+          opens the link.
         </p>
       ) : (
         <SectionSurface className="p-0">

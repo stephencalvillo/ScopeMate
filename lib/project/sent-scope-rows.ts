@@ -56,14 +56,18 @@ export function formatSentScopeMeta(
     return `${sent} · Bid submitted ${formatMonthDay(new Date(submittedAt))}`;
   }
 
-  const openedAt =
-    invitation.first_accessed_at ?? invitation.last_accessed_at ?? null;
+  const openedAt = sentScopeOpenedAt(invitation);
 
   if (openedAt) {
     return `${sent} · Opened ${formatRelativeDay(new Date(openedAt), now)}`;
   }
 
   return sent;
+}
+
+/** Same timestamp that drives the "Opened …" line. Null means never opened. */
+export function sentScopeOpenedAt(invitation: ContractorInvitationWithReview) {
+  return invitation.first_accessed_at ?? invitation.last_accessed_at ?? null;
 }
 
 function isUnnamedShare(invitation: ContractorInvitationWithReview) {
@@ -114,6 +118,7 @@ export function buildSentScopeRows(
 
   return invitations
     .filter((invitation) => invitation.status !== "revoked")
+    .filter((invitation) => sentScopeOpenedAt(invitation) != null)
     .map((invitation) => {
       const pendingSuggestions = pendingByInvitation.get(invitation.id) ?? [];
       const kind = rowKind(invitation, pendingSuggestions);

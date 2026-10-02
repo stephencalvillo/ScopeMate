@@ -123,6 +123,41 @@ test("submitted review becomes a bid row", () => {
   );
 });
 
+test("unopened invitations stay off the list", () => {
+  const rows = buildSentScopeRows(
+    [
+      invitation({ id: "unopened-share" }),
+      invitation({
+        id: "unopened-named",
+        contractor_name: "Juan Mejia",
+        contractor_email: "juan@example.com",
+      }),
+      invitation({
+        id: "opened-share",
+        first_accessed_at: "2026-09-29T18:00:00.000Z",
+      }),
+      invitation({
+        id: "opened-by-last-access",
+        contractor_name: "Juan Mejia",
+        contractor_email: "juan@example.com",
+        created_at: "2026-09-29T16:00:00.000Z",
+        last_accessed_at: "2026-09-30T12:00:00.000Z",
+      }),
+    ],
+    [],
+    now
+  );
+
+  assert.deepEqual(
+    rows.map((row) => row.id),
+    ["opened-by-last-access", "opened-share"]
+  );
+  assert.equal(rows[0].title, "Juan Mejia");
+  assert.match(rows[0].meta, /Opened today 9\/30/);
+  assert.equal(rows[1].title, "Sent scope");
+  assert.match(rows[1].meta, /Opened yesterday 9\/29/);
+});
+
 test("revoked invitations are omitted", () => {
   const rows = buildSentScopeRows(
     [invitation({ status: "revoked" })],
