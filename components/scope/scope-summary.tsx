@@ -7,10 +7,13 @@ export function ScopeSummary({
   summary,
   headerAction,
   embedded = false,
+  plain = false,
 }: {
   summary: string | null;
   headerAction?: React.ReactNode;
   embedded?: boolean;
+  /** Heading and body on the page canvas, without the white card surface. */
+  plain?: boolean;
 }) {
   if (!summary && !headerAction) return null;
 
@@ -20,6 +23,14 @@ export function ScopeSummary({
 
   if (embedded) {
     return body;
+  }
+
+  if (plain) {
+    return (
+      <PageSection title="Project summary" action={headerAction}>
+        {body}
+      </PageSection>
+    );
   }
 
   return (

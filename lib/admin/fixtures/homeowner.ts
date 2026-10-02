@@ -254,6 +254,22 @@ export const previewHomeownerSuggestions: ScopeSuggestionWithMeta[] = [
   },
 ];
 
+// The review page draws callouts from the submitted snapshot, not the live
+// suggestion list. Keep both in sync so the header count matches the scope.
+if (previewInvitation.review) {
+  previewInvitation.review.scope_snapshot = buildPreviewScopeSnapshot(
+    previewHomeownerKitchenProject,
+    previewHomeownerSuggestions.map((suggestion) => ({
+      id: suggestion.id,
+      suggestion_type: suggestion.suggestion_type,
+      category: suggestion.category,
+      suggested_text: suggestion.suggested_text,
+      contractor_note: suggestion.contractor_note,
+      target_scope_item_id: suggestion.target_scope_item_id,
+    }))
+  );
+}
+
 export const previewHomeownerReviewedScopeDetail: ReviewedScopeDetail = {
   ...previewHomeownerReviewedScopes[0],
   suggestions: previewHomeownerSuggestions,

@@ -2,6 +2,7 @@ import "server-only";
 
 import { ForbiddenError, NotFoundError } from "@/lib/auth/clerk";
 import { displayContractorName } from "@/lib/contractor/display-contractor";
+import { isShareLinkPlaceholder } from "@/lib/contractor/project-share";
 import { formatReviewDate } from "@/lib/contractor/review-display";
 import { getInvitationByToken } from "@/lib/contractor/invitations";
 import type { ProjectAcceptedProposalSummary } from "@/lib/estimates/proposal-decision-types";
@@ -17,6 +18,7 @@ import {
 import {
   sendProposalAcceptedEmail,
   sendProposalNotSelectedEmail,
+  sendProposalRejectedEmail,
 } from "@/lib/email/send-contractor-emails";
 import type { ContractorEstimate, Project, User } from "@/types";
 
@@ -255,6 +257,104 @@ export async function acceptProposalForProject({
     });
   } catch (error) {
     console.error("Failed to send proposal accepted email:", error);
+  }
+
+  return getProposalEstimateForInvitation({ projectId, invitationId });
+}
+
+export async function rejectProposalForProject({
+  projectId,
+  invitationId,
+  homeowner,
+  project,
+  request,
+}: {
+  projectId: string;
+  invitationId: string;
+  homeowner: User;
+  project: Project;
+  request?: Request;
+}) {
+  const supabase = createServiceClient();
+
+  const { data: ownedProject, error: projectError } = await supabase
+    .from("projects")
+    .select("id, title, accepted_estimate_id, homeowner_id")
+    .eq("id", projectId)
+    .maybeSingle();
+
+  if (projectError) throw projectError;
+  if (!ownedProject || ownedProject.homeowner_id !== homeowner.id) {
+    throw new ForbiddenError("You do not have access to this project.");
+  }
+
+  if (ownedProject.accepted_estimate_id) {
+    throw new ForbiddenError(
+      "An estimate has already been accepted for this project."
+    );
+  }
+
+  const estimate = await getProposalEstimateForInvitation({
+    projectId,
+    invitationId,
+  });
+
+  if (!estimate) {
+    throw new NotFoundError("No submitted estimate was found for this review.");
+  }
+
+  if (estimate.status !== "submitted") {
+    throw new ForbiddenError("This estimate is no longer available to reject.");
+  }
+
+  const { data: invitation, error: invitationError } = await supabase
+    .from("contractor_invitations")
+    .select("*")
+    .eq("id", invitationId)
+    .eq("project_id", projectId)
+    .maybeSingle();
+
+  if (invitationError) throw invitationError;
+  if (!invitation) {
+    throw new NotFoundError("Contractor review not found.");
+  }
+
+  const now = new Date().toISOString();
+
+  const { data: rejectedEstimate, error: rejectError } = await supabase
+    .from("contractor_estimates")
+    .update({
+      status: "declined",
+      declined_at: now,
+      updated_at: now,
+    })
+    .eq("id", estimate.id)
+    .eq("status", "submitted")
+    .select("*")
+    .maybeSingle();
+
+  if (rejectError) throw rejectError;
+  if (!rejectedEstimate) {
+    throw new ForbiddenError("This estimate is no longer available to reject.");
+  }
+
+  if (
+    invitation.contractor_email &&
+    invitation.invitation_token &&
+    !isShareLinkPlaceholder(invitation)
+  ) {
+    try {
+      await sendProposalRejectedEmail({
+        to: invitation.contractor_email,
+        contractorName: invitation.contractor_name ?? "Contractor",
+        homeownerName: homeowner.name ?? homeowner.email,
+        projectTitle: project.title,
+        reviewToken: invitation.invitation_token,
+        request,
+      });
+    } catch (error) {
+      console.error("Failed to send proposal rejected email:", error);
+    }
   }
 
   return getProposalEstimateForInvitation({ projectId, invitationId });

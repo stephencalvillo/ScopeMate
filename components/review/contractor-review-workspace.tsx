@@ -62,8 +62,11 @@ export function ContractorReviewWorkspace({
   const editable =
     payload.can_edit && !reviewSubmitted && !requireAccountForEstimate;
   const proposalAccepted = estimate?.status === "accepted";
+  const estimateRejected =
+    estimate?.status === "declined" && invitation.status !== "closed_out";
   const projectClosed =
-    invitation.status === "closed_out" || estimate?.status === "declined";
+    invitation.status === "closed_out" ||
+    (estimate?.status === "declined" && !estimateRejected);
 
   const draftAddSuggestions = useMemo(
     () =>
@@ -103,11 +106,15 @@ export function ContractorReviewWorkspace({
         notes={notes}
         audience="contractor"
         statusBadge={
-          projectClosed
-            ? { label: "Project closed", variant: "secondary" }
-            : { label: "Review submitted", variant: "info" }
+          estimateRejected
+            ? { label: "Rejected", variant: "secondary" }
+            : projectClosed
+              ? { label: "Project closed", variant: "secondary" }
+              : { label: "Review submitted", variant: "info" }
         }
-        estimateMode={projectClosed ? "plain" : "submitted"}
+        estimateMode={
+          estimateRejected ? "rejected" : projectClosed ? "plain" : "submitted"
+        }
       />
     );
   }

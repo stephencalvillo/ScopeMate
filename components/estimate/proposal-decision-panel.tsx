@@ -10,9 +10,19 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { Check } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
+import { Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { authenticatedFetch } from "@/lib/auth/authenticated-fetch-client";
+import { isExplicitEstimateRejection } from "@/lib/estimates/estimate-rejection";
 import {
   PageSection,
   SectionSurface,
@@ -22,20 +32,23 @@ import {
   PROPOSAL_DISCLAIMER,
   proposalRangeFromLineItems,
 } from "@/lib/estimates/money";
-import { cn, mobileFullWidthCtaClassName } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { ContractorEstimate } from "@/types";
 
 type ProposalAcceptDockContextValue = {
   rangeLabel: string | null;
   canAccept: boolean;
-  loading: boolean;
+  accepting: boolean;
+  rejecting: boolean;
   error: string | null;
   handleAccept: () => void;
+  requestReject: () => void;
   headerSentinelRef: (node: HTMLDivElement | null) => void;
   inlineSentinelRef: (node: HTMLDivElement | null) => void;
   estimateStatus: ContractorEstimate["status"];
   isSelectedProposal: boolean;
   projectHasSelectedProposal: boolean;
+  explicitlyRejected: boolean;
 };
 
 const ProposalAcceptDockContext =
@@ -51,7 +64,7 @@ function useProposalAcceptDock() {
   return context;
 }
 
-function useAcceptProposal({
+function useProposalDecision({
   projectId,
   invitationId,
 }: {
@@ -59,100 +72,178 @@ function useAcceptProposal({
   invitationId: string;
 }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { getToken } = useAuth();
+  const [pendingAction, setPendingAction] = useState<"accept" | "reject" | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
 
-  const handleAccept = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const runDecision = useCallback(
+    async (action: "accept" | "reject") => {
+      setPendingAction(action);
+      setError(null);
 
-    try {
-      const response = await fetch(
-        `/api/projects/${projectId}/reviews/${invitationId}/estimate/accept`,
-        { method: "POST" }
-      );
-      const data = await response.json();
+      const fallback =
+        action === "accept"
+          ? "Could not accept this estimate."
+          : "Could not reject this estimate.";
 
-      if (!response.ok) {
-        throw new Error(data.error ?? "Could not accept this proposal.");
+      try {
+        const response = await authenticatedFetch(
+          getToken,
+          `/api/projects/${projectId}/reviews/${invitationId}/estimate/${action}`,
+          { method: "POST" }
+        );
+        const data = (await response.json().catch(() => ({}))) as {
+          error?: string;
+        };
+
+        if (!response.ok) {
+          throw new Error(data.error ?? fallback);
+        }
+
+        router.refresh();
+        return true;
+      } catch (decisionError) {
+        setError(
+          decisionError instanceof Error ? decisionError.message : fallback
+        );
+        return false;
+      } finally {
+        setPendingAction(null);
       }
+    },
+    [getToken, invitationId, projectId, router]
+  );
 
-      router.refresh();
-    } catch (acceptError) {
-      setError(
-        acceptError instanceof Error
-          ? acceptError.message
-          : "Could not accept this proposal."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [invitationId, projectId, router]);
+  const handleAccept = useCallback(() => {
+    void runDecision("accept");
+  }, [runDecision]);
 
-  return { loading, error, handleAccept };
+  const handleReject = useCallback(() => runDecision("reject"), [runDecision]);
+
+  const clearError = useCallback(() => setError(null), []);
+
+  return {
+    accepting: pendingAction === "accept",
+    rejecting: pendingAction === "reject",
+    busy: pendingAction !== null,
+    error,
+    handleAccept,
+    handleReject,
+    clearError,
+  };
 }
 
-function AcceptProposalButton({
-  loading,
+function EstimateDecisionButtons({
+  accepting,
+  rejecting,
   onAccept,
+  onReject,
   className,
 }: {
-  loading: boolean;
+  accepting: boolean;
+  rejecting: boolean;
   onAccept: () => void;
+  onReject: () => void;
   className?: string;
 }) {
+  const busy = accepting || rejecting;
+
   return (
-    <Button
-      type="button"
-      className={cn(mobileFullWidthCtaClassName, "shrink-0", className)}
-      disabled={loading}
-      onClick={onAccept}
-    >
-      {loading ? (
-        "Accepting..."
-      ) : (
-        <>
-          <Check className="h-4 w-4" aria-hidden />
-          Accept proposal
-        </>
+    <div
+      className={cn(
+        "flex w-full flex-col gap-2 @min-[22rem]:flex-row-reverse",
+        className
       )}
-    </Button>
+    >
+      <Button
+        type="button"
+        className="w-full @min-[22rem]:w-auto"
+        disabled={busy}
+        onClick={onAccept}
+      >
+        {accepting ? (
+          "Accepting..."
+        ) : (
+          <>
+            <Check className="h-4 w-4" aria-hidden />
+            Accept estimate
+          </>
+        )}
+      </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        className="w-full @min-[22rem]:w-auto"
+        disabled={busy}
+        onClick={onReject}
+      >
+        {rejecting ? (
+          "Rejecting..."
+        ) : (
+          <>
+            <X className="h-4 w-4" aria-hidden />
+            Reject
+          </>
+        )}
+      </Button>
+    </div>
   );
 }
 
 function ProposalEstimateCard({
   rangeLabel,
   canAccept,
-  loading,
+  accepting,
+  rejecting,
   error,
   onAccept,
+  onReject,
   className,
   embedded = false,
 }: {
   rangeLabel: string;
   canAccept: boolean;
-  loading: boolean;
+  accepting: boolean;
+  rejecting: boolean;
   error: string | null;
   onAccept: () => void;
+  onReject: () => void;
   className?: string;
   embedded?: boolean;
 }) {
+  const decisionButtons = (placement: "beside-price" | "below") =>
+    canAccept ? (
+      <div
+        className={
+          placement === "beside-price"
+            ? "hidden @min-[42rem]:block"
+            : "@min-[42rem]:hidden"
+        }
+      >
+        <EstimateDecisionButtons
+          accepting={accepting}
+          rejecting={rejecting}
+          onAccept={onAccept}
+          onReject={onReject}
+          className={
+            placement === "beside-price" ? "w-auto shrink-0" : undefined
+          }
+        />
+      </div>
+    ) : null;
   const body = (
-    <div className="space-y-2">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-        <p className="font-display text-3xl tracking-tight text-neutral-900">
+    <div className="@container space-y-3">
+      <div className="flex flex-col gap-4 @min-[42rem]:flex-row @min-[42rem]:items-center @min-[42rem]:justify-between @min-[42rem]:gap-6">
+        <p className="min-w-0 font-display text-3xl tracking-tight text-neutral-900">
           {rangeLabel}
         </p>
-        {canAccept ? (
-          <AcceptProposalButton
-            loading={loading}
-            onAccept={onAccept}
-            className="sm:ml-auto"
-          />
-        ) : null}
+        {decisionButtons("beside-price")}
       </div>
       <p className="text-sm text-[var(--muted)]">{PROPOSAL_DISCLAIMER}</p>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {decisionButtons("below")}
     </div>
   );
 
@@ -170,19 +261,27 @@ function ProposalEstimateStatusCard({
   estimateStatus,
   isSelectedProposal,
   projectHasSelectedProposal,
+  explicitlyRejected,
   embedded = false,
+  layout = "banner",
 }: {
   rangeLabel: string | null;
   estimateStatus: ContractorEstimate["status"];
   isSelectedProposal: boolean;
   projectHasSelectedProposal: boolean;
+  explicitlyRejected: boolean;
   embedded?: boolean;
+  layout?: "banner" | "rail";
 }) {
   const Surface = embedded ? "div" : SectionSurface;
+  const rowClassName = cn(
+    "flex flex-wrap items-center gap-3",
+    layout === "rail" && "lg:flex-col lg:items-start"
+  );
 
   if (estimateStatus === "accepted" || isSelectedProposal) {
     return (
-      <Surface className={embedded ? "flex flex-wrap items-center gap-3" : "flex flex-wrap items-center gap-3"}>
+      <Surface className={rowClassName}>
         <Badge variant="success">Proposal accepted</Badge>
         <p className="text-sm text-neutral-800">
           You selected this contractor&apos;s proposal
@@ -193,9 +292,21 @@ function ProposalEstimateStatusCard({
     );
   }
 
+  if (explicitlyRejected) {
+    return (
+      <Surface className={rowClassName}>
+        <Badge variant="secondary">Rejected</Badge>
+        <p className="text-sm text-neutral-800">
+          You rejected this estimate. The contractor can see that in their
+          portal.
+        </p>
+      </Surface>
+    );
+  }
+
   if (estimateStatus === "declined") {
     return (
-      <Surface className="flex flex-wrap items-center gap-3">
+      <Surface className={rowClassName}>
         <Badge variant="secondary">Not selected</Badge>
         <p className="text-sm text-neutral-800">
           You accepted another contractor&apos;s proposal for this project.
@@ -219,21 +330,25 @@ function ProposalEstimateStatusCard({
 
 function ProposalEstimateFloatingDock({
   rangeLabel,
-  loading,
+  accepting,
+  rejecting,
   error,
   onAccept,
+  onReject,
   animate,
 }: {
   rangeLabel: string;
-  loading: boolean;
+  accepting: boolean;
+  rejecting: boolean;
   error: string | null;
   onAccept: () => void;
+  onReject: () => void;
   animate: boolean;
 }) {
   return (
     <div
       className={cn(
-        "fixed inset-x-0 bottom-4 z-40 px-[var(--page-padding-x)]",
+        "fixed inset-x-0 bottom-4 z-40 px-[var(--page-padding-x)] lg:hidden",
         animate && "share-dock-float-enter"
       )}
     >
@@ -241,9 +356,11 @@ function ProposalEstimateFloatingDock({
         <ProposalEstimateCard
           rangeLabel={rangeLabel}
           canAccept
-          loading={loading}
+          accepting={accepting}
+          rejecting={rejecting}
           error={error}
           onAccept={onAccept}
+          onReject={onReject}
           className="bg-white/95 backdrop-blur-sm"
         />
       </div>
@@ -257,6 +374,8 @@ export function ProposalAcceptDockProvider({
   estimate,
   projectHasSelectedProposal,
   isSelectedProposal,
+  invitationStatus,
+  contractorName,
   children,
 }: {
   projectId: string;
@@ -264,6 +383,8 @@ export function ProposalAcceptDockProvider({
   estimate: ContractorEstimate;
   projectHasSelectedProposal: boolean;
   isSelectedProposal: boolean;
+  invitationStatus?: string | null;
+  contractorName?: string | null;
   children: ReactNode;
 }) {
   const headerObserverRef = useRef<IntersectionObserver | null>(null);
@@ -273,7 +394,16 @@ export function ProposalAcceptDockProvider({
   const [headerObserved, setHeaderObserved] = useState(false);
   const [inlineObserved, setInlineObserved] = useState(false);
   const [animateFloat, setAnimateFloat] = useState(false);
-  const { loading, error, handleAccept } = useAcceptProposal({
+  const [confirmRejectOpen, setConfirmRejectOpen] = useState(false);
+  const {
+    accepting,
+    rejecting,
+    busy,
+    error,
+    handleAccept,
+    handleReject,
+    clearError,
+  } = useProposalDecision({
     projectId,
     invitationId,
   });
@@ -286,6 +416,11 @@ export function ProposalAcceptDockProvider({
     estimate.status === "submitted" &&
     !projectHasSelectedProposal &&
     !isSelectedProposal;
+  const explicitlyRejected = isExplicitEstimateRejection({
+    estimateStatus: estimate.status,
+    invitationStatus,
+  });
+  const contractorLabel = contractorName?.trim() || "This contractor";
 
   const headerSentinelRef = useCallback((node: HTMLDivElement | null) => {
     headerObserverRef.current?.disconnect();
@@ -370,14 +505,20 @@ export function ProposalAcceptDockProvider({
       value={{
         rangeLabel,
         canAccept,
-        loading,
+        accepting,
+        rejecting,
         error,
         handleAccept,
+        requestReject: () => {
+          clearError();
+          setConfirmRejectOpen(true);
+        },
         headerSentinelRef,
         inlineSentinelRef,
         estimateStatus: estimate.status,
         isSelectedProposal,
         projectHasSelectedProposal,
+        explicitlyRejected,
       }}
     >
       {children}
@@ -385,31 +526,81 @@ export function ProposalAcceptDockProvider({
       {showFloatingDock && rangeLabel ? (
         <ProposalEstimateFloatingDock
           rangeLabel={rangeLabel}
-          loading={loading}
+          accepting={accepting}
+          rejecting={rejecting}
           error={error}
           onAccept={handleAccept}
+          onReject={() => {
+            clearError();
+            setConfirmRejectOpen(true);
+          }}
           animate={animateFloat}
         />
       ) : null}
+
+      <Dialog
+        open={confirmRejectOpen}
+        onOpenChange={(open) => {
+          if (!busy) setConfirmRejectOpen(open);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject this estimate?</DialogTitle>
+            <DialogDescription>
+              {`${contractorLabel} will see that you rejected their estimate in their portal. This won't accept anyone else.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={busy}
+              onClick={() => setConfirmRejectOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                void handleReject().then((rejected) => {
+                  if (rejected) setConfirmRejectOpen(false);
+                });
+              }}
+            >
+              {rejecting ? "Rejecting..." : "Reject estimate"}
+            </Button>
+          </div>
+          {error && confirmRejectOpen ? (
+            <p className="mt-3 text-sm text-red-600">{error}</p>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </ProposalAcceptDockContext.Provider>
   );
 }
 
 export function ProposalEstimateHeaderSection({
   embedded = false,
+  layout = "banner",
 }: {
   embedded?: boolean;
+  layout?: "banner" | "rail";
 }) {
   const {
     rangeLabel,
     canAccept,
-    loading,
+    accepting,
+    rejecting,
     error,
     handleAccept,
+    requestReject,
     headerSentinelRef,
     estimateStatus,
     isSelectedProposal,
     projectHasSelectedProposal,
+    explicitlyRejected,
   } = useProposalAcceptDock();
 
   if (!rangeLabel && !canAccept) {
@@ -421,9 +612,11 @@ export function ProposalEstimateHeaderSection({
       <ProposalEstimateCard
         rangeLabel={rangeLabel}
         canAccept
-        loading={loading}
+        accepting={accepting}
+        rejecting={rejecting}
         error={error}
         onAccept={handleAccept}
+        onReject={requestReject}
         embedded={embedded}
       />
     ) : (
@@ -432,7 +625,9 @@ export function ProposalEstimateHeaderSection({
         estimateStatus={estimateStatus}
         isSelectedProposal={isSelectedProposal}
         projectHasSelectedProposal={projectHasSelectedProposal}
+        explicitlyRejected={explicitlyRejected}
         embedded={embedded}
+        layout={layout}
       />
     );
 
@@ -451,9 +646,11 @@ export function ProposalEstimateEndSection() {
   const {
     rangeLabel,
     canAccept,
-    loading,
+    accepting,
+    rejecting,
     error,
     handleAccept,
+    requestReject,
     inlineSentinelRef,
   } = useProposalAcceptDock();
 
@@ -466,9 +663,11 @@ export function ProposalEstimateEndSection() {
       <ProposalEstimateCard
         rangeLabel={rangeLabel}
         canAccept
-        loading={loading}
+        accepting={accepting}
+        rejecting={rejecting}
         error={error}
         onAccept={handleAccept}
+        onReject={requestReject}
       />
     </div>
   );

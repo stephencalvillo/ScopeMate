@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/api/response";
 import { getOwnedProject } from "@/lib/api/project-access";
 import { ensureUserRecord } from "@/lib/auth/clerk";
-import { acceptProposalForProject } from "@/lib/estimates/proposal-decision";
+import { rejectProposalForProject } from "@/lib/estimates/proposal-decision";
 
 export async function POST(
   request: Request,
@@ -12,7 +12,7 @@ export async function POST(
     const { id, invitationId } = await context.params;
     const project = await getOwnedProject(id, request);
     const homeowner = await ensureUserRecord(request);
-    const estimate = await acceptProposalForProject({
+    const estimate = await rejectProposalForProject({
       projectId: id,
       invitationId,
       homeowner,

@@ -17,6 +17,13 @@ function proposalStatusBadge(scope: ReviewedScopeSummary) {
     return <Badge variant="success">Accepted</Badge>;
   }
 
+  if (
+    scope.estimate_status === "declined" &&
+    scope.invitation.status !== "closed_out"
+  ) {
+    return <Badge variant="secondary">Rejected</Badge>;
+  }
+
   if (scope.estimate_status === "declined") {
     return <Badge variant="secondary">Not selected</Badge>;
   }

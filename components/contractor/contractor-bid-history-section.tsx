@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 const FILTERS: Array<{ id: BidHistoryFilter; label: string }> = [
   { id: "all", label: "All" },
   { id: "submitted", label: "Submitted" },
-  { id: "declined", label: "Declined" },
+  { id: "declined", label: "Rejected" },
   { id: "closed", label: "Closed" },
 ];
 

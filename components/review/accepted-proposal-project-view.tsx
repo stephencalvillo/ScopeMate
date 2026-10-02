@@ -21,7 +21,7 @@ type StatusBadge = {
   variant: "success" | "info" | "secondary";
 };
 
-type EstimateMode = "accepted" | "submitted" | "plain";
+type EstimateMode = "accepted" | "submitted" | "rejected" | "plain";
 
 export function ContractorProjectHeader({
   project,
@@ -87,23 +87,31 @@ function ContractorProjectEstimateSection({
       ? "space-y-3 border-emerald-200 bg-emerald-50/60"
       : mode === "submitted"
         ? "space-y-3 border-blue-200 bg-blue-50/60"
-        : "space-y-3";
+        : mode === "rejected"
+          ? "space-y-3 border-neutral-200 bg-neutral-50"
+          : "space-y-3";
 
   const estimateStatusBadge =
     mode === "accepted"
       ? { label: "Proposal accepted", variant: "success" as const }
-      : mode === "submitted"
-        ? (statusBadge ?? { label: "Review submitted", variant: "info" as const })
-        : null;
+      : mode === "rejected"
+        ? { label: "Rejected", variant: "secondary" as const }
+        : mode === "submitted"
+          ? (statusBadge ?? { label: "Review submitted", variant: "info" as const })
+          : null;
 
   const description =
     mode === "accepted"
       ? audience === "contractor"
         ? "The homeowner accepted your proposal. This project is now read-only."
         : "You selected this contractor's proposal. Other contractors have been notified."
-      : mode === "submitted"
-        ? "The homeowner can see your scope feedback, notes, and proposal."
-        : null;
+      : mode === "rejected"
+        ? audience === "contractor"
+          ? "The homeowner rejected your estimate. You can still review it here, but it is no longer active."
+          : "You rejected this estimate. The contractor can see that in their portal."
+        : mode === "submitted"
+          ? "The homeowner can see your scope feedback, notes, and proposal."
+          : null;
 
   const content = (
     <>
@@ -183,7 +191,10 @@ export function ContractorProjectDetailView({
   const hasProposal =
     estimate != null && (estimate.line_items?.length ?? 0) > 0;
   const showStatusInEstimateCard =
-    hasProposal && (estimateMode === "accepted" || estimateMode === "submitted");
+    hasProposal &&
+    (estimateMode === "accepted" ||
+      estimateMode === "submitted" ||
+      estimateMode === "rejected");
 
   const projectHeader = (
     <ContractorProjectHeader
@@ -205,7 +216,11 @@ export function ContractorProjectDetailView({
           estimate={estimate}
           audience={audience}
           mode={estimateMode}
-          statusBadge={estimateMode === "submitted" ? statusBadge : null}
+          statusBadge={
+            estimateMode === "submitted" || estimateMode === "rejected"
+              ? statusBadge
+              : null
+          }
         />
       ) : null}
 

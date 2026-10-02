@@ -12,6 +12,10 @@ import {
 } from "@/lib/contractor/bid-history-display";
 
 function getBidDetailEstimateMode(outcome: BidHistoryOutcome) {
+  if (outcome === "declined") {
+    return "rejected" as const;
+  }
+
   if (outcome === "submitted" || outcome === "review_only") {
     return "submitted" as const;
   }

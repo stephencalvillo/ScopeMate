@@ -264,6 +264,36 @@ export async function sendProposalNotSelectedEmail({
   });
 }
 
+export async function sendProposalRejectedEmail({
+  to,
+  contractorName,
+  homeownerName,
+  projectTitle,
+  reviewToken,
+  request,
+}: {
+  to: string;
+  contractorName: string;
+  homeownerName: string;
+  projectTitle: string;
+  reviewToken: string;
+  request?: Request;
+}) {
+  const reviewUrl = buildReviewUrl(reviewToken, request);
+
+  await sendResendEmail({
+    from: getEmailFrom(),
+    to,
+    subject: `Your estimate was rejected for ${projectTitle}`,
+    html: `
+      <p>Hi ${escapeHtml(contractorName)},</p>
+      <p><strong>${escapeHtml(homeownerName)}</strong> rejected your estimate for <strong>${escapeHtml(projectTitle)}</strong>.</p>
+      <p>You can see this update in your contractor portal. The project stays available there for reference.</p>
+      <p><a href="${reviewUrl}">Open the project</a></p>
+    `,
+  });
+}
+
 export async function sendFollowUpRequestedEmail({
   to,
   contractorName,

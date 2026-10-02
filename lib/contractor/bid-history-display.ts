@@ -49,7 +49,7 @@ export function bidHistoryOutcomeLabel(outcome: BidHistoryOutcome) {
     case "submitted":
       return "Proposal submitted";
     case "declined":
-      return "Declined";
+      return "Rejected";
     case "not_selected":
       return "Not selected";
     case "expired":

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Check, Loader2, MessageSquare, X } from "lucide-react";
 import { IconActionButton } from "@/components/review/icon-action-button";
 import { EstimateRangeHeader } from "@/components/estimate/estimate-range-inputs";
@@ -8,7 +8,7 @@ import { SubmittedScopeEstimateRange } from "@/components/estimate/submitted-sco
 import { ScopeItemWithEstimateRange } from "@/components/scope/scope-item-with-estimate-range";
 import { ScopeCategoryGroup } from "@/components/scope/scope-category-group";
 import { ScopeSummary } from "@/components/scope/scope-summary";
-import { SectionSurface } from "@/components/layout/page-section";
+import { PageSection, SectionSurface } from "@/components/layout/page-section";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -73,7 +73,7 @@ function ScopeViewSegmentedControl({
   const fromContractorLabel = `From ${contractorName.trim().split(/\s+/)[0] || contractorName}`;
 
   return (
-    <div className="max-w-full overflow-x-auto overscroll-x-contain">
+    <div className="w-fit max-w-full shrink-0 overflow-x-auto overscroll-x-contain">
       <div
         className="inline-flex w-max rounded-[4px] border border-[var(--border)] bg-white p-0.5"
         role="tablist"
@@ -92,7 +92,7 @@ function ScopeViewSegmentedControl({
             aria-selected={value === option.id}
             size="sm"
             variant={value === option.id ? "secondary" : "ghost"}
-            className="h-8 shrink-0 whitespace-nowrap px-2.5 text-xs"
+            className="h-9 shrink-0 whitespace-nowrap px-3 text-base"
             onClick={() => onChange(option.id)}
           >
             {option.label}
@@ -552,28 +552,43 @@ function SubmittedScopeList({
   );
 }
 
+function ContractorNotes({ notes }: { notes?: string | null }) {
+  const trimmed = notes?.trim();
+  if (!trimmed) return null;
+
+  return (
+    <PageSection title="Notes from contractor">
+      <SectionSurface>
+        <p className="whitespace-pre-wrap text-sm text-neutral-800">{trimmed}</p>
+      </SectionSurface>
+    </PageSection>
+  );
+}
+
 export function ReviewedScopeSnapshotView({
   projectId,
   snapshot,
   currentSummary,
   currentItems,
-  submittedLabel,
   contractorName,
   suggestions,
   estimate,
   onUpdated,
   embedded = false,
+  contractorNotes,
+  belowNotes,
 }: {
   projectId: string;
   snapshot: ReviewScopeSnapshot | null;
   currentSummary: string | null;
   currentItems: ScopeItem[];
-  submittedLabel: string | null;
   contractorName: string;
   suggestions: ScopeSuggestionWithMeta[];
   estimate?: ContractorEstimate | null;
   onUpdated: () => void;
   embedded?: boolean;
+  contractorNotes?: string | null;
+  belowNotes?: ReactNode;
 }) {
   const [view, setView] = useState<ScopeView>("submitted");
 
@@ -614,46 +629,38 @@ export function ReviewedScopeSnapshotView({
     [currentItems, estimate?.line_items]
   );
 
-  const capturedLabel = snapshot
-    ? new Date(snapshot.captured_at).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : submittedLabel;
-
-  const description =
-    view === "submitted"
-      ? capturedLabel
-        ? `Scope and suggestions as they were when this contractor submitted on ${capturedLabel}.`
-        : "Scope and suggestions from this contractor's review."
-      : "Your current project scope for comparison.";
-
   return (
     <section className="space-y-6">
       {snapshot ? (
-        <div className="space-y-2">
-          <ScopeViewSegmentedControl
-            value={view}
-            onChange={setView}
-            contractorName={contractorName}
-          />
-          <p className="text-sm text-[var(--muted)]">{description}</p>
-        </div>
+        <ScopeViewSegmentedControl
+          value={view}
+          onChange={setView}
+          contractorName={contractorName}
+        />
       ) : null}
 
       {!snapshot ? (
-        <SectionSurface>
-          <p className="text-sm text-neutral-800">
-            No scope snapshot was saved for this review. Use the suggestions
-            below to see what this contractor proposed.
-          </p>
-        </SectionSurface>
+        <div className="space-y-6">
+          <ContractorNotes notes={contractorNotes} />
+          {belowNotes}
+          <SectionSurface>
+            <p className="text-sm text-neutral-800">
+              No scope snapshot was saved for this review. Use the suggestions
+              below to see what this contractor proposed.
+            </p>
+          </SectionSurface>
+        </div>
       ) : view === "submitted" ? (
         <div className="space-y-6">
           {snapshot.ai_summary ? (
-            <ScopeSummary summary={snapshot.ai_summary} embedded={embedded} />
+            <ScopeSummary
+              summary={snapshot.ai_summary}
+              embedded={embedded}
+              plain={!embedded}
+            />
           ) : null}
+          <ContractorNotes notes={contractorNotes} />
+          {belowNotes}
           <SubmittedScopeList
             snapshot={snapshot}
             projectId={projectId}
@@ -665,8 +672,14 @@ export function ReviewedScopeSnapshotView({
       ) : (
         <div className="space-y-6">
           {currentSummary ? (
-            <ScopeSummary summary={currentSummary} embedded={embedded} />
+            <ScopeSummary
+              summary={currentSummary}
+              embedded={embedded}
+              plain={!embedded}
+            />
           ) : null}
+          <ContractorNotes notes={contractorNotes} />
+          {belowNotes}
           <CurrentScopeList
             items={currentItems}
             estimateDisplay={currentEstimateDisplay}

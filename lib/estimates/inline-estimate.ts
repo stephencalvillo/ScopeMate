@@ -77,7 +77,21 @@ export function inferCategoryPricingMode(
     return "section";
   }
 
+  // A section the contractor left blank still belongs to a section-priced
+  // estimate. Treating it as per-item hides the prices on every other section.
+  if (estimateUsesSectionPricing(lineItems)) {
+    return "section";
+  }
+
   return "item";
+}
+
+function estimateUsesSectionPricing(lineItems: EstimateLineItem[]) {
+  const hasSectionLine = lineItems.some(
+    (line) => parseSectionEstimateCategory(line.description) !== null
+  );
+  const hasItemLine = lineItems.some((line) => Boolean(line.scope_item_id));
+  return hasSectionLine && !hasItemLine;
 }
 
 export function buildPricingModeMap(
@@ -98,6 +112,14 @@ export function inferGlobalPricingMode(
   scopeItems: ScopeItem[],
   lineItems: EstimateLineItem[]
 ): CategoryPricingMode {
+  if (estimateUsesSectionPricing(lineItems)) return "section";
+
+  const hasItemLine = lineItems.some((line) => Boolean(line.scope_item_id));
+  const hasSectionLine = lineItems.some(
+    (line) => parseSectionEstimateCategory(line.description) !== null
+  );
+  if (hasItemLine && !hasSectionLine) return "item";
+
   const categories = new Set(scopeItems.map((item) => item.category));
   if (categories.size === 0) return "item";
 

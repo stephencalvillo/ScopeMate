@@ -67,7 +67,10 @@ function ReviewedScopeCard({
               {scope.is_selected_proposal ? (
                 <Badge variant="success">Accepted</Badge>
               ) : null}
-              {scope.estimate_status === "declined" ? (
+              {scope.estimate_status === "declined" &&
+              scope.invitation.status !== "closed_out" ? (
+                <Badge variant="secondary">Rejected</Badge>
+              ) : scope.estimate_status === "declined" ? (
                 <Badge variant="secondary">Not selected</Badge>
               ) : null}
             </div>

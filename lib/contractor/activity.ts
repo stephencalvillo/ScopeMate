@@ -1,4 +1,5 @@
 import { listInvitationsForProject } from "@/lib/contractor/invitations";
+import { isExplicitEstimateRejection } from "@/lib/estimates/estimate-rejection";
 import { isShareLinkPlaceholder } from "@/lib/contractor/project-share";
 import { isMissingColumnError, isMissingTableError } from "@/lib/db/errors";
 import { createServiceClient } from "@/lib/db/supabase";
@@ -169,7 +170,7 @@ export async function listProjectActivity(
     const { data: estimates, error: estimatesError } = await supabase
       .from("contractor_estimates")
       .select(
-        "id, invitation_id, status, accepted_at, declined_at, contractor_invitations(contractor_name, contractor_company, contractor_email)"
+        "id, invitation_id, status, accepted_at, declined_at, contractor_invitations(contractor_name, contractor_company, contractor_email, status)"
       )
       .eq("project_id", projectId)
       .in("status", ["accepted", "declined"]);
@@ -180,6 +181,7 @@ export async function listProjectActivity(
       const invitation = row.contractor_invitations as {
         contractor_name?: string;
         contractor_company?: string | null;
+        status?: string;
       } | null;
       const label = invitation?.contractor_company
         ? `${invitation.contractor_name} · ${invitation.contractor_company}`
@@ -201,7 +203,12 @@ export async function listProjectActivity(
           id: `${row.id}-declined`,
           kind: "proposal_declined",
           occurred_at: row.declined_at as string,
-          title: "Proposal not selected",
+          title: isExplicitEstimateRejection({
+            estimateStatus: row.status as string,
+            invitationStatus: invitation?.status,
+          })
+            ? "Estimate rejected"
+            : "Proposal not selected",
           description: label,
           invitation_id: row.invitation_id as string,
         });

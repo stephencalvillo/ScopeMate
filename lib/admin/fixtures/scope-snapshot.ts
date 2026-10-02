@@ -1,8 +1,13 @@
-import type { ProjectWithScope, ReviewScopeSnapshot } from "@/types";
+import type {
+  ProjectWithScope,
+  ReviewScopeSnapshot,
+  ReviewScopeSnapshotSuggestion,
+} from "@/types";
 import { PREVIEW_TIMESTAMP } from "./constants";
 
 export function buildPreviewScopeSnapshot(
-  project: ProjectWithScope
+  project: ProjectWithScope,
+  suggestions: ReviewScopeSnapshotSuggestion[] = []
 ): ReviewScopeSnapshot {
   return {
     captured_at: PREVIEW_TIMESTAMP,
@@ -16,6 +21,6 @@ export function buildPreviewScopeSnapshot(
       sort_order: item.sort_order,
       needs_verification: item.needs_verification,
     })),
-    suggestions: [],
+    suggestions,
   };
 }

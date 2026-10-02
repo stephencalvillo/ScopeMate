@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
 import { SharedPhotoGallery } from "@/components/share/shared-photo-gallery";
 import {
   AcceptedProjectEstimateSection,
@@ -8,15 +9,12 @@ import {
 } from "@/components/review/accepted-proposal-project-view";
 import {
   ProposalAcceptDockProvider,
-  ProposalEstimateEndSection,
   ProposalEstimateHeaderSection,
 } from "@/components/estimate/proposal-decision-panel";
 import { ReviewedScopeSnapshotView } from "@/components/review/reviewed-scope-snapshot-view";
-import { ScopeSummary } from "@/components/scope/scope-summary";
-import { MyProjectsBreadcrumb } from "@/components/layout/my-projects-breadcrumb";
+import { BreadcrumbLink, BreadcrumbNav } from "@/components/layout/breadcrumb-link";
 import { PageBreadcrumbHeader } from "@/components/layout/page-breadcrumb-header";
-import { PageSection, SectionSurface } from "@/components/layout/page-section";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   formatReviewDate,
   formatReviewedScopeHeadline,
@@ -29,6 +27,46 @@ import { SHARE_LINK_PLACEHOLDER_EMAIL } from "@/lib/contractor/project-share";
 import { formatProposalRange } from "@/lib/estimates/money";
 import type { ContractorEstimate, ProjectWithScope, ScopeItem, ScopeSuggestionWithMeta } from "@/types";
 import type { SharedPhoto } from "@/lib/phase2/client";
+
+function formatReviewFeedbackLine(
+  entries: Array<{ suggestion_type: string }>
+) {
+  const commentCount = entries.filter(
+    (entry) => entry.suggestion_type !== "add"
+  ).length;
+  const suggestionCount = entries.filter(
+    (entry) => entry.suggestion_type === "add"
+  ).length;
+  const parts = [
+    commentCount > 0
+      ? `${commentCount} comment${commentCount === 1 ? "" : "s"}`
+      : null,
+    suggestionCount > 0
+      ? `${suggestionCount} suggestion${suggestionCount === 1 ? "" : "s"}`
+      : null,
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+function ReviewEstimateColumns({
+  rail,
+  children,
+  className,
+}: {
+  rail: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:gap-8 xl:grid-cols-[minmax(0,1fr)_19rem] xl:gap-10">
+      <aside className="mb-6 min-w-0 lg:order-2 lg:mb-0 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
+        {rail}
+      </aside>
+      <div className={cn("min-w-0 lg:order-1", className)}>{children}</div>
+    </div>
+  );
+}
 
 export function ReviewedScopeDetail({
   projectId,
@@ -55,86 +93,101 @@ export function ReviewedScopeDetail({
   const submittedLabel = formatReviewDate(invitation.review?.submitted_at);
   const hasProposal =
     estimate != null && (estimate.line_items?.length ?? 0) > 0;
-  const metaParts = [
+  const showEmail =
+    invitation.contractor_email !== SHARE_LINK_PLACEHOLDER_EMAIL ||
+    Boolean(invitation.accepted_at);
+  const identityParts = [
     submitted ? submittedLabel : null,
+    showEmail ? invitation.contractor_email : null,
+    showEmail && invitation.contractor_company
+      ? invitation.contractor_company
+      : null,
+  ].filter(Boolean);
+  const scopeSnapshot = parseReviewScopeSnapshot(
+    invitation.review?.scope_snapshot ?? null
+  );
+  const feedbackLine = formatReviewFeedbackLine(
+    scopeSnapshot?.suggestions ?? suggestions
+  );
+  const statusParts = [
     scope.is_selected_proposal ? "Proposal accepted" : null,
-    scope.estimate_status === "declined" ? "Not selected" : null,
+    scope.estimate_status === "declined" && invitation.status !== "closed_out"
+      ? "Estimate rejected"
+      : scope.estimate_status === "declined"
+        ? "Not selected"
+        : null,
     !hasProposal &&
     scope.proposal_min_total != null &&
     scope.proposal_max_total != null
       ? `Proposal ${formatProposalRange(scope.proposal_min_total, scope.proposal_max_total)}`
       : null,
-    scope.total_suggestion_count > 0
-      ? `${scope.total_suggestion_count} suggestion${
-          scope.total_suggestion_count === 1 ? "" : "s"
-        }`
-      : null,
+    feedbackLine,
   ].filter(Boolean);
 
-  const scopeSnapshot = parseReviewScopeSnapshot(
-    invitation.review?.scope_snapshot ?? null
-  );
-
-  const showEmail =
-    invitation.contractor_email !== SHARE_LINK_PLACEHOLDER_EMAIL ||
-    Boolean(invitation.accepted_at);
-
   const showAcceptedLayout = scope.is_selected_proposal && estimate != null;
+  const projectCrumbLabel = project.title.trim() || "Project";
+  const contractorNotes = invitation.review?.notes ?? null;
+
+  const scopeColumn = (
+    <ReviewedScopeSnapshotView
+      projectId={projectId}
+      snapshot={scopeSnapshot}
+      currentSummary={currentSummary}
+      currentItems={currentScopeItems}
+      contractorName={displayContractorName(invitation)}
+      suggestions={suggestions}
+      estimate={estimate}
+      contractorNotes={contractorNotes}
+      belowNotes={
+        showAcceptedLayout ? <SharedPhotoGallery photos={photos} /> : undefined
+      }
+      onUpdated={() => router.refresh()}
+    />
+  );
 
   return (
     <div className="space-y-8">
-      <PageBreadcrumbHeader breadcrumb={<MyProjectsBreadcrumb href="/projects" />}>
+      <PageBreadcrumbHeader
+        breadcrumb={
+          <BreadcrumbNav>
+            <BreadcrumbLink href={`/projects/${project.id}`}>
+              {projectCrumbLabel}
+            </BreadcrumbLink>
+          </BreadcrumbNav>
+        }
+      >
         {showAcceptedLayout ? (
           <AcceptedProjectHeader project={project} />
         ) : (
           <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-display text-4xl tracking-tight text-neutral-900">
-                {formatReviewedScopeHeadline(invitation, submitted)}
-              </h1>
-              {scope.pending_suggestion_count > 0 ? (
-                <Badge variant="pending">
-                  {scope.pending_suggestion_count} pending
-                </Badge>
-              ) : null}
-            </div>
-            {showEmail ? (
+            <h1 className="font-display text-4xl tracking-tight text-neutral-900">
+              {formatReviewedScopeHeadline(invitation, submitted)}
+            </h1>
+            {identityParts.length > 0 ? (
               <p className="text-sm text-[var(--muted)]">
-                {invitation.contractor_email}
-                {invitation.contractor_company
-                  ? ` · ${invitation.contractor_company}`
-                  : ""}
+                {identityParts.join(" · ")}
               </p>
             ) : null}
-            {metaParts.length > 0 ? (
+            {statusParts.length > 0 ? (
               <p className="text-sm text-[var(--muted)]">
-                {metaParts.join(" · ")}
+                {statusParts.join(" · ")}
               </p>
             ) : null}
           </div>
         )}
       </PageBreadcrumbHeader>
 
-      {showAcceptedLayout ? (
-        <>
-          <AcceptedProjectEstimateSection
-            estimate={estimate}
-            audience="homeowner"
-          />
-          <ScopeSummary summary={currentSummary} />
-          <SharedPhotoGallery photos={photos} />
-          <ReviewedScopeSnapshotView
-            projectId={projectId}
-            snapshot={scopeSnapshot}
-            currentSummary={currentSummary}
-            currentItems={currentScopeItems}
-            submittedLabel={submittedLabel}
-            contractorName={displayContractorName(invitation)}
-            suggestions={suggestions}
-            estimate={estimate}
-            onUpdated={() => router.refresh()}
-          />
-        </>
+      {showAcceptedLayout && estimate ? (
+        <ReviewEstimateColumns
+          rail={
+            <AcceptedProjectEstimateSection
+              estimate={estimate}
+              audience="homeowner"
+            />
+          }
+        >
+          {scopeColumn}
+        </ReviewEstimateColumns>
       ) : estimate ? (
         <ProposalAcceptDockProvider
           projectId={projectId}
@@ -142,46 +195,19 @@ export function ReviewedScopeDetail({
           estimate={estimate}
           projectHasSelectedProposal={scope.project_has_selected_proposal}
           isSelectedProposal={scope.is_selected_proposal}
+          invitationStatus={invitation.status}
+          contractorName={displayContractorName(invitation)}
         >
-          <ProposalEstimateHeaderSection />
-
-          <ReviewedScopeSnapshotView
-            projectId={projectId}
-            snapshot={scopeSnapshot}
-            currentSummary={currentSummary}
-            currentItems={currentScopeItems}
-            submittedLabel={submittedLabel}
-            contractorName={displayContractorName(invitation)}
-            suggestions={suggestions}
-            estimate={estimate}
-            onUpdated={() => router.refresh()}
-          />
-
-          <ProposalEstimateEndSection />
+          <ReviewEstimateColumns
+            rail={<ProposalEstimateHeaderSection layout="rail" />}
+            className="max-lg:pb-40"
+          >
+            {scopeColumn}
+          </ReviewEstimateColumns>
         </ProposalAcceptDockProvider>
       ) : (
-        <ReviewedScopeSnapshotView
-          projectId={projectId}
-          snapshot={scopeSnapshot}
-          currentSummary={currentSummary}
-          currentItems={currentScopeItems}
-          submittedLabel={submittedLabel}
-          contractorName={displayContractorName(invitation)}
-          suggestions={suggestions}
-          estimate={estimate}
-          onUpdated={() => router.refresh()}
-        />
+        scopeColumn
       )}
-
-      {invitation.review?.notes ? (
-        <PageSection title="General notes">
-          <SectionSurface>
-            <p className="whitespace-pre-wrap text-sm text-neutral-800">
-              {invitation.review.notes}
-            </p>
-          </SectionSurface>
-        </PageSection>
-      ) : null}
     </div>
   );
 }

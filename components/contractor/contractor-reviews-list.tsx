@@ -17,6 +17,13 @@ function reviewStatusBadge(item: ContractorReviewListItem) {
     return <Badge variant="success">Proposal accepted</Badge>;
   }
 
+  if (
+    item.estimate_status === "declined" &&
+    item.invitation.status !== "closed_out"
+  ) {
+    return <Badge variant="secondary">Rejected</Badge>;
+  }
+
   if (item.estimate_status === "declined" || item.invitation.status === "closed_out") {
     return <Badge variant="secondary">Not selected</Badge>;
   }

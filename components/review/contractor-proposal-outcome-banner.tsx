@@ -24,6 +24,20 @@ export function ContractorProposalOutcomeBanner({
     );
   }
 
+  if (estimate?.status === "declined" && invitation.status !== "closed_out") {
+    return (
+      <SectionSurface className="space-y-2 border-neutral-200 bg-neutral-50">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary">Rejected</Badge>
+        </div>
+        <p className="text-sm text-neutral-800">
+          The homeowner rejected your estimate. You can still review it here,
+          but it is no longer active.
+        </p>
+      </SectionSurface>
+    );
+  }
+
   if (invitation.status === "closed_out" || estimate?.status === "declined") {
     return (
       <SectionSurface className="space-y-2 border-neutral-200 bg-neutral-50">
